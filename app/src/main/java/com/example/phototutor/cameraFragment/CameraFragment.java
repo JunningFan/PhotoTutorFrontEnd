@@ -58,6 +58,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -259,9 +260,11 @@ public class CameraFragment extends Fragment {
                                 new ImageCapture.OnImageCapturedCallback() {
                                     @Override
                                     public void onCaptureSuccess(@NonNull ImageProxy image) {
-
+                                        Bitmap bitmap = imageProxyToBitmap(image);
+                                        bitmap = photoPreprocess(bitmap);
                                         mViewModel.select(
-                                                new Photo(imageProxyToBitmap(image))
+
+                                                new Photo(bitmap)
                                         );
 
                                         Log.w("in camera fragment", mViewModel.getSelected().getValue().toString());
@@ -321,11 +324,31 @@ public class CameraFragment extends Fragment {
         byte[] bytes = new byte[buffer.capacity()];
         buffer.get(bytes);
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+        return  bitmap;
+    }
+
+    private Bitmap photoPreprocess(Bitmap bitmap){
         Matrix matrix = new Matrix();
+
+
         matrix.postRotate(90);
+        if (lensFacing == CameraSelector.LENS_FACING_FRONT) {
+            matrix.postRotate(180);
+            matrix.postScale(-1, 1, bitmap.getWidth(), bitmap.getHeight());
+        }
+        switch (imageAnalyzer.getTargetRotation()){
+            case Surface.ROTATION_90:matrix.postRotate(270);break;
+            case Surface.ROTATION_270:matrix.postRotate(90);break;
+        }
+
+
         Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0,
                 bitmap.getWidth(),bitmap.getHeight(), matrix, true);
-        return  rotatedBitmap;
+
+
+        return rotatedBitmap;
+
     }
     private void startUpCamera(){
         View cameraView = getView().findViewById(R.id.cameraView);
