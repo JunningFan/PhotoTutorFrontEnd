@@ -1,9 +1,14 @@
 package com.example.phototutor.cameraFragment;
 
+import androidx.camera.camera2.interop.Camera2CameraInfo;
 import androidx.camera.core.AspectRatio;
 import androidx.camera.core.Camera;
+
+import androidx.camera.core.CameraControl;
+import androidx.camera.core.CameraInfo;
 import androidx.camera.core.CameraInfoUnavailableException;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.CameraX;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
@@ -34,6 +39,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.display.DisplayManager;
+import android.icu.number.Scale;
 import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
@@ -50,10 +56,13 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.phototutor.Photo.Photo;
@@ -417,6 +426,7 @@ public class CameraFragment extends Fragment {
         } catch (Exception exc) {
             Log.e("camera fragment", "Use case binding failed", exc);
         }
+        setUpPinchToZoom();
 
 
     }
@@ -471,4 +481,45 @@ public class CameraFragment extends Fragment {
         return true;
 
     };
+
+
+
+    private void setUpPinchToZoom(){
+        PreviewView imageView = getView().findViewById(R.id.cameraView);
+        ScaleGestureDetector.SimpleOnScaleGestureListener listener =
+                new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                    @SuppressLint("RestrictedApi")
+                    @Override
+                    public boolean onScale(ScaleGestureDetector detector) {
+
+                        CameraSelector cameraSelector = new CameraSelector.Builder()
+                                .requireLensFacing(lensFacing).build();
+
+                        Camera camera = CameraX.getCameraWithCameraSelector(cameraSelector);
+                        CameraControl cameraControl = camera.getCameraControl();
+                        CameraInfo cameraInfo = camera.getCameraInfo();
+                        cameraControl.setZoomRatio(
+                                cameraInfo.getZoomState()
+                                        .getValue()
+                                        .getZoomRatio() * detector.getScaleFactor());
+
+
+                        return true;
+
+                    }
+
+                };
+
+        ScaleGestureDetector scaleGestureDetector = new ScaleGestureDetector(requireContext(), listener);
+        imageView.setOnTouchListener(
+                (view, motionEvent) -> {
+                    scaleGestureDetector.onTouchEvent(motionEvent);
+
+                    return true;
+            }
+        );
+
+
+
+    }
 }
