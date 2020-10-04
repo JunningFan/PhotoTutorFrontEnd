@@ -61,11 +61,9 @@ public class CameraFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (!hasPermissions(requireContext())) {
-            // Request camera-related permissions
-            requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
-        }
         displayManager= (DisplayManager)requireContext().getSystemService(Context.DISPLAY_SERVICE);
+
+
     }
 
     public static CameraFragment newInstance() {
@@ -131,6 +129,7 @@ public class CameraFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         return inflater.inflate(R.layout.fragment_camera, container, false);
     }
 
@@ -164,7 +163,9 @@ public class CameraFragment extends Fragment {
     @SuppressLint("MissingPermission")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
         super.onViewCreated(view, savedInstanceState);
+
         broadcastManager = LocalBroadcastManager.getInstance(view.getContext());
         cameraExecutor = Executors.newSingleThreadExecutor();
         // Set up the intent filter(target:volumn down button) that will
@@ -176,19 +177,13 @@ public class CameraFragment extends Fragment {
         displayManager.registerDisplayListener(
                 (DisplayManager.DisplayListener) displayListener, null);
 
-        View cameraView = view.findViewById(R.id.cameraView);
-
-        cameraView.post(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.w("CameraView.post Runnable","here");
-                        updateCameraUi();
-                        setUpCamera();
-                    }
-                }
-        );
-
+        if (!hasPermissions(requireContext())) {
+            // Request camera-related permissions
+            requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
+        }
+        else{
+            startUpCamera();
+        }
     }
 
     /* Method used to re-draw the camera UI controls,
@@ -232,7 +227,20 @@ public class CameraFragment extends Fragment {
 
 
     }
+    private void startUpCamera(){
+        View cameraView = getView().findViewById(R.id.cameraView);
 
+        cameraView.post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.w("CameraView.post Runnable","here");
+                        updateCameraUi();
+                        setUpCamera();
+                    }
+                }
+        );
+    }
 
     private void setUpCamera(){
         final ListenableFuture<ProcessCameraProvider> cameraProviderFuture
@@ -351,6 +359,7 @@ public class CameraFragment extends Fragment {
         if (requestCode == PERMISSIONS_REQUEST_CODE) {
             if (grantResults.length>0 && PackageManager.PERMISSION_GRANTED == grantResults[0]) {
                 // Take the user to the success fragment when permission is granted
+                startUpCamera();
                 Toast.makeText(requireContext(), "Permission request granted", Toast.LENGTH_LONG).show();
 
             } else {
