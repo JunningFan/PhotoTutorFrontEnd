@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.navigation.Navigation;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -53,6 +54,9 @@ public class PreviewFragment extends Fragment {
                     () -> imageView.setImageBitmap(photo.getPhoto())
             );
         });
+        view.findViewById(R.id.back_button).setOnClickListener(
+                view1 -> Navigation.findNavController(requireActivity(), R.id.camera_nav_host_fragment).navigateUp()
+        );
 
 
 
@@ -64,4 +68,6 @@ public class PreviewFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
     }
+
+
 }
