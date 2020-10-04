@@ -13,7 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".CameraActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+
             android:rotationAnimation="seamless"
             android:screenOrientation="fullUser"
             ></activity>

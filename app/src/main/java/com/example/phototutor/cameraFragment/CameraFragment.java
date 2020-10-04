@@ -1,5 +1,6 @@
 package com.example.phototutor.cameraFragment;
 
+import androidx.camera.core.AspectRatio;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraInfoUnavailableException;
 import androidx.camera.core.CameraSelector;
@@ -9,9 +10,11 @@ import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.CameraView;
 import androidx.camera.view.PreviewView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.Manifest;
@@ -22,7 +25,17 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.ImageFormat;
+import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.display.DisplayManager;
+import android.media.Image;
+import android.os.Build;
 import android.os.Bundle;
 
 
@@ -30,7 +43,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.navigation.ActionOnlyNavDirections;
+import androidx.navigation.Navigation;
 
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -40,9 +56,13 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,12 +77,14 @@ public class CameraFragment extends Fragment {
     @Nullable private ExecutorService cameraExecutor = null;
     private  LocalBroadcastManager broadcastManager;
     private DisplayManager displayManager;
+    private int lensFacing;
+    private int displayId;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         displayManager= (DisplayManager)requireContext().getSystemService(Context.DISPLAY_SERVICE);
-
+        displayId = this.displayId;
 
     }
 
@@ -95,9 +117,11 @@ public class CameraFragment extends Fragment {
 
         @Override
         public void onDisplayChanged(int id) {
-            if(id == getView().getId()){
+            if(id == displayId){
+                Log.w("onDisplayChanged", String.valueOf(imageAnalyzer.getTargetRotation()));
                 imageCapture.setTargetRotation(getView().getDisplay().getRotation());
                 imageAnalyzer.setTargetRotation(getView().getDisplay().getRotation());
+                Log.w("onDisplayChanged", String.valueOf(imageAnalyzer.getTargetRotation()));
             }
         }
     };
@@ -137,7 +161,7 @@ public class CameraFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this).get(CameraViewModel.class);
+        mViewModel = new ViewModelProvider(requireActivity()).get(CameraViewModel.class);
     }
 
     /**
@@ -200,6 +224,21 @@ public class CameraFragment extends Fragment {
         // Inflate a new view containing all UI for controlling the camera
         View controls = View.inflate(requireContext(),
                 R.layout.camera_ui_container, (ConstraintLayout) getView());
+        controls.findViewById(R.id.camera_switch_button).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(CameraSelector.LENS_FACING_BACK == lensFacing){
+                            lensFacing = CameraSelector.LENS_FACING_FRONT;
+                        }
+                        else if (CameraSelector.LENS_FACING_FRONT == lensFacing){
+                            lensFacing = CameraSelector.LENS_FACING_BACK;
+                        }
+                        bindCameraUseCases();
+
+                    }
+                }
+        );
         controls.findViewById(R.id.camera_capture_button).setOnClickListener(
                 new View.OnClickListener() {
                     @Override
@@ -211,8 +250,18 @@ public class CameraFragment extends Fragment {
                                 new ImageCapture.OnImageCapturedCallback() {
                                     @Override
                                     public void onCaptureSuccess(@NonNull ImageProxy image) {
+
+                                        mViewModel.select(
+                                                new Photo(imageProxyToBitmap(image))
+                                        );
+
+                                        Log.w("in camera fragment", mViewModel.getSelected().getValue().toString());
+                                        Navigation.findNavController(
+                                            requireActivity(),R.id.camera_nav_host_fragment
+                                        ).navigate(R.id.action_camera_fragment_to_preview_fragment);
+
                                         super.onCaptureSuccess(image);
-                                        Log.d("take_photo", image.toString());
+
                                     }
 
                                     @Override
@@ -221,11 +270,53 @@ public class CameraFragment extends Fragment {
                                     }
                                 }
                         );
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+                            // Display flash animation to indicate that photo was captured
+                            getView().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    getView().setForeground(new ColorDrawable(Color.WHITE));
+                                    getView().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            getView().setForeground(null);
+                                        }
+                                    },100);
+
+                                }
+                            },200);
+                        }
                     }
                 }
         );
 
 
+
+    }
+
+    private int aspectRatio(int width, int height) {
+        double previewRatio = Double.max(width, height) /
+                Double.min(width, height);
+
+        if (Math.abs(previewRatio - 4.0 / 3.0) <= Math.abs(previewRatio - 16.0 / 9.0)) {
+            return AspectRatio.RATIO_4_3;
+        }
+        return AspectRatio.RATIO_16_9;
+    }
+
+    private Bitmap imageProxyToBitmap(ImageProxy image){
+        Log.w("imageProxyToBitmap", String.valueOf(image.getFormat()));
+        ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+        buffer.rewind();
+        byte[] bytes = new byte[buffer.capacity()];
+        buffer.get(bytes);
+        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        Matrix matrix = new Matrix();
+        matrix.postRotate(90);
+        Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0,
+                bitmap.getWidth(),bitmap.getHeight(), matrix, true);
+        return  rotatedBitmap;
     }
     private void startUpCamera(){
         View cameraView = getView().findViewById(R.id.cameraView);
@@ -235,6 +326,7 @@ public class CameraFragment extends Fragment {
                     @Override
                     public void run() {
                         Log.w("CameraView.post Runnable","here");
+                        displayId = cameraView.getDisplay().getDisplayId();
                         updateCameraUi();
                         setUpCamera();
                     }
@@ -253,12 +345,13 @@ public class CameraFragment extends Fragment {
                         try {
                             cameraProvider = cameraProviderFuture.get();
                             // Enable or disable switching between cameras
+                            lensFacing = getLensFacing();
                             updateCameraSwitchButton();
 
                             // Build and bind the camera use cases
                             bindCameraUseCases();
 
-                        } catch (ExecutionException | InterruptedException e) {
+                        } catch (ExecutionException | InterruptedException | CameraInfoUnavailableException e) {
                             e.printStackTrace();
                         }
 
@@ -281,50 +374,48 @@ public class CameraFragment extends Fragment {
     }
 
     private void bindCameraUseCases(){
+        DisplayMetrics metrics = new DisplayMetrics();
+        getView().findViewById(R.id.cameraView).getDisplay().getRealMetrics(metrics);
+        int screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels);
         if (cameraProvider == null)
             throw new IllegalStateException("Camera initialization failed.");
-        try{
-
-            //select camera direction
-            CameraSelector cameraSelector = new CameraSelector.Builder()
-                        .requireLensFacing(getLensFacing()).build();
-
-            //build Preview
-            Preview.Builder previewBuilder = new Preview.Builder();
-            PreviewView cameraView = getView().findViewById(R.id.cameraView);
-            previewBuilder.setTargetRotation(cameraView.getDisplay().getRotation());
-            preview = previewBuilder.build();
-
-            //build Image Capture
-            ImageCapture.Builder imageCaptureBuilder = new ImageCapture.Builder();
-            imageCaptureBuilder.setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY);
-            imageCaptureBuilder.setTargetRotation(cameraView.getDisplay().getRotation());
-            imageCapture = imageCaptureBuilder.build();
-
-            //build image analysis
-            ImageAnalysis.Builder imageAnalysisBuilder = new ImageAnalysis.Builder();
-            imageAnalysisBuilder.setTargetRotation(cameraView.getDisplay().getRotation());
-            imageAnalyzer = imageAnalysisBuilder.build();
-
-            cameraProvider.unbindAll();
-            try {
-                // A variable number of use-cases can be passed here -
-                // camera provides access to CameraControl & CameraInfo
-                camera = cameraProvider.bindToLifecycle(
-                        this, cameraSelector, preview, imageCapture, imageAnalyzer);
-
-                // Attach the viewfinder's surface provider to preview use case
-                preview.setSurfaceProvider(cameraView.getSurfaceProvider());
-            } catch (Exception exc) {
-                Log.e("camera fragment", "Use case binding failed", exc);
-            }
 
 
+        //select camera direction
+        CameraSelector cameraSelector = new CameraSelector.Builder()
+                    .requireLensFacing(lensFacing).build();
 
+        PreviewView cameraView = getView().findViewById(R.id.cameraView);
+        //build Preview
+        preview = new Preview.Builder()
+                .setTargetAspectRatio(screenAspectRatio)
+                .setTargetRotation(cameraView.getDisplay().getRotation())
+            .build();
 
-        }
-        catch (CameraInfoUnavailableException e) {
-            e.printStackTrace();
+        //build Image Capture
+        imageCapture =  new ImageCapture.Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setTargetAspectRatio(screenAspectRatio)
+                .setTargetRotation(cameraView.getDisplay().getRotation())
+                .build();
+
+        //build image analysis
+        imageAnalyzer = new ImageAnalysis.Builder()
+                .setTargetRotation(cameraView.getDisplay().getRotation())
+                .setTargetAspectRatio(screenAspectRatio)
+                .build();
+
+        cameraProvider.unbindAll();
+        try {
+            // A variable number of use-cases can be passed here -
+            // camera provides access to CameraControl & CameraInfo
+            camera = cameraProvider.bindToLifecycle(
+                    this, cameraSelector, preview, imageCapture, imageAnalyzer);
+
+            // Attach the viewfinder's surface provider to preview use case
+            preview.setSurfaceProvider(cameraView.getSurfaceProvider());
+        } catch (Exception exc) {
+            Log.e("camera fragment", "Use case binding failed", exc);
         }
 
 
