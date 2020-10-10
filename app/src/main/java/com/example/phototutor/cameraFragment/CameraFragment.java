@@ -235,18 +235,15 @@ public class CameraFragment extends Fragment {
         View controls = View.inflate(requireContext(),
                 R.layout.camera_ui_container, (ConstraintLayout) getView());
         controls.findViewById(R.id.camera_switch_button).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if(CameraSelector.LENS_FACING_BACK == lensFacing){
-                            lensFacing = CameraSelector.LENS_FACING_FRONT;
-                        }
-                        else if (CameraSelector.LENS_FACING_FRONT == lensFacing){
-                            lensFacing = CameraSelector.LENS_FACING_BACK;
-                        }
-                        bindCameraUseCases();
-
+                view -> {
+                    if(CameraSelector.LENS_FACING_BACK == lensFacing){
+                        lensFacing = CameraSelector.LENS_FACING_FRONT;
                     }
+                    else if (CameraSelector.LENS_FACING_FRONT == lensFacing){
+                        lensFacing = CameraSelector.LENS_FACING_BACK;
+                    }
+                    bindCameraUseCases();
+
                 }
         );
         controls.findViewById(R.id.camera_capture_button).setOnClickListener(
@@ -262,9 +259,11 @@ public class CameraFragment extends Fragment {
                                     public void onCaptureSuccess(@NonNull ImageProxy image) {
                                         Bitmap bitmap = imageProxyToBitmap(image);
                                         bitmap = photoPreprocess(bitmap);
+                                        Photo photo = new Photo(
+                                                bitmap,
+                                                image.getImageInfo().getTimestamp());
                                         mViewModel.select(
-
-                                                new Photo(bitmap)
+                                                photo
                                         );
 
                                         Log.w("in camera fragment", mViewModel.getSelected().getValue().toString());
@@ -354,14 +353,11 @@ public class CameraFragment extends Fragment {
         View cameraView = getView().findViewById(R.id.cameraView);
 
         cameraView.post(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.w("CameraView.post Runnable","here");
-                        displayId = cameraView.getDisplay().getDisplayId();
-                        updateCameraUi();
-                        setUpCamera();
-                    }
+                () -> {
+                    Log.w("CameraView.post Runnable","here");
+                    displayId = cameraView.getDisplay().getDisplayId();
+                    updateCameraUi();
+                    setUpCamera();
                 }
         );
     }
@@ -371,23 +367,20 @@ public class CameraFragment extends Fragment {
                             = ProcessCameraProvider.getInstance(requireContext());
 
         cameraProviderFuture.addListener(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            cameraProvider = cameraProviderFuture.get();
-                            // Enable or disable switching between cameras
-                            lensFacing = getLensFacing();
-                            updateCameraSwitchButton();
+                () -> {
+                    try {
+                        cameraProvider = cameraProviderFuture.get();
+                        // Enable or disable switching between cameras
+                        lensFacing = getLensFacing();
+                        updateCameraSwitchButton();
 
-                            // Build and bind the camera use cases
-                            bindCameraUseCases();
+                        // Build and bind the camera use cases
+                        bindCameraUseCases();
 
-                        } catch (ExecutionException | InterruptedException | CameraInfoUnavailableException e) {
-                            e.printStackTrace();
-                        }
-
+                    } catch (ExecutionException | InterruptedException | CameraInfoUnavailableException e) {
+                        e.printStackTrace();
                     }
+
                 }, ContextCompat.getMainExecutor(requireContext())
 
         );
