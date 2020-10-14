@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/camera_section_navigation"
+    app:startDestination="@id/camera_fragment">
+
+    <fragment
+        android:name="com.example.phototutor.cameraFragment.CameraFragment"
+        android:id="@+id/camera_fragment"
+
+        >
+        <action
+            android:id="@+id/action_camera_fragment_to_preview_fragment"
+            app:destination="@id/preview_fragment" />
+    </fragment>
+
+
+    <fragment
+        android:name="com.example.phototutor.cameraFragment.PreviewFragment"
+        android:id="@+id/preview_fragment"
+
+        />
+
+</navigation>
