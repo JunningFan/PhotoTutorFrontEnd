@@ -1,5 +1,7 @@
 package com.example.phototutor.ui.localalbum;
 
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -8,6 +10,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -50,6 +53,7 @@ public class LocalAlbumFragment extends Fragment {
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+
         super.onActivityCreated(savedInstanceState);
         mViewModel = ViewModelProviders.of(this).get(LocalAlbumViewModel.class);
         mViewModel.loadDatabase(requireContext());
@@ -58,6 +62,17 @@ public class LocalAlbumFragment extends Fragment {
                 3,GridLayoutManager.VERTICAL,false);
         RecyclerView local_album_recycleview = getView().findViewById(R.id.local_album_recyclerview);
         adapter = new AlbumAdapter(requireContext());
+        adapter.setImageGridOnClickCallBack(
+                pos -> {
+
+                    mViewModel.select(pos);
+                    Log.w(TAG,"in Call Back " + pos);
+                    Log.w(TAG,"in Call Back " +  requireActivity().toString());
+                    Navigation.findNavController(
+                            requireActivity(),R.id.local_album_nav_host_fragment
+                    ).navigate(R.id.action_local_album_fragment_to_local_photo_detail_fragment);
+                }
+        );
         local_album_recycleview.setAdapter(adapter);
         local_album_recycleview.setLayoutManager(gridLayoutManager);
         // TODO: Use the ViewModel

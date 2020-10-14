@@ -20,6 +20,7 @@ import com.example.phototutor.LocalAlbumActivity;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 import com.example.phototutor.Photo.PhotoDatabase;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
 
@@ -27,6 +28,8 @@ import java.io.File;
 public class PreviewFragment extends Fragment {
     private CameraViewModel mViewModel;
     private Photo currphoto;
+
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,6 +81,24 @@ public class PreviewFragment extends Fragment {
                 }
         );
 
+        BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(
+                view.findViewById(R.id.button_sheet_image_detail));
+//        bottomSheetBehavior.setPeekHeight(300);
+        bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+//                yourView.animate().y(v <= 0 ?
+//                        view.getY() + mSheetBehavior.getPeekHeight() - yourView.getHeight() :
+//                        view.getHeight() - yourView.getHeight()).setDuration(0).start();
+            }
+        });
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
     }
 
     @Override
@@ -85,6 +106,8 @@ public class PreviewFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
     }
+
+
 
 
 }

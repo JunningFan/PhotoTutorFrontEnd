@@ -1,5 +1,6 @@
 package com.example.phototutor.adapters;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
@@ -9,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -22,10 +24,19 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     List<Photo> photoList;
     Context context;
     LayoutInflater inflater;
+    private ImageGridOnClickCallBack imageGridOnClickCallBack;
     private String TAG = "AlbumAdapter";
-    public AlbumAdapter(Context context){
+
+    public interface ImageGridOnClickCallBack {
+        void run(int pos);
+    }
+
+    public AlbumAdapter(Context context ){
         this.context = context;
         this.inflater = LayoutInflater.from(context);
+    }
+    public void setImageGridOnClickCallBack(ImageGridOnClickCallBack callback){
+        imageGridOnClickCallBack = callback;
     }
 
     @NonNull
@@ -54,6 +65,13 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
                     .load(current.thumbnailURI)
                     .placeholder(R.drawable.ic_loading)
                     .into(holder.imageView);
+
+            holder.imageView.setOnClickListener(
+                    view -> {
+                        imageGridOnClickCallBack.run(position);
+                    }
+
+            );
             Log.w(TAG,"onBindViewHolder " + String.valueOf(position));
 
         } else {

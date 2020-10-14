@@ -9,7 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 
-public class CameraActivity<FLAGS_FULLSCREEN> extends AppCompatActivity {
+public class CameraActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +24,7 @@ public class CameraActivity<FLAGS_FULLSCREEN> extends AppCompatActivity {
         // Before setting full screen flags, we must wait a bit to let UI settle; otherwise, we may
         // be trying to set app to immersive mode before it's ready and the flags do not stick
         super.onResume();
+        Log.w("CameraActivity","onResume");
         findViewById(R.id.activity_camera).postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -33,8 +34,8 @@ public class CameraActivity<FLAGS_FULLSCREEN> extends AppCompatActivity {
                                 View.SYSTEM_UI_FLAG_FULLSCREEN  |
                                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
-                                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+
+                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION );
             }
         },500L);
     }
