@@ -29,6 +29,10 @@ import java.net.URL;
 import java.sql.Timestamp;
 
 class Coordinates {
+    Coordinates(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
     double latitude;
     double longitude;
 }
@@ -61,14 +65,39 @@ public class Photo {
         this.timestamp = timestamp;
     }
 
+    public Photo(Bitmap bitmap, Long timestamp, double latitude, double longitude){
+        this(bitmap, timestamp);
+        setLocation(new Coordinates(latitude, longitude));
+    }
+
+
     public Bitmap getBitmap() {
         return bitmap;
+    }
+
+    public Coordinates getLocation() {
+        if(location != null) {
+            return location;}
+        return new Coordinates(-720, -720);
+    }
+
+    public double getLatitude() {
+        return getLocation().latitude;
+    }
+
+    public double getLongitude() {
+        return getLocation().longitude;
+    }
+
+    public void setLocation(Coordinates location) {
+        this.location = location;
     }
 
     public void setBitmap(Bitmap bitmap) {
         this.bitmap = bitmap;
         this.thumbnail = ThumbnailUtils.extractThumbnail(bitmap,64,64);
     }
+
 
     public boolean saveImage(File directory) {
         try {

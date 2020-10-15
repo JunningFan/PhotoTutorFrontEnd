@@ -40,6 +40,7 @@ import android.graphics.YuvImage;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.display.DisplayManager;
 import android.icu.number.Scale;
+import android.location.LocationManager;
 import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
@@ -66,6 +67,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.example.phototutor.GpsModule.GpsHelper;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -76,6 +78,8 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 public class CameraFragment extends Fragment {
     private CameraViewModel mViewModel;
@@ -147,6 +151,9 @@ public class CameraFragment extends Fragment {
         if (!hasPermissions(requireContext())) {
             requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
         }
+        if(GpsHelper.checkGpsPermission(getActivity()) != GpsHelper.PERMISSION_STATE_GRANTED) {
+            GpsHelper.requestLocationPermission(this, PERMISSION_CODE_GPS);
+        }
 
     }
 
@@ -211,11 +218,15 @@ public class CameraFragment extends Fragment {
         displayManager.registerDisplayListener(
                 (DisplayManager.DisplayListener) displayListener, null);
 
-        if (!hasPermissions(requireContext())) {
+        if ((!hasPermissions(requireContext())) || !(GpsHelper.checkGpsPermission(getActivity()) == GpsHelper.PERMISSION_STATE_GRANTED)) {
             // Request camera-related permissions
-            requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
-        }
-        else{
+            if (!hasPermissions(requireContext())) {
+                requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
+            }
+            if (!(GpsHelper.checkGpsPermission(getActivity()) == GpsHelper.PERMISSION_STATE_GRANTED)) {
+                GpsHelper.requestLocationPermission(this, PERMISSION_CODE_GPS);
+            }
+        } else {
             startUpCamera();
         }
     }
@@ -252,23 +263,30 @@ public class CameraFragment extends Fragment {
                     public void onClick(View view) {
                         if (imageCapture == null) return;
 
+                        if (!GpsHelper.isGpsEnabled(locationManager)) {
+                            Toast.makeText(getActivity(), "please turn on location service", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        if (!GpsHelper.isCoordinationValid(GpsHelper.getCoordination(getActivity(), locationManager))) {
+                            Toast.makeText(getActivity(), "GPS signal lost", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
                         imageCapture.takePicture(
-                               ContextCompat.getMainExecutor(getContext()),
+                                ContextCompat.getMainExecutor(getContext()),
                                 new ImageCapture.OnImageCapturedCallback() {
                                     @Override
                                     public void onCaptureSuccess(@NonNull ImageProxy image) {
                                         Bitmap bitmap = imageProxyToBitmap(image);
                                         bitmap = photoPreprocess(bitmap);
-                                        Photo photo = new Photo(
-                                                bitmap,
-                                                image.getImageInfo().getTimestamp());
+                                        //
+                                        Bundle gps_bdl = GpsHelper.getCoordination(getActivity(), locationManager);
                                         mViewModel.select(
-                                                photo
+                                                new Photo(bitmap, image.getImageInfo().getTimestamp(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"))
                                         );
-
                                         Log.w("in camera fragment", mViewModel.getSelected().getValue().toString());
                                         Navigation.findNavController(
-                                            requireActivity(),R.id.camera_nav_host_fragment
+                                                requireActivity(), R.id.camera_nav_host_fragment
                                         ).navigate(R.id.action_camera_fragment_to_preview_fragment);
 
                                         super.onCaptureSuccess(image);
@@ -352,6 +370,19 @@ public class CameraFragment extends Fragment {
     private void startUpCamera(){
         View cameraView = getView().findViewById(R.id.cameraView);
 
+        locationManager = GpsHelper.getLocationManager(getActivity());
+        //check if location service is enable in the system
+        if (!GpsHelper.isGpsEnabled(locationManager)) {
+            Toast.makeText(getActivity(), "please turn on location service", Toast.LENGTH_LONG).show();
+        }
+
+        //Request live update of GPS location
+        GpsHelper.startGpsUpdate(locationManager);
+        if (!GpsHelper.isCoordinationValid(GpsHelper.getCoordination(getActivity(), locationManager))) {
+            Toast.makeText(getActivity(), "GPS signal lost, please move to an uncovered area", Toast.LENGTH_SHORT).show();
+            //while (!GpsHelper.isCoordinationValid(GpsHelper.getCoordination(getActivity(),locationManager))){};
+        }
+
         cameraView.post(
                 () -> {
                     Log.w("CameraView.post Runnable","here");
@@ -364,7 +395,7 @@ public class CameraFragment extends Fragment {
 
     private void setUpCamera(){
         final ListenableFuture<ProcessCameraProvider> cameraProviderFuture
-                            = ProcessCameraProvider.getInstance(requireContext());
+                = ProcessCameraProvider.getInstance(requireContext());
 
         cameraProviderFuture.addListener(
                 () -> {
@@ -384,8 +415,8 @@ public class CameraFragment extends Fragment {
                 }, ContextCompat.getMainExecutor(requireContext())
 
         );
-        
-        
+
+
     }
 
     /** Enabled or disabled a button to switch cameras depending on the available cameras */
@@ -408,14 +439,14 @@ public class CameraFragment extends Fragment {
 
         //select camera direction
         CameraSelector cameraSelector = new CameraSelector.Builder()
-                    .requireLensFacing(lensFacing).build();
+                .requireLensFacing(lensFacing).build();
 
         PreviewView cameraView = getView().findViewById(R.id.cameraView);
         //build Preview
         preview = new Preview.Builder()
                 .setTargetAspectRatio(screenAspectRatio)
                 .setTargetRotation(cameraView.getDisplay().getRotation())
-            .build();
+                .build();
 
         //build Image Capture
         imageCapture =  new ImageCapture.Builder()
@@ -473,25 +504,42 @@ public class CameraFragment extends Fragment {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSIONS_REQUEST_CODE) {
-            if (grantResults.length>0 && PackageManager.PERMISSION_GRANTED == grantResults[0]) {
-                // Take the user to the success fragment when permission is granted
-                startUpCamera();
-                Toast.makeText(requireContext(), "Permission request granted", Toast.LENGTH_LONG).show();
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_CODE:
+                if (grantResults.length > 0 && PERMISSION_GRANTED == grantResults[0]) {
+                    // Take the user to the success fragment when permission is granted
+                    Toast.makeText(requireContext(), "Permission request granted", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(requireContext(), "Permission request denied", Toast.LENGTH_LONG).show();
+                }
 
-            } else {
-                Toast.makeText(requireContext(), "Permission request denied", Toast.LENGTH_LONG).show();
-            }
+                break;
+            case PERMISSION_CODE_GPS:
+                if (grantResults.length > 0 && grantResults[0] != PERMISSION_GRANTED) {
+                    Toast location_permission_not_granted = Toast.makeText(getActivity(), "Location Permission denied, this is necessary for this activity to work", Toast.LENGTH_SHORT);
+                    location_permission_not_granted.show();
+                }
+                break;
+            default:
+
+        }
+        if (hasPermissions(requireContext()) && (GpsHelper.checkGpsPermission(getActivity()) == GpsHelper.PERMISSION_STATE_GRANTED)) {
+            startUpCamera();
         }
 
     }
 
-    static private int PERMISSIONS_REQUEST_CODE = 10;
+    static private final int PERMISSIONS_REQUEST_CODE = 10;
     static private String[] PERMISSIONS_REQUIRED = new String[] {Manifest.permission.CAMERA};
+
+    //for location
+    LocationManager locationManager;
+    private static final int PERMISSION_CODE_GPS = 1212;
+
     static public boolean hasPermissions(Context context){
         for(String permission: PERMISSIONS_REQUIRED){
             if (ContextCompat.checkSelfPermission(context, permission)
-                    != PackageManager.PERMISSION_GRANTED)
+                    != PERMISSION_GRANTED)
                 return false;
         }
         return true;
@@ -532,7 +580,7 @@ public class CameraFragment extends Fragment {
                     scaleGestureDetector.onTouchEvent(motionEvent);
 
                     return true;
-            }
+                }
         );
 
 

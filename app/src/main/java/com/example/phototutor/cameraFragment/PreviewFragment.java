@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.example.phototutor.LocalAlbumActivity;
 import com.example.phototutor.Photo.Photo;
@@ -53,10 +54,12 @@ public class PreviewFragment extends Fragment {
             ImageView imageView = view.findViewById(R.id.image_view);
             Log.w("Preview Fragment",
                     String.valueOf(photo.getBitmap().getWidth())+' ' + String.valueOf(photo.getBitmap().getHeight()));
+            Toast.makeText(getActivity(), "lat: " + Double.toString(photo.getLatitude()) + "lon: " + Double.toString(photo.getLongitude()), Toast.LENGTH_LONG).show();
 
             imageView.post(
                     () -> imageView.setImageBitmap(photo.getBitmap())
             );
+
         });
 
         view.findViewById(R.id.back_button).setOnClickListener(
