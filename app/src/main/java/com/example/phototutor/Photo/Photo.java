@@ -44,10 +44,12 @@ public class Photo {
     public int id;
     public Uri imageURI;
     public Uri thumbnailURI;
-    public int iso;
-    public int focal_length;
-    public int aperture;
-    public int shutter_speed;
+    public int iso; // from 1 to IMT_MAX
+    public int focal_length; // from 1 to INT_MAX, unit: millimeter
+    public double aperture; // from 0 to DOUBLE_MAX
+    public double shutter_speed; //Shutter speed (in unit of second or fraction of second) is defined as:
+    // negative: integer part of longer/equal to 1 second, within range from DOUBLE_MIN inclusive to -1 inclusive;
+    // positive: the fraction of 1, from 1 (exclusive) to DOUBLE_MAX, should always be an fraction of integers
     public Long timestamp;
     @Embedded
     public Coordinates location;
@@ -63,6 +65,10 @@ public class Photo {
     public Photo(Bitmap bitmap, Long timestamp){
         setBitmap(bitmap);
         this.timestamp = timestamp;
+        this.iso = 1;
+        this.focal_length = 6;
+        this.aperture = 0.95;
+        this.shutter_speed = -3.2;
     }
 
     public Photo(Bitmap bitmap, Long timestamp, double latitude, double longitude){

@@ -222,7 +222,7 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
 
         broadcastManager = LocalBroadcastManager.getInstance(view.getContext());
         cameraExecutor = Executors.newSingleThreadExecutor();
-        // Set up the intent filter(target:volumn down button) that will
+        // Set up the intent filter(target:volunm down button) that will
         // receive events from our main activity
         IntentFilter filter = new IntentFilter("key_event_action");
         broadcastManager.registerReceiver(volumeDownReceiver,filter);
