@@ -68,6 +68,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.phototutor.GpsModule.GpsHelper;
+import com.example.phototutor.OrientationModule.OrientationHelper;
+import com.example.phototutor.OrientationModule.OrientationHelperOwner;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -81,7 +83,7 @@ import java.util.concurrent.Executors;
 
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
-public class CameraFragment extends Fragment {
+public class CameraFragment extends Fragment implements OrientationHelperOwner {
     private CameraViewModel mViewModel;
     @Nullable private Preview preview = null;
     @Nullable private ImageCapture imageCapture = null;
@@ -93,6 +95,10 @@ public class CameraFragment extends Fragment {
     private DisplayManager displayManager;
     private int lensFacing;
     private int displayId;
+
+    private OrientationHelper orientationHelper;
+    private float[] orientationDegrees = new float[3]; //R, P, A
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -154,7 +160,14 @@ public class CameraFragment extends Fragment {
         if(GpsHelper.checkGpsPermission(getActivity()) != GpsHelper.PERMISSION_STATE_GRANTED) {
             GpsHelper.requestLocationPermission(this, PERMISSION_CODE_GPS);
         }
+        orientationHelper.manualRegister();
 
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        orientationHelper.unregister();
     }
 
     @Override
@@ -164,7 +177,7 @@ public class CameraFragment extends Fragment {
         cameraExecutor.shutdown();
         broadcastManager.unregisterReceiver(volumeDownReceiver);
         displayManager.unregisterDisplayListener(displayListener);
-
+        orientationHelper.unregister();
     }
 
     @Override
@@ -217,6 +230,10 @@ public class CameraFragment extends Fragment {
         // Every time the orientation of device changes, update rotation for use cases
         displayManager.registerDisplayListener(
                 (DisplayManager.DisplayListener) displayListener, null);
+
+        // Set up the orientation sensor helper
+        orientationHelper = new OrientationHelper(getContext(), this);
+        orientationDegrees[0] = orientationDegrees[1] = orientationDegrees[2] = 0;
 
         if ((!hasPermissions(requireContext())) || !(GpsHelper.checkGpsPermission(getActivity()) == GpsHelper.PERMISSION_STATE_GRANTED)) {
             // Request camera-related permissions
@@ -272,6 +289,7 @@ public class CameraFragment extends Fragment {
                             return;
                         }
 
+                        orientationHelper.unregister();
                         imageCapture.takePicture(
                                 ContextCompat.getMainExecutor(getContext()),
                                 new ImageCapture.OnImageCapturedCallback() {
@@ -282,7 +300,7 @@ public class CameraFragment extends Fragment {
                                         //
                                         Bundle gps_bdl = GpsHelper.getCoordination(getActivity(), locationManager);
                                         mViewModel.select(
-                                                new Photo(bitmap, image.getImageInfo().getTimestamp(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"))
+                                                new Photo(bitmap, image.getImageInfo().getTimestamp(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), orientationDegrees[1], orientationDegrees[2])
                                         );
                                         Log.w("in camera fragment", mViewModel.getSelected().getValue().toString());
                                         Navigation.findNavController(
@@ -299,6 +317,7 @@ public class CameraFragment extends Fragment {
                                     }
                                 }
                         );
+                        orientationHelper.manualRegister();
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
                             // Display flash animation to indicate that photo was captured
@@ -582,8 +601,9 @@ public class CameraFragment extends Fragment {
                     return true;
                 }
         );
+    }
 
-
-
+    public void onOrientationUpdate(float[] orientation) {
+        OrientationHelper.getDegreesFromRadian(orientation, orientationDegrees);
     }
 }

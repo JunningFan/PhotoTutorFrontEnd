@@ -57,7 +57,7 @@ public class PreviewFragment extends Fragment {
             ImageView imageView = view.findViewById(R.id.image_view);
             Log.w("Preview Fragment",
                     String.valueOf(photo.getBitmap().getWidth())+' ' + String.valueOf(photo.getBitmap().getHeight()));
-            Toast.makeText(getActivity(), "lat: " + Double.toString(photo.getLatitude()) + "lon: " + Double.toString(photo.getLongitude()), Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), "lat: " + Double.toString(photo.getLatitude()) + "lon: " + Double.toString(photo.getLongitude()) + "\nr: " + Double.toString(photo.getElevation()) + "o: " + Double.toString(photo.getOrientation()), Toast.LENGTH_LONG).show();
 
             imageView.post(
                     () -> imageView.setImageBitmap(photo.getBitmap())

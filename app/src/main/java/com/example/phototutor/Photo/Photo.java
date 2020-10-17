@@ -70,6 +70,13 @@ public class Photo {
         setLocation(new Coordinates(latitude, longitude));
     }
 
+    public Photo(Bitmap bitmap, Long timestamp, double latitude, double longitude, double elevation, double orientation){
+        this(bitmap, timestamp);
+        setLocation(new Coordinates(latitude, longitude));
+        this.elevation = elevation;
+        this.orientation = orientation;
+    }
+
 
     public Bitmap getBitmap() {
         return bitmap;
@@ -98,6 +105,13 @@ public class Photo {
         this.thumbnail = ThumbnailUtils.extractThumbnail(bitmap,64,64);
     }
 
+    public double getElevation() {
+        return elevation;
+    }
+
+    public double getOrientation() {
+        return orientation;
+    }
 
     public boolean saveImage(File directory) {
         try {
