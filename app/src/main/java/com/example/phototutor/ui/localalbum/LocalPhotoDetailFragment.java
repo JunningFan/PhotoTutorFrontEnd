@@ -15,10 +15,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 
+import org.w3c.dom.Text;
+
+import java.util.Formatter;
 import java.util.List;
 import java.util.Set;
 
@@ -26,6 +30,7 @@ public class LocalPhotoDetailFragment extends Fragment {
     private LocalAlbumViewModel mViewModel;
     private photoDetailPagerAdapter adapter;
     static private String TAG ="LocalPhotoDetailFragment";
+
 
 
     @Nullable

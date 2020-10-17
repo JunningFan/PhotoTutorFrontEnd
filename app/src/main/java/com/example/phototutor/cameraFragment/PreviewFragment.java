@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.phototutor.LocalAlbumActivity;
@@ -24,11 +25,15 @@ import com.example.phototutor.Photo.PhotoDatabase;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
+import java.util.Formatter;
 
 
 public class PreviewFragment extends Fragment {
     private CameraViewModel mViewModel;
     private Photo currphoto;
+
+    private TextView textView_basic_meta;
+    private TextView textView_other_meta;
 
 
     @Override
@@ -62,6 +67,27 @@ public class PreviewFragment extends Fragment {
             imageView.post(
                     () -> imageView.setImageBitmap(photo.getBitmap())
             );
+
+            textView_basic_meta = (TextView) getView().findViewById(R.id.textView_basic_metadata_preview);
+            if(textView_basic_meta == null) {
+                Log.e(this.getClass().getSimpleName(),"text view not found");
+            }
+
+
+            StringBuilder sbuf_expo = new StringBuilder();
+            Formatter fmt_expo = new Formatter(sbuf_expo);
+            if(currphoto.shutter_speed > 0) {
+                fmt_expo.format("f/%.1f 1/%ds ISO:%d", currphoto.aperture, (int)currphoto.shutter_speed, currphoto.iso);
+            } else {
+                fmt_expo.format("f/%.1f %.1fs ISO:%d", currphoto.aperture, Math.abs(currphoto.shutter_speed), currphoto.iso);
+            }
+            textView_basic_meta.setText(sbuf_expo.toString());
+
+            textView_other_meta = (TextView) getView().findViewById(R.id.textView_other_metadata_preview);
+            StringBuilder sbuf_other = new StringBuilder();
+            Formatter fmt_other = new Formatter(sbuf_other);
+            fmt_other.format("%dmm", currphoto.focal_length);
+            textView_other_meta.setText(fmt_other.toString());
 
         });
 
@@ -101,6 +127,8 @@ public class PreviewFragment extends Fragment {
             }
         });
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+
 
     }
 
