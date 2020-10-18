@@ -5,26 +5,49 @@ import android.app.Activity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.textclassifier.TextLinks;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.phototutor.MainActivity;
 import com.example.phototutor.R;
 import com.example.phototutor.ui.login.ui.login.LoginViewModel;
 import com.example.phototutor.ui.login.ui.login.LoginViewModelFactory;
+import com.example.phototutor.ui.login.data.model.LoggedInUser;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import static java.sql.DriverManager.println;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -45,6 +68,7 @@ public class LoginActivity extends AppCompatActivity {
         loginViewModel.getLoginFormState().observe(this, new Observer<LoginFormState>() {
             @Override
             public void onChanged(@Nullable LoginFormState loginFormState) {
+
                 if (loginFormState == null) {
                     return;
                 }
@@ -61,20 +85,62 @@ public class LoginActivity extends AppCompatActivity {
         loginViewModel.getLoginResult().observe(this, new Observer<LoginResult>() {
             @Override
             public void onChanged(@Nullable LoginResult loginResult) {
-                if (loginResult == null) {
-                    return;
+                OkHttpClient client = new OkHttpClient();
+                String url = "http://whiteboard.house:8080/users/login/";
+                Log.d("OKHTTP3", "POST Function called");
+                MediaType JSON = MediaType.parse("application/json;charset=utf-8");
+                JSONObject actualData = new JSONObject();
+                try {
+                    actualData.put("username", usernameEditText.getText().toString());
+                    actualData.put("password", passwordEditText.getText().toString());
+                } catch (JSONException e) {
+                    Log.d("OKHTTP3", "JSON Exception");
+                    e.printStackTrace();
                 }
-                loadingProgressBar.setVisibility(View.GONE);
-                if (loginResult.getError() != null) {
-                    showLoginFailed(loginResult.getError());
-                }
-                if (loginResult.getSuccess() != null) {
-                    updateUiWithUser(loginResult.getSuccess());
-                }
-                setResult(Activity.RESULT_OK);
 
-                //Complete and destroy login activity once successful
-                finish();
+                RequestBody body = RequestBody.create(JSON, actualData.toString());
+                Log.d("OKHTTP3", "Request body created");
+                Request newReq = new Request.Builder()
+                        .url(url)
+                        .post(body)
+                        .build();
+
+                client.newCall(newReq).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        Log.d("OKHTTP3", "Exception while doing request.");
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        Log.d("OKHTTP3", "Request Done, got the response.");
+                        try {
+                            JSONObject json = new JSONObject(response.body().string());
+                            if(json.has("error")) {
+                                showLoginFailed(json.getString("error"));
+                            } else {
+                                JSONObject user = json.getJSONObject("user");
+                                String token = json.getString("token");
+                                String username = user.getString("Username");
+                                String nickname = user.getString("Nickname");
+
+                                if (loginResult == null) {
+                                    return;
+                                }
+
+                                if (loginResult.getSuccess() != null) {
+                                    updateUiWithUser(loginResult.getSuccess(), token, username, nickname);
+                                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                }
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                setResult(Activity.RESULT_OK);
             }
         });
 
@@ -112,20 +178,24 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loadingProgressBar.setVisibility(View.VISIBLE);
                 loginViewModel.login(usernameEditText.getText().toString(),
                         passwordEditText.getText().toString());
             }
         });
     }
 
-    private void updateUiWithUser(LoggedInUserView model) {
-        String welcome = getString(R.string.welcome) + model.getDisplayName();
-        // TODO : initiate successful logged in experience
-        Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
+    private void updateUiWithUser(LoggedInUserView model, String token, String username, String nickname) {
+          // initiate successful logged in experience
+          model.setToken(token);
+          model.setUsername(username);
+          model.setDisplayName(nickname);
+          String welcome = getString(R.string.welcome) + " " + model.getDisplayName();
+          Looper.prepare();
+          Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
     }
 
-    private void showLoginFailed(@StringRes Integer errorString) {
-        Toast.makeText(getApplicationContext(), errorString, Toast.LENGTH_SHORT).show();
+    private void showLoginFailed(String errorMessage) {
+        Looper.prepare();
+        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_LONG).show();
     }
 }
