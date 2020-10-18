@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Looper;
@@ -19,20 +18,14 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.view.textclassifier.TextLinks;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.phototutor.MainActivity;
 import com.example.phototutor.R;
-import com.example.phototutor.ui.login.ui.login.LoginViewModel;
-import com.example.phototutor.ui.login.ui.login.LoginViewModelFactory;
-import com.example.phototutor.ui.login.data.model.LoggedInUser;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -40,14 +33,11 @@ import java.io.IOException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-
-import static java.sql.DriverManager.println;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -63,7 +53,7 @@ public class LoginActivity extends AppCompatActivity {
         final EditText usernameEditText = findViewById(R.id.username);
         final EditText passwordEditText = findViewById(R.id.password);
         final Button loginButton = findViewById(R.id.login);
-        final ProgressBar loadingProgressBar = findViewById(R.id.loading);
+        final Button registerButton = findViewById(R.id.register);
 
         loginViewModel.getLoginFormState().observe(this, new Observer<LoginFormState>() {
             @Override
@@ -182,6 +172,14 @@ public class LoginActivity extends AppCompatActivity {
                         passwordEditText.getText().toString());
             }
         });
+
+        registerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void updateUiWithUser(LoggedInUserView model, String token, String username, String nickname) {
@@ -197,5 +195,9 @@ public class LoginActivity extends AppCompatActivity {
     private void showLoginFailed(String errorMessage) {
         Looper.prepare();
         Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_LONG).show();
+    }
+
+    public static void userLogout() {
+        LoggedInUserView model = new LoggedInUserView("null");
     }
 }
