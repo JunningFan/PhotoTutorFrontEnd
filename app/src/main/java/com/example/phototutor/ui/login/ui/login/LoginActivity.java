@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 import com.example.phototutor.MainActivity;
 import com.example.phototutor.R;
+import com.example.phototutor.RegisterActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -176,7 +177,7 @@ public class LoginActivity extends AppCompatActivity {
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
                 startActivity(intent);
             }
         });
