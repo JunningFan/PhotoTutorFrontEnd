@@ -20,6 +20,7 @@ import androidx.room.Room;
 
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -49,13 +50,17 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 
-public class PreviewFragment extends Fragment implements OnMapReadyCallback {
+public class PreviewFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapLoadedCallback {
     private CameraViewModel mViewModel;
     private Photo currphoto;
 
+    BottomSheetBehavior bottomSheetBehavior;
+
     private TextView textView_basic_meta;
     private TextView textView_other_meta;
+    private TextView textView_timestamp;
 
+    SupportMapFragment mapFragment;
     private GoogleMap mMap;
     private Marker photoMarker;
 
@@ -88,12 +93,7 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback {
             Toast.makeText(getActivity(), "lat: " + Double.toString(photo.getLatitude()) +
                     "lon: " + Double.toString(photo.getLongitude()) + "\nr: " + Double.toString(photo.getElevation()) +
                     "o: " + Double.toString(photo.getOrientation()) + "time: " + Long.toString(photo.timestamp), Toast.LENGTH_LONG).show();
-            Calendar calendar = Calendar.getInstance();
-            TimeZone tz = TimeZone.getDefault();
-            calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-            java.util.Date currenTimeZone=new java.util.Date((photo.timestamp));
-            Toast.makeText(getActivity(), sdf.format(currenTimeZone), Toast.LENGTH_SHORT).show();
+
             imageView.post(
                     () -> imageView.setImageBitmap(photo.getBitmap())
             );
@@ -107,9 +107,9 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback {
             StringBuilder sbuf_expo = new StringBuilder();
             Formatter fmt_expo = new Formatter(sbuf_expo);
             if(currphoto.shutter_speed > 0) {
-                fmt_expo.format("f/%.1f 1/%ds ISO:%d", currphoto.aperture, (int)currphoto.shutter_speed, currphoto.iso);
+                fmt_expo.format("f/%.1f  1/%ds  ISO:%d", currphoto.aperture, (int)currphoto.shutter_speed, currphoto.iso);
             } else {
-                fmt_expo.format("f/%.1f %.1fs ISO:%d", currphoto.aperture, Math.abs(currphoto.shutter_speed), currphoto.iso);
+                fmt_expo.format("f/%.1f  %.1fs  ISO:%d", currphoto.aperture, Math.abs(currphoto.shutter_speed), currphoto.iso);
             }
             textView_basic_meta.setText(sbuf_expo.toString());
 
@@ -118,6 +118,14 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback {
             Formatter fmt_other = new Formatter(sbuf_other);
             fmt_other.format("%dmm", currphoto.focal_length);
             textView_other_meta.setText(fmt_other.toString());
+
+            textView_timestamp = (TextView) getView().findViewById(R.id.textView_timestamp_preview);
+            Calendar calendar = Calendar.getInstance();
+            TimeZone tz = TimeZone.getDefault();
+            calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            java.util.Date currenTimeZone=new java.util.Date((photo.timestamp));
+            textView_timestamp.setText(sdf.format(currenTimeZone));
 
         });
 
@@ -140,7 +148,7 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback {
                 }
         );
 
-        BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(
+        bottomSheetBehavior = BottomSheetBehavior.from(
                 view.findViewById(R.id.button_sheet_image_detail));
 //        bottomSheetBehavior.setPeekHeight(300);
         bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -157,9 +165,8 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback {
             }
         });
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-
         //setup map
-        SupportMapFragment mapFragment = (SupportMapFragment)getChildFragmentManager()
+        mapFragment = (SupportMapFragment)getChildFragmentManager()
                 .findFragmentById(R.id.map_preview);
         mapFragment.getMapAsync(this);
 
@@ -170,10 +177,11 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback {
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
+        mMap.getUiSettings().setAllGesturesEnabled(false);  // disable touching to the map before the animation is rendered
+
         mMap.setMinZoomPreference(10.0f);
         mMap.setMaxZoomPreference(21.0f);
 
-        // Add a marker in Sydney and move the camera
         LatLng photoLL = new LatLng(currphoto.getLatitude(), currphoto.getLongitude());
 
         float degrees = (float) currphoto.getOrientation();
@@ -185,13 +193,22 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback {
                 .icon(vectorToBitmap(R.drawable.ic_baseline_navigation_36, Color.parseColor("#FC771A")))
         );
 
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(photoLL, 18.5f));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(photoLL, 18.5f));
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
             }
         });
+
+        mMap.setOnMapLoadedCallback(this);
+    }
+
+    @Override
+    public void onMapLoaded() {
+        // Add a marker in Sydney and move the camera
+
+        mMap.getUiSettings().setAllGesturesEnabled(true);
     }
 
     private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color) {

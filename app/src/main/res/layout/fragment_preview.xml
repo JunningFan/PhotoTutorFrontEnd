@@ -38,27 +38,31 @@
         android:layout_height="match_parent"/>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinatorLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-
-        android:id="@+id/coordinatorLayout">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent">
 
         <LinearLayout
             android:id="@+id/button_sheet_image_detail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#65009688"
+            android:nestedScrollingEnabled="true"
             android:orientation="vertical"
+            android:paddingLeft="8sp"
+            android:paddingRight="8sp"
+            android:paddingBottom="8sp"
             app:behavior_hideable="false"
-            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
             app:behavior_peekHeight="80dp"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
             tools:layout_conversion_absoluteHeight="92dp"
-            tools:layout_editor_absoluteY="651dp"
+            tools:layout_conversion_absoluteWidth="411dp"
             tools:layout_editor_absoluteX="0dp"
-            tools:layout_conversion_absoluteWidth="411dp">
+            tools:layout_editor_absoluteY="651dp">
 
             <TextView
                 android:id="@+id/textView_basic_metadata_preview"
@@ -82,6 +86,21 @@
                 android:layout_weight="1"
                 android:alpha="255"
                 android:drawableLeft="@drawable/ic_baseline_camera_36"
+                android:drawablePadding="5dp"
+                android:gravity="center"
+                android:text="Placeholder"
+                android:textColor="#FFFFFF"
+                android:textColorHighlight="#000000"
+                android:textColorLink="#000000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/textView_timestamp_preview"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:alpha="255"
+                android:drawableLeft="@drawable/ic_baseline_access_time_36"
                 android:drawablePadding="5dp"
                 android:gravity="center"
                 android:text="Placeholder"
