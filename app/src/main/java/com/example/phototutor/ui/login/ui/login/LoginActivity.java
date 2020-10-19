@@ -5,7 +5,9 @@ import android.app.Activity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -42,7 +44,13 @@ import okhttp3.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
+    private static SharedPreferences sharedPreferences;
     private LoginViewModel loginViewModel;
+    public static final String fileName = "login";
+    public static final String Username = "username";
+    public static final String Password = "password";
+    public static final String Token = "token";
+    public static final String Nickname = "nickname";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -55,6 +63,12 @@ public class LoginActivity extends AppCompatActivity {
         final EditText passwordEditText = findViewById(R.id.password);
         final Button loginButton = findViewById(R.id.login);
         final Button registerButton = findViewById(R.id.register);
+
+        sharedPreferences = getSharedPreferences(fileName, Context.MODE_PRIVATE);
+        if(sharedPreferences.contains(Username)) {
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
+        }
 
         loginViewModel.getLoginFormState().observe(this, new Observer<LoginFormState>() {
             @Override
@@ -121,7 +135,8 @@ public class LoginActivity extends AppCompatActivity {
                                 }
 
                                 if (loginResult.getSuccess() != null) {
-                                    updateUiWithUser(loginResult.getSuccess(), token, username, nickname);
+                                    saveToSharedPreferences(username, passwordEditText.getText().toString(), token, nickname);
+                                    updateUiWithUser(nickname);
                                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                     startActivity(intent);
                                 }
@@ -183,14 +198,17 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void updateUiWithUser(LoggedInUserView model, String token, String username, String nickname) {
-          // initiate successful logged in experience
-          model.setToken(token);
-          model.setUsername(username);
-          model.setDisplayName(nickname);
-          String welcome = getString(R.string.welcome) + " " + model.getDisplayName();
-          Looper.prepare();
-          Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
+    @Override
+    public void onBackPressed() {
+        finishAffinity();
+        finish();
+    }
+
+    private void updateUiWithUser(String nickname) {
+        // initiate successful logged in experience
+        String welcome = getString(R.string.welcome) + " " + nickname;
+        Looper.prepare();
+        Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
     }
 
     private void showLoginFailed(String errorMessage) {
@@ -198,7 +216,16 @@ public class LoginActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_LONG).show();
     }
 
+    private static void saveToSharedPreferences(String username, String password, String token, String nickname) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(Username, username);
+        editor.putString(Password, password);
+        editor.putString(Token, token);
+        editor.putString(Nickname, nickname);
+        editor.commit();
+    }
+
     public static void userLogout() {
-        LoggedInUserView model = new LoggedInUserView("null");
+        saveToSharedPreferences(null, null, null, null);
     }
 }

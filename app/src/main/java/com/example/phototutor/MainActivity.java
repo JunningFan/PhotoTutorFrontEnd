@@ -1,6 +1,8 @@
 package com.example.phototutor;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +17,10 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static SharedPreferences sharedPreferences;
+    public static final String fileName = "login";
+    public static final String Username = "username";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +45,15 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        sharedPreferences = getSharedPreferences(fileName, Context.MODE_PRIVATE);
+        if(sharedPreferences.contains(Username)) {
+            finishAffinity();
+            finish();
+        }
     }
 
     public void changeToCameraActivity(View view){
