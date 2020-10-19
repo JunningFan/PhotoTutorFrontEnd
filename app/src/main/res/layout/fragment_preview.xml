@@ -44,21 +44,27 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
 
-        >
+        android:id="@+id/coordinatorLayout">
 
         <LinearLayout
             android:id="@+id/button_sheet_image_detail"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#65009688"
             android:orientation="vertical"
             app:behavior_hideable="false"
-            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+            app:behavior_peekHeight="80dp"
+            tools:layout_conversion_absoluteHeight="92dp"
+            tools:layout_editor_absoluteY="651dp"
+            tools:layout_editor_absoluteX="0dp"
+            tools:layout_conversion_absoluteWidth="411dp">
 
             <TextView
                 android:id="@+id/textView_basic_metadata_preview"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:alpha="255"
                 android:drawableLeft="@drawable/ic_baseline_exposure_36"
                 android:drawablePadding="5dp"
@@ -72,7 +78,8 @@
             <TextView
                 android:id="@+id/textView_other_metadata_preview"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:alpha="255"
                 android:drawableLeft="@drawable/ic_baseline_camera_36"
                 android:drawablePadding="5dp"
@@ -83,29 +90,13 @@
                 android:textColorLink="#000000"
                 android:textSize="24sp" />
 
-            <Button
+            <fragment
+                android:id="@+id/map_preview"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="hello" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="hello" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="hello" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="hello" />
+                android:layout_height="0dp"
+                android:layout_weight="10"
+                tools:context=".MainActivity" />
             <!--            <com.google.android.material.appbar.AppBarLayout-->
             <!--                android:id="@+id/app_bar"-->
             <!--                android:layout_width="match_parent"-->

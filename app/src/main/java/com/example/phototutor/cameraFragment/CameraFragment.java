@@ -300,7 +300,7 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
                                         //
                                         Bundle gps_bdl = GpsHelper.getCoordination(getActivity(), locationManager);
                                         mViewModel.select(
-                                                new Photo(bitmap, image.getImageInfo().getTimestamp(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), orientationDegrees[1], orientationDegrees[2])
+                                                new Photo(bitmap, System.currentTimeMillis(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), orientationDegrees[1], orientationDegrees[2])
                                         );
                                         Log.w("in camera fragment", mViewModel.getSelected().getValue().toString());
                                         Navigation.findNavController(
