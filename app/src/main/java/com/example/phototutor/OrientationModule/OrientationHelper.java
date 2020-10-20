@@ -143,7 +143,7 @@ public class OrientationHelper implements SensorEventListener {
             orientationAngles[2] =(float) ((orientationAngles[2] + Math.PI) % (2*Math.PI));
         }
 
-        if(orientationAngles[1] > Math.PI/2- 0.034 && orientationAngles[1] < Math.PI/2 + 0.034) {
+        if(orientationAngles[1] > Math.PI/2- 0.017 && orientationAngles[1] < Math.PI/2 + 0.040) {
             orientationAngles[2] = lastKnownA;
         } else {
             lastKnownA = orientationAngles[2];
