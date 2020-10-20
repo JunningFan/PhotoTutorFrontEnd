@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import java.util.Queue;
+
 import static java.lang.Math.PI;
 
 public class OrientationHelper implements SensorEventListener {
@@ -150,9 +152,10 @@ public class OrientationHelper implements SensorEventListener {
 
         if(lastKnownA != -200 && orientationAngles[1] > (Math.PI/2- 0.034) && orientationAngles[1] < (Math.PI/2 + 0.051)) {
             orientationAngles[2] = lastKnownA;
+        } else {
+            orientationAngles[2] = (float)( orientationAngles[2] * 0.75 + lastKnownA * 0.25 );
+            lastKnownA = orientationAngles[2];
         }
-        lastKnownA = orientationAngles[2];
-
         owner.onOrientationUpdate(orientationAngles);
     }
 
