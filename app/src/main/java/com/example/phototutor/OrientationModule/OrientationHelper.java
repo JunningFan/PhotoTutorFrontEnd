@@ -137,8 +137,11 @@ public class OrientationHelper implements SensorEventListener {
                 break;
         }
 
+        if(orientationAngles[1] > Math.PI/2- 0.01){
+            orientationAngles[2] =(float) ((orientationAngles[2] + Math.PI) % (2*Math.PI));
+        }
 
-        owner.onOrientationUpdate( orientationAngles);
+        owner.onOrientationUpdate(orientationAngles);
     }
 
     public void unregister() {
