@@ -1,5 +1,6 @@
 package com.example.phototutor.OrientationModule;
 
+import android.Manifest;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -29,6 +30,7 @@ public class OrientationHelper implements SensorEventListener {
     private final float[] rotationMatrix_rotated = new float[9];
 
     private final float[] orientationAngles = new float[3];
+    private float lastKnownA;
 
     public OrientationHelper(Context context, OrientationHelperOwner owner) {
         this.context = context;
@@ -137,8 +139,14 @@ public class OrientationHelper implements SensorEventListener {
                 break;
         }
 
-        if(orientationAngles[1] > Math.PI/2- 0.01){
+        if(orientationAngles[1] > Math.PI/2 + 0.017){
             orientationAngles[2] =(float) ((orientationAngles[2] + Math.PI) % (2*Math.PI));
+        }
+
+        if(orientationAngles[1] > Math.PI/2- 0.034 && orientationAngles[1] < Math.PI/2 + 0.034) {
+            orientationAngles[2] = lastKnownA;
+        } else {
+            lastKnownA = orientationAngles[2];
         }
 
         owner.onOrientationUpdate(orientationAngles);
