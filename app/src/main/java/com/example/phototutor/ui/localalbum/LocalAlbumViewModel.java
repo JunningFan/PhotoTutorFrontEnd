@@ -3,6 +3,7 @@ package com.example.phototutor.ui.localalbum;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -17,7 +18,7 @@ import java.util.List;
 public class LocalAlbumViewModel extends ViewModel {
 
     private LiveData<List<Photo>> allPhotos;
-    private MutableLiveData<Integer> currentSelect = new MutableLiveData<Integer>();;
+    private final MutableLiveData<Integer> currentSelect = new MutableLiveData<>();
 
     LiveData<List<Photo>> getAllPhotos(){
         return allPhotos;
@@ -29,8 +30,10 @@ public class LocalAlbumViewModel extends ViewModel {
         allPhotos = photoDao.loadAllPhotosSortedByTime();
     }
 
-    public void select(int pos){
+    public void select(Integer pos){
+        Log.w("LocalAlbumViewModel",pos.toString());
         currentSelect.setValue(pos);
+        Log.w("LocalAlbumViewModel",currentSelect.toString());
     }
 
     public LiveData<Integer> getSelected() {

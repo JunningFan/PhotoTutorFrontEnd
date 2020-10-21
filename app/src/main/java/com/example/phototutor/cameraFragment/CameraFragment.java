@@ -321,14 +321,15 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
                             // Display flash animation to indicate that photo was captured
-                            getView().postDelayed(new Runnable() {
+
+                            controls.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    getView().setForeground(new ColorDrawable(Color.WHITE));
-                                    getView().postDelayed(new Runnable() {
+                                    controls.setForeground(new ColorDrawable(Color.WHITE));
+                                    controls.postDelayed(new Runnable() {
                                         @Override
                                         public void run() {
-                                            getView().setForeground(null);
+                                            controls.setForeground(null);
                                         }
                                     },100);
 

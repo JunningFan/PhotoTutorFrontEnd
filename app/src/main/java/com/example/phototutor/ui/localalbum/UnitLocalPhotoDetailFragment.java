@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,6 +40,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Formatter;
 import java.util.Locale;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.TimeZone;
 
 /**
@@ -48,7 +51,7 @@ import java.util.TimeZone;
  */
 public class UnitLocalPhotoDetailFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapLoadedCallback {
     private Photo photo;
-
+    private LocalAlbumViewModel mViewModel;
     private TextView textView_basic_meta;
     private TextView textView_other_meta;
     private TextView textView_timestamp;
@@ -57,52 +60,61 @@ public class UnitLocalPhotoDetailFragment extends Fragment implements OnMapReady
     private GoogleMap mMap;
     private Marker photoMarker;
 
-    public UnitLocalPhotoDetailFragment(Photo photo){
-        this.photo = photo;
-    }
+
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ImageView imageView = view.findViewById(R.id.image_view);
-        Log.d(this.getClass().getSimpleName(), "viewing a new photo page");
-        Glide.with(this)
-                .load(photo.imageURI)
-                .placeholder(R.drawable.ic_loading)
-                .into(imageView);
+        int pos = getArguments().getInt("pos");
+        mViewModel = ViewModelProviders.of(requireActivity()).get(LocalAlbumViewModel.class);
 
-        textView_basic_meta = (TextView) getView().findViewById(R.id.textView_basic_metadata);
-        if(textView_basic_meta == null) {
-            Log.e(this.getClass().getSimpleName(),"text view not found");
-        }
+        mViewModel.getAllPhotos().observe(
+                requireActivity(), photos -> {
+                    photo = photos.get(pos);
+                    ImageView imageView = view.findViewById(R.id.image_view);
+                    Log.d(this.getClass().getSimpleName(), "viewing a new photo page");
+                    Glide.with(this)
+                            .load(photo.imageURI)
+                            .placeholder(R.drawable.ic_loading)
+                            .into(imageView);
+                    textView_basic_meta = (TextView) getView().findViewById(R.id.textView_basic_metadata);
+                    if(textView_basic_meta == null) {
+                        Log.e(this.getClass().getSimpleName(),"text view not found");
+                    }
 
 
-        StringBuilder sbuf_expo = new StringBuilder();
-        Formatter fmt_expo = new Formatter(sbuf_expo);
-        if(photo.shutter_speed > 0) {
-            fmt_expo.format("f/%.1f  1/%ds  ISO:%d", photo.aperture, (int)photo.shutter_speed, photo.iso);
-        } else {
-            fmt_expo.format("f/%.1f  %.1fs  ISO:%d", photo.aperture, Math.abs(photo.shutter_speed), photo.iso);
-        }
-        textView_basic_meta.setText(sbuf_expo.toString());
+                    StringBuilder sbuf_expo = new StringBuilder();
+                    Formatter fmt_expo = new Formatter(sbuf_expo);
+                    if(photo.shutter_speed > 0) {
+                        fmt_expo.format("f/%.1f  1/%ds  ISO:%d", photo.aperture, (int)photo.shutter_speed, photo.iso);
+                    } else {
+                        fmt_expo.format("f/%.1f  %.1fs  ISO:%d", photo.aperture, Math.abs(photo.shutter_speed), photo.iso);
+                    }
+                    textView_basic_meta.setText(sbuf_expo.toString());
 
-        textView_other_meta = (TextView) getView().findViewById(R.id.textView_other_metadata);
-        StringBuilder sbuf_other = new StringBuilder();
-        Formatter fmt_other = new Formatter(sbuf_other);
-        fmt_other.format("%dmm", photo.focal_length);
-        textView_other_meta.setText(fmt_other.toString());
+                    textView_other_meta = (TextView) getView().findViewById(R.id.textView_other_metadata);
+                    StringBuilder sbuf_other = new StringBuilder();
+                    Formatter fmt_other = new Formatter(sbuf_other);
+                    fmt_other.format("%dmm", photo.focal_length);
+                    textView_other_meta.setText(fmt_other.toString());
 
-        textView_timestamp = (TextView) getView().findViewById(R.id.textView_timestamp);
-        Calendar calendar = Calendar.getInstance();
-        TimeZone tz = TimeZone.getDefault();
-        calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        java.util.Date currenTimeZone=new java.util.Date((photo.timestamp));
-        textView_timestamp.setText(sdf.format(currenTimeZone));
+                    textView_timestamp = (TextView) getView().findViewById(R.id.textView_timestamp);
+                    Calendar calendar = Calendar.getInstance();
+                    TimeZone tz = TimeZone.getDefault();
+                    calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    java.util.Date currenTimeZone=new java.util.Date((photo.timestamp));
+                    textView_timestamp.setText(sdf.format(currenTimeZone));
 
-        mapFragment = (SupportMapFragment)getChildFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+                    mapFragment = (SupportMapFragment)getChildFragmentManager()
+                            .findFragmentById(R.id.map);
+                    mapFragment.getMapAsync(this);
+
+                }
+        );
+
+
     }
     @Nullable
     @Override

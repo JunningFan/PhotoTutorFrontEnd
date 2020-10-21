@@ -31,9 +31,6 @@ public class LocalAlbumFragment extends Fragment {
     private LocalAlbumViewModel mViewModel;
     private AlbumAdapter adapter;
     private static String TAG = "LocalAlbumFragment";
-    public static LocalAlbumFragment newInstance() {
-        return new LocalAlbumFragment();
-    }
 
     @Nullable
     @Override
@@ -55,7 +52,7 @@ public class LocalAlbumFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
 
         super.onActivityCreated(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this).get(LocalAlbumViewModel.class);
+        mViewModel = ViewModelProviders.of(requireActivity()).get(LocalAlbumViewModel.class);
         mViewModel.loadDatabase(requireContext());
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(requireContext(),

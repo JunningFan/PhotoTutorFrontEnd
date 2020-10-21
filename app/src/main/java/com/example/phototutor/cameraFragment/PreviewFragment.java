@@ -72,6 +72,12 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+    }
+
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 

@@ -37,4 +37,18 @@
         android:background="@android:color/transparent"
         app:srcCompat="@drawable/ic_cloud" />
 
+
+    <ImageButton
+        android:id="@+id/share_button"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf ="parent"
+        app:layout_constraintLeft_toLeftOf ="parent"
+        android:layout_marginEnd="@dimen/margin_xsmall"
+        android:layout_marginTop="@dimen/margin_xsmall"
+        android:layout_width="@dimen/round_button_small"
+        android:layout_height="@dimen/round_button_small"
+        android:scaleType="fitCenter"
+        android:background="@android:color/transparent"
+        app:srcCompat="@drawable/ic_share" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
