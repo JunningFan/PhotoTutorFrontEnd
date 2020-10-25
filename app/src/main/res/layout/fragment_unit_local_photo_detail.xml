@@ -5,6 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/unit_local_photo_container"
     android:background="@color/cardview_dark_background"
     tools:context=".cameraFragment.PreviewFragment">
     <androidx.viewpager.widget.ViewPager
@@ -12,7 +13,7 @@
         android:layout_height="match_parent"
         android:id="@+id/photo_view_pager" />
 
-    <ImageView
+    <com.github.chrisbanes.photoview.PhotoView
         android:id = "@+id/image_view"
         android:scaleType="fitCenter"
         android:layout_width="match_parent"

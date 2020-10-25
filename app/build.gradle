@@ -46,6 +46,7 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation "androidx.fragment:fragment:1.2.0"
     implementation 'androidx.viewpager:viewpager:1.0.0'
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
     // CameraX core library
     def camerax_version = '1.0.0-beta10'
     implementation "androidx.camera:camera-core:$camerax_version"
@@ -82,6 +83,10 @@ dependencies {
 
     //maps
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
+
+    //PhotoView
+
+    implementation 'com.github.chrisbanes:PhotoView:2.0.0'
 
 
 }

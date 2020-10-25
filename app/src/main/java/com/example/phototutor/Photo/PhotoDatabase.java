@@ -1,7 +1,9 @@
 package com.example.phototutor.Photo;
 
 import android.content.Context;
+import android.util.Log;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Database;
 import androidx.room.Delete;
@@ -25,6 +27,7 @@ public abstract class PhotoDatabase extends RoomDatabase {
     private static final int NUMBER_OF_THREADS = 4;
     static final ExecutorService databaseWriteExecutor =
             Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+
     static public PhotoDatabase getDatabase(final Context context){
         if (instance == null) {
             synchronized (PhotoDatabase.class) {
@@ -38,4 +41,19 @@ public abstract class PhotoDatabase extends RoomDatabase {
         return instance;
     }
 
+    public void insertPhotos(Photo... photos){
+        databaseWriteExecutor.execute(
+                () -> {
+                    photoDAO().insertPhotos(photos);
+                }
+        );
+    }
+    public void updatePhotos(Photo... photos){
+        databaseWriteExecutor.execute(
+                () -> {
+                    Log.w("Database","update " + photos[0].id);
+                    photoDAO().updatePhotos(photos);
+                }
+        );
+    }
 }

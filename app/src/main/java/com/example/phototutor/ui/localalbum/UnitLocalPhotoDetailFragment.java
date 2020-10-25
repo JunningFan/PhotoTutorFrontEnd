@@ -1,5 +1,6 @@
 package com.example.phototutor.ui.localalbum;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,6 +11,12 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.camera.core.Camera;
+import androidx.camera.core.CameraControl;
+import androidx.camera.core.CameraInfo;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.CameraX;
+import androidx.camera.view.PreviewView;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
@@ -17,12 +24,14 @@ import androidx.lifecycle.ViewModelProviders;
 
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -50,35 +59,51 @@ import java.util.TimeZone;
  * create an instance of this fragment.
  */
 public class UnitLocalPhotoDetailFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapLoadedCallback {
+
+
     private Photo photo;
     private LocalAlbumViewModel mViewModel;
     private TextView textView_basic_meta;
     private TextView textView_other_meta;
     private TextView textView_timestamp;
-
+    private String TAG = "UnitLocalPhotoDetailFragment";
     SupportMapFragment mapFragment;
     private GoogleMap mMap;
     private Marker photoMarker;
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
 
-
+    @Override
+    public void onDestroy() {
+        mViewModel.getAllPhotos().removeObservers(this);
+        super.onDestroy();
+    }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
         super.onViewCreated(view, savedInstanceState);
         int pos = getArguments().getInt("pos");
         mViewModel = ViewModelProviders.of(requireActivity()).get(LocalAlbumViewModel.class);
-
+        mapFragment = (SupportMapFragment)getChildFragmentManager()
+                .findFragmentById(R.id.map);
         mViewModel.getAllPhotos().observe(
                 requireActivity(), photos -> {
                     photo = photos.get(pos);
+                    Log.w(TAG, String.valueOf(photo.id));
                     ImageView imageView = view.findViewById(R.id.image_view);
-                    Log.d(this.getClass().getSimpleName(), "viewing a new photo page");
-                    Glide.with(this)
+                    Log.w(this.getClass().getSimpleName(), "viewing a new photo page");
+                    Glide.with(view)
                             .load(photo.imageURI)
                             .placeholder(R.drawable.ic_loading)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                            .skipMemoryCache(true)
                             .into(imageView);
-                    textView_basic_meta = (TextView) getView().findViewById(R.id.textView_basic_metadata);
+
+                    textView_basic_meta = (TextView) view.findViewById(R.id.textView_basic_metadata);
                     if(textView_basic_meta == null) {
                         Log.e(this.getClass().getSimpleName(),"text view not found");
                     }
@@ -93,13 +118,13 @@ public class UnitLocalPhotoDetailFragment extends Fragment implements OnMapReady
                     }
                     textView_basic_meta.setText(sbuf_expo.toString());
 
-                    textView_other_meta = (TextView) getView().findViewById(R.id.textView_other_metadata);
+                    textView_other_meta = (TextView) view.findViewById(R.id.textView_other_metadata);
                     StringBuilder sbuf_other = new StringBuilder();
                     Formatter fmt_other = new Formatter(sbuf_other);
                     fmt_other.format("%dmm", photo.focal_length);
                     textView_other_meta.setText(fmt_other.toString());
 
-                    textView_timestamp = (TextView) getView().findViewById(R.id.textView_timestamp);
+                    textView_timestamp = (TextView) view.findViewById(R.id.textView_timestamp);
                     Calendar calendar = Calendar.getInstance();
                     TimeZone tz = TimeZone.getDefault();
                     calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));
@@ -107,10 +132,8 @@ public class UnitLocalPhotoDetailFragment extends Fragment implements OnMapReady
                     java.util.Date currenTimeZone=new java.util.Date((photo.timestamp));
                     textView_timestamp.setText(sdf.format(currenTimeZone));
 
-                    mapFragment = (SupportMapFragment)getChildFragmentManager()
-                            .findFragmentById(R.id.map);
-                    mapFragment.getMapAsync(this);
 
+                    mapFragment.getMapAsync(this);
                 }
         );
 
@@ -171,5 +194,6 @@ public class UnitLocalPhotoDetailFragment extends Fragment implements OnMapReady
 
         mMap.getUiSettings().setAllGesturesEnabled(true);
     }
+
 
 }

@@ -14,6 +14,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 
@@ -64,6 +65,8 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
             Glide.with(context)
                     .load(current.thumbnailURI)
                     .placeholder(R.drawable.ic_loading)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
                     .into(holder.imageView);
 
             holder.imageView.setOnClickListener(

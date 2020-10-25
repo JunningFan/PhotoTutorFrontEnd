@@ -7,48 +7,64 @@
     android:id = "@+id/fragment_local_photo_detail"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layoutDirection="ltr">
-<androidx.viewpager.widget.ViewPager
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/photo_view_pager"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+    <androidx.viewpager2.widget.ViewPager2
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/photo_view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-    <ImageButton
-        android:id="@+id/back_button"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="@dimen/margin_xsmall"
         android:layout_marginStart="@dimen/margin_xsmall"
-        android:layout_marginTop="@dimen/margin_xsmall"
-        android:layout_width="@dimen/round_button_small"
-        android:layout_height="@dimen/round_button_small"
-        android:scaleType="fitCenter"
-        android:background="@android:color/transparent"
-        app:srcCompat="@drawable/ic_back" />
+        >
 
-    <ImageButton
-        android:id="@+id/save_button"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintRight_toRightOf ="parent"
-        android:layout_marginEnd="@dimen/margin_xsmall"
-        android:layout_marginTop="@dimen/margin_xsmall"
-        android:layout_width="@dimen/round_button_small"
-        android:layout_height="@dimen/round_button_small"
-        android:scaleType="fitCenter"
-        android:background="@android:color/transparent"
-        app:srcCompat="@drawable/ic_cloud" />
+        <ImageButton
+            android:id="@+id/back_button"
+
+            android:layout_width="@dimen/round_button_small"
+            android:layout_height="@dimen/round_button_small"
+            android:scaleType="fitCenter"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            app:srcCompat="@drawable/ic_back" />
+
+        <ImageButton
+            android:id="@+id/save_button"
+            android:layout_width="@dimen/round_button_small"
+            android:layout_height="@dimen/round_button_small"
+            android:scaleType="fitCenter"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            app:srcCompat="@drawable/ic_cloud" />
 
 
-    <ImageButton
-        android:id="@+id/share_button"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintRight_toRightOf ="parent"
-        app:layout_constraintLeft_toLeftOf ="parent"
-        android:layout_marginEnd="@dimen/margin_xsmall"
-        android:layout_marginTop="@dimen/margin_xsmall"
-        android:layout_width="@dimen/round_button_small"
-        android:layout_height="@dimen/round_button_small"
-        android:scaleType="fitCenter"
-        android:background="@android:color/transparent"
-        app:srcCompat="@drawable/ic_share" />
+        <ImageButton
+            android:id="@+id/share_button"
+            android:layout_width="@dimen/round_button_small"
+            android:layout_height="@dimen/round_button_small"
+            android:scaleType="fitCenter"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            app:srcCompat="@drawable/ic_share" />
+
+        <ImageButton
+            android:id="@+id/edit_button"
+            android:layout_width="@dimen/round_button_small"
+            android:layout_height="@dimen/round_button_small"
+            android:scaleType="fitCenter"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            app:srcCompat="@drawable/ic_edit" />
+
+
+
+
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void changeToCameraActivity(View view){
-        Intent intent = new Intent(this, LocalAlbumActivity.class);
+        Intent intent = new Intent(this, CameraActivity.class);
         startActivity(intent);
     }
 

@@ -3,11 +3,13 @@ package com.example.phototutor.Photo;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Path;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Pair;
@@ -51,6 +53,7 @@ public class Photo {
     // negative: integer part of longer/equal to 1 second, within range from DOUBLE_MIN inclusive to -1 inclusive;
     // positive: the fraction of 1, from 1 (exclusive) to DOUBLE_MAX, should always be an fraction of integers
     public Long timestamp;
+    public Long lastModifiedTime;
     @Embedded
     public Coordinates location;
     public double orientation;
@@ -61,6 +64,7 @@ public class Photo {
     @Ignore
     private Bitmap thumbnail;
 
+
     public Photo(){}
     public Photo(Bitmap bitmap, Long timestamp){
         setBitmap(bitmap);
@@ -69,6 +73,7 @@ public class Photo {
         this.focal_length = 6;
         this.aperture = 0.95;
         this.shutter_speed = -3.2;
+        lastModifiedTime = timestamp;
     }
 
     public Photo(Bitmap bitmap, Long timestamp, double latitude, double longitude){
@@ -123,8 +128,8 @@ public class Photo {
         try {
             File path = new File(directory, String.valueOf(timestamp) + ".png");
             File thumbnailPath = new File(directory, String.valueOf(timestamp) + "_thumbnail.png");
-            FileOutputStream out = new FileOutputStream(path);
-            FileOutputStream thumbnail_out = new FileOutputStream(thumbnailPath);
+            FileOutputStream out = new FileOutputStream(path,false);
+            FileOutputStream thumbnail_out = new FileOutputStream(thumbnailPath,false);
             imageURI= Uri.fromFile(path);
             thumbnailURI = Uri.fromFile(thumbnailPath);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
@@ -142,7 +147,12 @@ public class Photo {
 
     }
 
-    public boolean saveImage(String directory) {
-        return saveImage(new File(directory));
+    public boolean updatePhotoBitmap(File directory,Bitmap newBitmap){
+
+        bitmap = newBitmap;
+        this.thumbnail = ThumbnailUtils.extractThumbnail(bitmap,64,64);
+        this.lastModifiedTime = System.currentTimeMillis();
+        return saveImage(directory);
     }
+
 }

@@ -30,6 +30,7 @@ public class LocalAlbumViewModel extends ViewModel {
         allPhotos = photoDao.loadAllPhotosSortedByTime();
     }
 
+
     public void select(Integer pos){
         Log.w("LocalAlbumViewModel",pos.toString());
         currentSelect.setValue(pos);
@@ -38,5 +39,10 @@ public class LocalAlbumViewModel extends ViewModel {
 
     public LiveData<Integer> getSelected() {
         return currentSelect;
+    }
+
+    public void updateDataset(Context context, Photo photo){
+        PhotoDatabase db = PhotoDatabase.getDatabase(context);
+        db.updatePhotos(photo);
     }
 }
