@@ -89,4 +89,26 @@ dependencies {
     implementation 'com.github.chrisbanes:PhotoView:2.0.0'
 
 
+    implementation "androidx.coordinatorlayout:coordinatorlayout:1.1.0"
+    implementation 'com.google.android.material:material:1.1.0'
+
+    //maps
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+
+    //PhotoView
+
+    implementation 'com.github.chrisbanes:PhotoView:2.0.0'
+
+
+    implementation "androidx.coordinatorlayout:coordinatorlayout:1.1.0"
+    implementation 'com.google.android.material:material:1.1.0'
+
+    //maps
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+
+    //PhotoView
+
+    implementation 'com.github.chrisbanes:PhotoView:2.0.0'
+
+    implementation "com.squareup.okhttp3:okhttp:3.11.0"
 }
