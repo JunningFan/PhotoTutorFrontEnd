@@ -94,7 +94,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     public void postUserDataToDatabase(String username, String nickname, String password) {
         OkHttpClient client = new OkHttpClient();
-        String url = "http://whiteboard.house:8080/users/";
+        String url = "http://whiteboard.house:8000/user/";
         Log.d("OKHTTP3", "POST Function called");
         MediaType JSON = MediaType.parse("application/json;charset=utf-8");
         JSONObject actualData = new JSONObject();
