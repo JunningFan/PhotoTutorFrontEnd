@@ -20,6 +20,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.navigation.Navigation;
 import androidx.room.Room;
 import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
@@ -191,6 +192,21 @@ public class LocalPhotoDetailFragment extends Fragment {
                                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                         startActivityForResult(pickPhoto , 0);
                     }
+                }
+        );
+
+        view.findViewById(R.id.upload_button).setOnClickListener(
+                view1 -> {
+
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("pos", viewPager.getCurrentItem());
+
+
+
+
+                    Navigation.findNavController(
+                            requireActivity(),R.id.local_album_nav_host_fragment
+                    ).navigate(R.id.action_local_photo_detail_fragment_to_uploadFragment,bundle);
                 }
         );
 

@@ -34,7 +34,7 @@
             app:srcCompat="@drawable/ic_back" />
 
         <ImageButton
-            android:id="@+id/save_button"
+            android:id="@+id/upload_button"
             android:layout_width="@dimen/round_button_small"
             android:layout_height="@dimen/round_button_small"
             android:scaleType="fitCenter"

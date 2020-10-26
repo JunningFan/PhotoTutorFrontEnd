@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/local_album_nav_fragment"
     app:startDestination="@id/local_album_fragment">
 
@@ -21,6 +22,22 @@
         android:name="com.example.phototutor.ui.localalbum.LocalPhotoDetailFragment"
         android:id="@+id/local_photo_detail_fragment"
 
-        />
+        >
+        <action
+            android:id="@+id/action_local_photo_detail_fragment_to_uploadFragment"
+            app:destination="@id/uploadFragment" >
+
+            <argument
+                android:name="pos"
+                app:argType="integer"
+                android:defaultValue="0" />
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/uploadFragment"
+        android:name="com.example.phototutor.ui.localalbum.UploadFragment"
+        android:label="fragment_upload"
+        tools:layout="@layout/fragment_upload" />
 
 </navigation>

@@ -88,5 +88,9 @@ dependencies {
 
     implementation 'com.github.chrisbanes:PhotoView:2.0.0'
 
+    //Retrofit2
+    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
 
+    implementation 'com.itkacher.okhttpprofiler:okhttpprofiler:1.0.7'
 }
