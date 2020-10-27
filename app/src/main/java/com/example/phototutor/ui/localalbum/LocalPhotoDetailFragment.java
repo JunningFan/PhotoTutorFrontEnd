@@ -3,6 +3,7 @@ package com.example.phototutor.ui.localalbum;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -41,6 +42,7 @@ import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.Photo.PhotoDAO;
 import com.example.phototutor.Photo.PhotoDatabase;
 import com.example.phototutor.R;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.w3c.dom.Text;
 
@@ -156,13 +158,6 @@ public class LocalPhotoDetailFragment extends Fragment {
 
                     File file = new File(photo.imageURI.getPath());
                     Log.w(TAG, file.getPath());
-//                    File file_out = new File(view1.getContext().getCacheDir(), filename);
-//                    try {
-//                        FileOutputStream file_os = new FileOutputStream(file);
-//                        file_os.write();
-//                    } catch (FileNotFoundException e) {
-//                        e.printStackTrace();
-//                    }
 
 
                     Uri contentUri = FileProvider.getUriForFile(view1.getContext(),
@@ -210,6 +205,23 @@ public class LocalPhotoDetailFragment extends Fragment {
                 }
         );
 
+        view.findViewById(R.id.delete_button).setOnClickListener(
+                view1 -> {
+                    new MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("Warning")
+                            .setMessage("You are about to delete this photo")
+                            .setNeutralButton("Cancel", (dialogInterface, i) -> {
+
+                            })
+                            .setPositiveButton("Ok", (dialogInterface, i) -> {
+                                Photo photo = adapter.photos.get(viewPager.getCurrentItem());
+                                mViewModel.deletePhoto(requireContext(), photo);
+
+                            })
+                            .show();
+                }
+
+                );
 
     }
 

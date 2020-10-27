@@ -155,4 +155,10 @@ public class Photo {
         return saveImage(directory);
     }
 
+    public void delete(){
+        new File(imageURI.getPath()).delete();
+        new File(thumbnailURI.getPath()).delete();
+        bitmap = null;
+        thumbnailURI = null;
+    }
 }

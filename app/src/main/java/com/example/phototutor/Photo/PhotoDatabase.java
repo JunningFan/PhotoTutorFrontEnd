@@ -48,6 +48,15 @@ public abstract class PhotoDatabase extends RoomDatabase {
                 }
         );
     }
+
+    public void deletePhotos(Photo... photos){
+        databaseWriteExecutor.execute(
+                () -> {
+                    Log.w("Database","delete " + photos[0].id);
+                    photoDAO().deletePhotos(photos);
+                }
+        );
+    }
     public void updatePhotos(Photo... photos){
         databaseWriteExecutor.execute(
                 () -> {

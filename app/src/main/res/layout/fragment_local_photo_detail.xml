@@ -61,6 +61,14 @@
             android:background="@android:color/transparent"
             app:srcCompat="@drawable/ic_edit" />
 
+        <ImageButton
+            android:id="@+id/delete_button"
+            android:layout_width="@dimen/round_button_small"
+            android:layout_height="@dimen/round_button_small"
+            android:scaleType="fitCenter"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            app:srcCompat="@drawable/ic_delete" />
 
 
 
