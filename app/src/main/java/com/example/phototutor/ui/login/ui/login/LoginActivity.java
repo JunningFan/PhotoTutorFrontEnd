@@ -46,10 +46,11 @@ public class LoginActivity extends AppCompatActivity {
 
     private static SharedPreferences sharedPreferences;
     private LoginViewModel loginViewModel;
-    public static final String fileName = "login";
+    public static final String filename = "login";
     public static final String Username = "username";
     public static final String Password = "password";
-    public static final String Token = "token";
+    public static final String AccessToken = "accessToken";
+    public static final String RefreshToken = "refreshToken";
     public static final String Nickname = "nickname";
 
     @Override
@@ -64,7 +65,7 @@ public class LoginActivity extends AppCompatActivity {
         final Button loginButton = findViewById(R.id.login);
         final Button registerButton = findViewById(R.id.register);
 
-        sharedPreferences = getSharedPreferences(fileName, Context.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(filename, Context.MODE_PRIVATE);
         if(sharedPreferences.contains(Username)) {
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(intent);
@@ -91,7 +92,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onChanged(@Nullable LoginResult loginResult) {
                 OkHttpClient client = new OkHttpClient();
-                String url = "http://whiteboard.house:8080/users/login/";
+                String url = "http://whiteboard.house:8000/user/login/";
                 Log.d("OKHTTP3", "POST Function called");
                 MediaType JSON = MediaType.parse("application/json;charset=utf-8");
                 JSONObject actualData = new JSONObject();
@@ -120,13 +121,15 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         Log.d("OKHTTP3", "Request Done, got the response.");
+//                       Log.d("OKHTTP3", response.body().string());
                         try {
                             JSONObject json = new JSONObject(response.body().string());
                             if(json.has("error")) {
                                 showLoginFailed(json.getString("error"));
                             } else {
                                 JSONObject user = json.getJSONObject("user");
-                                String token = json.getString("token");
+                                String accessToken = json.getString("access");
+                                String refreshToken = json.getString("refresh");
                                 String username = user.getString("Username");
                                 String nickname = user.getString("Nickname");
 
@@ -135,7 +138,7 @@ public class LoginActivity extends AppCompatActivity {
                                 }
 
                                 if (loginResult.getSuccess() != null) {
-                                    saveToSharedPreferences(username, passwordEditText.getText().toString(), token, nickname);
+                                    saveToSharedPreferences(username, passwordEditText.getText().toString(), accessToken, refreshToken, nickname);
                                     updateUiWithUser(nickname);
                                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                     startActivity(intent);
@@ -216,16 +219,17 @@ public class LoginActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_LONG).show();
     }
 
-    private static void saveToSharedPreferences(String username, String password, String token, String nickname) {
+    private static void saveToSharedPreferences(String username, String password, String accessToken, String refreshToken, String nickname) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(Username, username);
         editor.putString(Password, password);
-        editor.putString(Token, token);
+        editor.putString(AccessToken, accessToken);
+        editor.putString(RefreshToken, refreshToken);
         editor.putString(Nickname, nickname);
         editor.commit();
     }
 
     public static void userLogout() {
-        saveToSharedPreferences(null, null, null, null);
+        saveToSharedPreferences(null, null, null, null, null);
     }
 }
