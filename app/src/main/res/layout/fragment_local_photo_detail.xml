@@ -6,12 +6,113 @@
     android:background="@android:color/black"
     android:id = "@+id/fragment_local_photo_detail"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layoutDirection="ltr">
+    android:layoutDirection="ltr"
+    xmlns:tools="http://schemas.android.com/tools">
     <androidx.viewpager2.widget.ViewPager2
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/photo_view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="255"
+        android:fitsSystemWindows="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+
+        app:layout_constraintLeft_toLeftOf="parent">
+
+        <LinearLayout
+            android:id="@+id/button_sheet_image_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#65009688"
+            android:nestedScrollingEnabled="true"
+            android:orientation="vertical"
+            android:paddingLeft="8sp"
+            android:paddingRight="8sp"
+            android:paddingBottom="8sp"
+            app:behavior_hideable="false"
+            app:behavior_peekHeight="80dp"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+            <TextView
+                android:id="@+id/textView_basic_metadata"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:alpha="255"
+                android:drawableLeft="@drawable/ic_baseline_exposure_36"
+                android:drawablePadding="5dp"
+                android:gravity="center"
+                android:text="Placeholder"
+                android:textColor="#FFFFFF"
+                android:textColorHighlight="#000000"
+                android:textColorLink="#000000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/textView_other_metadata"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:alpha="255"
+                android:drawableLeft="@drawable/ic_baseline_camera_36"
+                android:drawablePadding="5dp"
+                android:gravity="center"
+                android:text="Placeholder"
+                android:textColor="#FFFFFF"
+                android:textColorHighlight="#000000"
+                android:textColorLink="#000000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/textView_timestamp"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:alpha="255"
+                android:drawableLeft="@drawable/ic_baseline_access_time_36"
+                android:drawablePadding="5dp"
+                android:gravity="center"
+                android:text="Placeholder"
+                android:textColor="#FFFFFF"
+                android:textColorHighlight="#000000"
+                android:textColorLink="#000000"
+                android:textSize="24sp" />
+
+            <fragment
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="10"
+                tools:context=".MainActivity" />
+
+            <!--            <com.google.android.material.appbar.AppBarLayout-->
+            <!--                android:id="@+id/app_bar"-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:background="@android:color/transparent"-->
+            <!--                android:minHeight="?attr/actionBarSize"-->
+            <!--                app:elevation="0dp"-->
+            <!--                >-->
+
+            <!--                <androidx.appcompat.widget.Toolbar-->
+            <!--                    android:id="@+id/my_toolbar"-->
+            <!--                    android:layout_width="match_parent"-->
+            <!--                    android:layout_height="match_parent"-->
+            <!--                    android:background="@android:color/transparent"-->
+            <!--                    app:contentInsetEnd="0dp"-->
+            <!--                    app:contentInsetStart="0dp" />-->
+
+
+            <!--            </com.google.android.material.appbar.AppBarLayout>-->
+
+        </LinearLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -73,6 +174,8 @@
 
 
     </LinearLayout>
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

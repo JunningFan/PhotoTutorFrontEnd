@@ -45,6 +45,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Formatter;
@@ -58,18 +59,14 @@ import java.util.TimeZone;
  * Use the {@link UnitLocalPhotoDetailFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class UnitLocalPhotoDetailFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapLoadedCallback {
+public class UnitLocalPhotoDetailFragment extends Fragment {
 
 
-    private Photo photo;
+    private Photo photo_url;
     private LocalAlbumViewModel mViewModel;
-    private TextView textView_basic_meta;
-    private TextView textView_other_meta;
-    private TextView textView_timestamp;
+
     private String TAG = "UnitLocalPhotoDetailFragment";
-    SupportMapFragment mapFragment;
-    private GoogleMap mMap;
-    private Marker photoMarker;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,65 +74,20 @@ public class UnitLocalPhotoDetailFragment extends Fragment implements OnMapReady
     }
 
     @Override
-    public void onDestroy() {
-        mViewModel.getAllPhotos().removeObservers(this);
-        super.onDestroy();
-    }
-
-    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         super.onViewCreated(view, savedInstanceState);
-        int pos = getArguments().getInt("pos");
-        mViewModel = ViewModelProviders.of(requireActivity()).get(LocalAlbumViewModel.class);
-        mapFragment = (SupportMapFragment)getChildFragmentManager()
-                .findFragmentById(R.id.map);
-        mViewModel.getAllPhotos().observe(
-                requireActivity(), photos -> {
-                    photo = photos.get(pos);
-                    Log.w(TAG, String.valueOf(photo.id));
-                    ImageView imageView = view.findViewById(R.id.image_view);
-                    Log.w(this.getClass().getSimpleName(), "viewing a new photo page");
-                    Glide.with(view)
-                            .load(photo.imageURI)
-                            .placeholder(R.drawable.ic_loading)
-                            .diskCacheStrategy(DiskCacheStrategy.NONE)
-                            .skipMemoryCache(true)
-                            .into(imageView);
+        String photo_url = getArguments().getString("photo_url");
 
-                    textView_basic_meta = (TextView) view.findViewById(R.id.textView_basic_metadata);
-                    if(textView_basic_meta == null) {
-                        Log.e(this.getClass().getSimpleName(),"text view not found");
-                    }
+        ImageView imageView = view.findViewById(R.id.image_view);
+        Log.w(this.getClass().getSimpleName(), "viewing a new photo page");
+        Glide.with(view)
+                .load(new File(photo_url))
+                .placeholder(R.drawable.ic_loading)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .into(imageView);
 
-
-                    StringBuilder sbuf_expo = new StringBuilder();
-                    Formatter fmt_expo = new Formatter(sbuf_expo);
-                    if(photo.shutter_speed > 0) {
-                        fmt_expo.format("f/%.1f  1/%ds  ISO:%d", photo.aperture, (int)photo.shutter_speed, photo.iso);
-                    } else {
-                        fmt_expo.format("f/%.1f  %.1fs  ISO:%d", photo.aperture, Math.abs(photo.shutter_speed), photo.iso);
-                    }
-                    textView_basic_meta.setText(sbuf_expo.toString());
-
-                    textView_other_meta = (TextView) view.findViewById(R.id.textView_other_metadata);
-                    StringBuilder sbuf_other = new StringBuilder();
-                    Formatter fmt_other = new Formatter(sbuf_other);
-                    fmt_other.format("%dmm", photo.focal_length);
-                    textView_other_meta.setText(fmt_other.toString());
-
-                    textView_timestamp = (TextView) view.findViewById(R.id.textView_timestamp);
-                    Calendar calendar = Calendar.getInstance();
-                    TimeZone tz = TimeZone.getDefault();
-                    calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                    java.util.Date currenTimeZone=new java.util.Date((photo.timestamp));
-                    textView_timestamp.setText(sdf.format(currenTimeZone));
-
-
-                    mapFragment.getMapAsync(this);
-                }
-        );
 
 
     }
@@ -145,55 +97,7 @@ public class UnitLocalPhotoDetailFragment extends Fragment implements OnMapReady
         return inflater.inflate(R.layout.fragment_unit_local_photo_detail, container, false);
     }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
-        mMap.getUiSettings().setAllGesturesEnabled(false);  // disable touching to the map before the animation is rendered
-
-        mMap.setMinZoomPreference(10.0f);
-        mMap.setMaxZoomPreference(21.0f);
-
-        LatLng photoLL = new LatLng(photo.getLatitude(), photo.getLongitude());
-
-        float degrees = (float) photo.getOrientation();
-        photoMarker = mMap.addMarker(new MarkerOptions()
-                .title("Photo")
-                .position(photoLL)
-                .rotation(degrees)
-                .flat(true)
-                .icon(vectorToBitmap(R.drawable.ic_baseline_navigation_36, Color.parseColor("#FC771A")))
-        );
-
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(photoLL, 18.5f));
-
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-            }
-        });
-
-        mMap.setOnMapLoadedCallback(this);
-    }
-
-    private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color) {
-        Drawable vectorDrawable = ResourcesCompat.getDrawable(getResources(), id, null);
-        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(),
-                vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        DrawableCompat.setTint(vectorDrawable, color);
-        vectorDrawable.draw(canvas);
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
-    }
-
-    @Override
-    public void onMapLoaded() {
-        // Add a marker in Sydney and move the camera
-
-        mMap.getUiSettings().setAllGesturesEnabled(true);
-    }
 
 
 }

@@ -44,7 +44,6 @@ public class LocalAlbumViewModel extends ViewModel {
     public void updateDataset(Context context, Photo photo){
         PhotoDatabase db = PhotoDatabase.getDatabase(context);
         db.updatePhotos(photo);
-
     }
 
     public void deletePhoto(Context context, Photo photo){
