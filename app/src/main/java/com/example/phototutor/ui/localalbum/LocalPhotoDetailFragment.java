@@ -84,6 +84,7 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
     static private String TAG ="LocalPhotoDetailFragment";
     SupportMapFragment mapFragment;
     private GoogleMap mMap;
+    private boolean isMapReady = false;
     private Marker photoMarker;
     private TextView textView_basic_meta;
     private TextView textView_other_meta;
@@ -281,16 +282,17 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
     }
 
 
-    private void updatePhotoData(Photo photo){
-        if(textView_basic_meta == null) {
-            Log.e(this.getClass().getSimpleName(),"text view not found");
+    private void updatePhotoData(Photo photo) {
+
+        if (textView_basic_meta == null) {
+            Log.e(this.getClass().getSimpleName(), "text view not found");
         }
 
 
         StringBuilder sbuf_expo = new StringBuilder();
         Formatter fmt_expo = new Formatter(sbuf_expo);
-        if(photo.shutter_speed > 0) {
-            fmt_expo.format("f/%.1f  1/%ds  ISO:%d", photo.aperture, (int)photo.shutter_speed, photo.iso);
+        if (photo.shutter_speed > 0) {
+            fmt_expo.format("f/%.1f  1/%ds  ISO:%d", photo.aperture, (int) photo.shutter_speed, photo.iso);
         } else {
             fmt_expo.format("f/%.1f  %.1fs  ISO:%d", photo.aperture, Math.abs(photo.shutter_speed), photo.iso);
         }
@@ -304,8 +306,11 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
         TimeZone tz = TimeZone.getDefault();
         calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        java.util.Date currenTimeZone=new java.util.Date((photo.timestamp));
+        java.util.Date currenTimeZone = new java.util.Date((photo.timestamp));
         textView_timestamp.setText(sdf.format(currenTimeZone));
+        if (photoMarker != null) {
+            photoMarker.remove();
+        }
         mapFragment.getMapAsync(this);
     }
 
@@ -381,6 +386,8 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
         LatLng photoLL = new LatLng(photo.getLatitude(), photo.getLongitude());
 
         float degrees = (float) photo.getOrientation();
+        if(photoMarker != null)
+            photoMarker.remove();
         photoMarker = mMap.addMarker(new MarkerOptions()
                 .title("Photo")
                 .position(photoLL)
