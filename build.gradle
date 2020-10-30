@@ -14,6 +14,7 @@ buildscript {
 allprojects {
     repositories {
         maven { url 'https://jitpack.io' }
+        maven { url 'https://github.com/500px/greedo-layout-for-android/raw/master/releases/' }
         google()
         jcenter()
     }

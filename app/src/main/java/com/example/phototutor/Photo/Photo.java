@@ -63,7 +63,10 @@ public class Photo {
     private Bitmap bitmap;
     @Ignore
     private Bitmap thumbnail;
-
+    @Ignore
+    private int width;
+    @Ignore
+    private int height;
 
     public Photo(){}
     public Photo(Bitmap bitmap, Long timestamp){
@@ -76,6 +79,21 @@ public class Photo {
         lastModifiedTime = timestamp;
     }
 
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight(){
+        return height;
+    }
+
+    public void setWidth(int width){
+        this.width = width;
+    }
+
+    public void setHeight(int height){
+        this.height = height;
+    }
     public Photo(Bitmap bitmap, Long timestamp, double latitude, double longitude){
         this(bitmap, timestamp);
         setLocation(new Coordinates(latitude, longitude));
@@ -114,6 +132,8 @@ public class Photo {
     public void setBitmap(Bitmap bitmap) {
         this.bitmap = bitmap;
         this.thumbnail = ThumbnailUtils.extractThumbnail(bitmap,64,64);
+        this.width = bitmap.getWidth();
+        this.height = bitmap.getHeight();
     }
 
     public double getElevation() {
@@ -148,9 +168,7 @@ public class Photo {
     }
 
     public boolean updatePhotoBitmap(File directory,Bitmap newBitmap){
-
-        bitmap = newBitmap;
-        this.thumbnail = ThumbnailUtils.extractThumbnail(bitmap,64,64);
+        setBitmap(newBitmap);
         this.lastModifiedTime = System.currentTimeMillis();
         return saveImage(directory);
     }

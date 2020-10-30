@@ -95,4 +95,9 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
 
     implementation 'com.itkacher.okhttpprofiler:okhttpprofiler:1.0.7'
+
+    implementation 'com.google.android:flexbox:2.0.1'
+    implementation 'jp.wasabeef:glide-transformations:4.2.0'
+
+    implementation 'com.fivehundredpx:greedo-layout:1.5.1'
 }

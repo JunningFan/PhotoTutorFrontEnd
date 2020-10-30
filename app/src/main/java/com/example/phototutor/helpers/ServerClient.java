@@ -31,8 +31,10 @@ import retrofit2.http.Part;
 import retrofit2.http.Path;
 
 class ServerClient{
-    static private String host_address = "http://whiteboard.house:8000";
+//    static private String host_address = "http://whiteboard.house:8000";
 
+//    static private String host_address = "https://picsum.photos";
+    static private String host_address = "https://xieranmaya.github.io";
     static private Retrofit retrofit = initRetrofit();
 
 
@@ -74,6 +76,13 @@ class ServerClient{
         @GET("/upload/{id}")
         Call<ResponseBody> getPhotoInfo(
                 @Path("id") Integer id);
+
+        @GET("/images/cats/cats.json")
+        Call<ResponseBody> getPhotos();
+
+        @GET("/picture/{id}")
+        Call<ResponseBody> getPhotoDetail(@Path("id") Integer id);
+
 
     }
 }
