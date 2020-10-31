@@ -1,11 +1,13 @@
 package com.example.phototutor.ui.localalbum;
 
+import android.inputmethodservice.ExtractEditText;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -13,13 +15,21 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 import com.example.phototutor.helpers.PhotoUploader;
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.gson.JsonObject;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -37,7 +47,13 @@ public class UploadFragment extends DialogFragment {
     private LocalAlbumViewModel mViewModel;
     private Photo photo;
     private String TAG = "UploadFragment";
-    private String authKey ="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJRCI6MSwiQWNjZXNzIjp0cnVlLCJFeHBpcmUiOjE2MDQyMTIwNjZ9.DPWfY_5VAXDdOjPExC1_w7Og-uWfVOv9JvrK823Ld84MDVjgra8L1nALENuPwQfcQ4tXhs6SVV_Dz2XdzrNkrw";
+    private String authKey ="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJRCI6MSwiQWNjZXNzIjp0cnVlLCJFeHBpcmUiOjE2MDQyMzMwNDZ9.RHeOoS2lMgAa2HLTTHUVsjNqUxOAxf9XUBgYxlvHY_CB68aUdl6BfUBCSjOU9jHw9W-ADt46xMqg5dH9pNIWuQ";
+
+
+    private MutableLiveData<Boolean> preloadDone = new MutableLiveData<Boolean>(new Boolean(false));
+    private int imgId = -1;
+
+    EditText titleEditText;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -63,29 +79,88 @@ public class UploadFragment extends DialogFragment {
 
 
         });
-        view.findViewById(R.id.btn_submit).setOnClickListener(
-                view1 -> {
-                    PhotoUploader photoUploader = new PhotoUploader(getContext());
-                    photoUploader.uploadPhoto(authKey
-                            ,
-                            photo,
-                            new PhotoUploader.PhotoUploaderCallback() {
-                                @Override
-                                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                                    Log.w(TAG,response.toString());
-                                }
 
-                                @Override
-                                public void onFailure(Call<ResponseBody> call, Throwable t) {
-                                    Log.e(
-                                            TAG,
-                                            "---TTTT :: POST msg from server :: " + t.toString()
-                                    );
-                                }
+        titleEditText = ((TextInputLayout)view.findViewById(R.id.title_edit_container)).getEditText();
+
+        PhotoUploader photoUploader = new PhotoUploader(getContext());
+        photoUploader.uploadPhoto(authKey
+                ,
+                photo,
+                new PhotoUploader.PhotoUploaderCallback() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        Log.w(TAG,response.toString());
+                        if(response.isSuccessful()) {
+                            preloadDone.postValue(new Boolean(true));
+                            try {
+                                imgId = new JSONObject(response.body().string()).getInt("img");
+                            } catch (JSONException e) {
+                                Log.e(this.getClass().getSimpleName(), e.getMessage());
+                            } catch (IOException e) {
+                                Log.e(this.getClass().getSimpleName(), e.getMessage());
                             }
-                    );
-//                    photoUploader.getPhoto("hi",9);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Log.e(
+                                TAG,
+                                "---TTTT :: POST msg from server :: " + t.toString()
+                        );
+                    }
                 }
         );
+
+        //
+        view.findViewById(R.id.btn_submit).setOnClickListener(
+                view1 -> {
+                    if(preloadDone.getValue()) { // case: photo uploading is completed
+                        uploadInfo();
+                    } else { // case: photo is still uploading
+                        view.findViewById(R.id.btn_submit).setClickable(false);
+                        view.findViewById(R.id.et_desc).setFocusable(false);
+                        view.findViewById(R.id.et_title).setFocusable(false);
+                        ((TextView)view.findViewById(R.id.btn_submit)).setText("uploading");
+                        preloadDone.observe(getActivity(), aBoolean -> {
+                            if(preloadDone.getValue())
+                                uploadInfo();
+                        });
+                    }
+                }
+        );
+    }
+
+    //
+    private void uploadInfo() {
+        PhotoUploader photoUploader = new PhotoUploader(getContext());
+        String title = titleEditText.getText().toString();
+        photoUploader.uploadPhotoInfo(authKey, photo, imgId, title,
+                new PhotoUploader.PhotoUploaderCallback() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        Log.d(this.getClass().getSimpleName(), response.toString());
+                        if(response.isSuccessful()) {
+                            //return
+                        } else {
+                            Toast.makeText(getContext(), "Server error, please try again later or contact technical support", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Log.e(
+                                TAG,
+                                "---TTTT :: POST msg from server :: " + t.toString()
+                        );
+                        Toast.makeText(getContext(),"Network issue, please try again later", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+        );
+    }
+
+    private void unlock_views() {
+
     }
 }

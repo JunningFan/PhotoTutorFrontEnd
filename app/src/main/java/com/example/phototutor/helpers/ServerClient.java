@@ -21,6 +21,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.HEAD;
 import retrofit2.http.Header;
@@ -75,7 +76,7 @@ class ServerClient{
         @POST("/picture/")
         Call<ResponseBody> uploadImageInfo(
                 @Header("Authorization") String authKey,
-                @Part RequestBody info
+                @Body RequestBody info
         );
 
 
