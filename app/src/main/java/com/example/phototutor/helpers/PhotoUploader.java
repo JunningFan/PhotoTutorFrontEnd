@@ -36,8 +36,7 @@ public class PhotoUploader extends ServerClient {
             String type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extention);
             Log.w("PhotoUploader", type);
             RequestBody requestPhotoFile = RequestBody.create(
-                    MediaType.parse(type),
-                    photoFile);
+                    photoFile, MediaType.parse(type));
 
 
             MultipartBody.Part body = MultipartBody.Part.createFormData(
@@ -46,7 +45,7 @@ public class PhotoUploader extends ServerClient {
                     requestPhotoFile);
 
             Log.w("PhotoUploader",body.headers().toString());
-            getService().uploadPhoto(authKey,body).enqueue(callback);
+            getService().uploadImage(authKey,body).enqueue(callback);
 
     }
 

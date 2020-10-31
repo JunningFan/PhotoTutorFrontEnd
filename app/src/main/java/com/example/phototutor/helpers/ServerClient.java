@@ -66,10 +66,18 @@ class ServerClient{
 
         @Multipart
         @POST("/upload/")
-        Call<ResponseBody> uploadPhoto(
+        Call<ResponseBody> uploadImage(
                 @Header("Authorization") String authKey,
                 @Part MultipartBody.Part photo
         );
+
+
+        @POST("/picture/")
+        Call<ResponseBody> uploadImageInfo(
+                @Header("Authorization") String authKey,
+                @Part RequestBody info
+        );
+
 
         @GET("/upload/{id}")
         Call<ResponseBody> getPhotoInfo(

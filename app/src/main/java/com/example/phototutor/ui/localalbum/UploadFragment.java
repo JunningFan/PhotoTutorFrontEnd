@@ -37,7 +37,7 @@ public class UploadFragment extends DialogFragment {
     private LocalAlbumViewModel mViewModel;
     private Photo photo;
     private String TAG = "UploadFragment";
-    private String authKey ="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJRCI6MSwiQWNjZXNzIjp0cnVlLCJFeHBpcmUiOjE2MDM2ODY2MjF9.OSJqEJiSBumrXoc0s5-hCdfjOVdWPQgTi4WDze5LP5-YVB6BK4ly9-AmVjfH5r3urlAPJElvlIh3ZRklPjpi9Q";
+    private String authKey ="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJRCI6MSwiQWNjZXNzIjp0cnVlLCJFeHBpcmUiOjE2MDQyMTIwNjZ9.DPWfY_5VAXDdOjPExC1_w7Og-uWfVOv9JvrK823Ld84MDVjgra8L1nALENuPwQfcQ4tXhs6SVV_Dz2XdzrNkrw";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
