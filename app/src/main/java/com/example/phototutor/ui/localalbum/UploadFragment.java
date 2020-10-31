@@ -49,10 +49,12 @@ public class UploadFragment extends DialogFragment {
     private String TAG = "UploadFragment";
     private String authKey ="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJRCI6MSwiQWNjZXNzIjp0cnVlLCJFeHBpcmUiOjE2MDQyMzMwNDZ9.RHeOoS2lMgAa2HLTTHUVsjNqUxOAxf9XUBgYxlvHY_CB68aUdl6BfUBCSjOU9jHw9W-ADt46xMqg5dH9pNIWuQ";
 
+    View view;
 
     private MutableLiveData<Boolean> preloadDone = new MutableLiveData<Boolean>(new Boolean(false));
     private int imgId = -1;
 
+    PhotoUploader photoUploader;
     EditText titleEditText;
 
     @Override
@@ -65,6 +67,8 @@ public class UploadFragment extends DialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        this.view = view;
+
         int pos = getArguments().getInt("pos");
         mViewModel = ViewModelProviders.of(requireActivity()).get(LocalAlbumViewModel.class);
         mViewModel.getAllPhotos().observe(requireActivity(), photos ->{
@@ -81,8 +85,73 @@ public class UploadFragment extends DialogFragment {
         });
 
         titleEditText = ((TextInputLayout)view.findViewById(R.id.title_edit_container)).getEditText();
+        photoUploader = new PhotoUploader(getContext());
 
-        PhotoUploader photoUploader = new PhotoUploader(getContext());
+        uploadImage();
+        //
+        view.findViewById(R.id.btn_submit).setOnClickListener(
+                view1 -> {
+                    if(preloadDone.getValue()) { // case: photo uploading is completed
+                        uploadInfo();
+                    } else { // case: photo is still uploading
+                        lockViews();
+                        preloadDone.observe(getActivity(), aBoolean -> {
+                            if(preloadDone.getValue())
+                                uploadInfo();
+                        });
+                    }
+                }
+        );
+    }
+
+    //
+    private void uploadInfo() {
+       photoUploader = new PhotoUploader(getContext());
+        String title = titleEditText.getText().toString();
+        photoUploader.uploadPhotoInfo(authKey, photo, imgId, title,
+                new PhotoUploader.PhotoUploaderCallback() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        Log.d(this.getClass().getSimpleName(), response.toString());
+                        if(response.isSuccessful()) {
+                            Toast.makeText(getContext(), "Upload Complete", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getContext(), "Server error, please try again later or contact technical support", Toast.LENGTH_SHORT).show();
+                            unlockViews();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Log.e(
+                                TAG,
+                                "---TTTT :: POST msg from server :: " + t.toString()
+                        );
+                        Toast.makeText(getContext(),"Network issue, please try again later", Toast.LENGTH_SHORT).show();
+                        unlockViews();
+                    }
+                }
+
+        );
+    }
+
+    private void lockViews(){
+        view.findViewById(R.id.btn_submit).setClickable(false);
+        view.findViewById(R.id.et_desc).setFocusable(false);
+        view.findViewById(R.id.et_title).setFocusable(false);
+        ((TextView)view.findViewById(R.id.btn_submit)).setText("Submitting");
+
+    }
+
+    private void unlockViews() {
+        view.findViewById(R.id.btn_submit).setClickable(true);
+        view.findViewById(R.id.et_desc).setFocusable(true);
+        view.findViewById(R.id.et_title).setFocusable(true);
+        ((TextView)view.findViewById(R.id.btn_submit)).setText("Submit");
+
+    }
+
+    private void uploadImage() {
         photoUploader.uploadPhoto(authKey
                 ,
                 photo,
@@ -99,51 +168,10 @@ public class UploadFragment extends DialogFragment {
                             } catch (IOException e) {
                                 Log.e(this.getClass().getSimpleName(), e.getMessage());
                             }
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-                        Log.e(
-                                TAG,
-                                "---TTTT :: POST msg from server :: " + t.toString()
-                        );
-                    }
-                }
-        );
-
-        //
-        view.findViewById(R.id.btn_submit).setOnClickListener(
-                view1 -> {
-                    if(preloadDone.getValue()) { // case: photo uploading is completed
-                        uploadInfo();
-                    } else { // case: photo is still uploading
-                        view.findViewById(R.id.btn_submit).setClickable(false);
-                        view.findViewById(R.id.et_desc).setFocusable(false);
-                        view.findViewById(R.id.et_title).setFocusable(false);
-                        ((TextView)view.findViewById(R.id.btn_submit)).setText("uploading");
-                        preloadDone.observe(getActivity(), aBoolean -> {
-                            if(preloadDone.getValue())
-                                uploadInfo();
-                        });
-                    }
-                }
-        );
-    }
-
-    //
-    private void uploadInfo() {
-        PhotoUploader photoUploader = new PhotoUploader(getContext());
-        String title = titleEditText.getText().toString();
-        photoUploader.uploadPhotoInfo(authKey, photo, imgId, title,
-                new PhotoUploader.PhotoUploaderCallback() {
-                    @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        Log.d(this.getClass().getSimpleName(), response.toString());
-                        if(response.isSuccessful()) {
-                            //return
                         } else {
                             Toast.makeText(getContext(), "Server error, please try again later or contact technical support", Toast.LENGTH_SHORT).show();
+                            unlockViews();
+                            uploadImage();
                         }
                     }
 
@@ -154,13 +182,10 @@ public class UploadFragment extends DialogFragment {
                                 "---TTTT :: POST msg from server :: " + t.toString()
                         );
                         Toast.makeText(getContext(),"Network issue, please try again later", Toast.LENGTH_SHORT).show();
+                        unlockViews();
+                        uploadImage();
                     }
                 }
-
         );
-    }
-
-    private void unlock_views() {
-
     }
 }
