@@ -74,7 +74,7 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
     @Override
     public void onResume() {
         super.onResume();
-
+        mapFragment.onResume();
     }
 
     @Override
@@ -179,7 +179,18 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        mapFragment.onPause();
+    }
+
+
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
+        if(currphoto == null) {
+            return;
+        }
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 

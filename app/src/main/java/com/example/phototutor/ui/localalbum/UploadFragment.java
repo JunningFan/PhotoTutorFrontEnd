@@ -91,10 +91,10 @@ public class UploadFragment extends DialogFragment {
         //
         view.findViewById(R.id.btn_submit).setOnClickListener(
                 view1 -> {
+                    lockViews();
                     if(preloadDone.getValue()) { // case: photo uploading is completed
                         uploadInfo();
                     } else { // case: photo is still uploading
-                        lockViews();
                         preloadDone.observe(getActivity(), aBoolean -> {
                             if(preloadDone.getValue())
                                 uploadInfo();
@@ -108,6 +108,9 @@ public class UploadFragment extends DialogFragment {
     private void uploadInfo() {
        photoUploader = new PhotoUploader(getContext());
         String title = titleEditText.getText().toString();
+        if(title.isEmpty()) {
+            title = "Untitled";
+        }
         photoUploader.uploadPhotoInfo(authKey, photo, imgId, title,
                 new PhotoUploader.PhotoUploaderCallback() {
                     @Override
@@ -115,6 +118,7 @@ public class UploadFragment extends DialogFragment {
                         Log.d(this.getClass().getSimpleName(), response.toString());
                         if(response.isSuccessful()) {
                             Toast.makeText(getContext(), "Upload Complete", Toast.LENGTH_SHORT).show();
+                            getActivity().onBackPressed();
                         } else {
                             Toast.makeText(getContext(), "Server error, please try again later or contact technical support", Toast.LENGTH_SHORT).show();
                             unlockViews();
