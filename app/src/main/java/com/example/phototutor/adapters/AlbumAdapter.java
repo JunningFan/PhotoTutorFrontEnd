@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,16 +18,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.signature.ObjectKey;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 import com.google.android.flexbox.FlexboxLayoutManager;
 
 import java.io.File;
+import java.net.URL;
 import java.util.List;
 import java.util.Random;
 
@@ -75,32 +79,13 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
 
 
             Glide.with(context)
-                    .load(current.imageURI)
+                    .load(current.thumbnailURI)
                     .placeholder(R.drawable.ic_loading)
-
-                    .thumbnail(0.1f)
-
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .format(DecodeFormat.PREFER_RGB_565)
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .override(Target.SIZE_ORIGINAL)
                     .skipMemoryCache(true)
-                    .listener(new RequestListener<Drawable>() {
-                        @Override
-                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                            return false;
-                        }
 
-                        @Override
-                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                            ViewGroup.LayoutParams lp = holder.imageView.getLayoutParams();
-                            if (lp instanceof FlexboxLayoutManager.LayoutParams) {
-                                Log.w("ResourceReady","" +resource.getIntrinsicHeight()+' ' + resource.getIntrinsicWidth() );
-                                FlexboxLayoutManager.LayoutParams flexboxLp = (FlexboxLayoutManager.LayoutParams)lp;
-//                                flexboxLp.setHeight(resource.getIntrinsicHeight());
-//                                flexboxLp.setWidth(resource.getIntrinsicWidth());
-                                flexboxLp.setFlexGrow(1.e4f);
-                            }
-                            return false;
-                        }
-                    })
 //                    .apply(RequestOptions.bitmapTransform(new CropTransformation(1920,1080)))
 
                     .into(holder.imageView);
@@ -134,6 +119,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     public void setPhotos(List<Photo> photos){
         Log.w(TAG, "photos:"+String.valueOf(photos.size()));
         photoList = photos;
+        updateGlide();
         notifyDataSetChanged();
     }
 
@@ -142,9 +128,14 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.image_block);
+            imageView.setImageDrawable(null);
 
         }
 
+    }
+
+    public void updateGlide(){
+        Glide.get(context).clearMemory();
     }
 
 }

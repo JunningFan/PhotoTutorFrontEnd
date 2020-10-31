@@ -1,5 +1,6 @@
 package com.example.phototutor;
 
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -34,14 +35,13 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
-//        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-//                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
-//                .build();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.navigation_home, R.id.navigation_notifications)
+                .build();
 //        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-        NavigationUI.setupWithNavController(navView, navController);
         configNavigationItemSelectedListener(navView);
         configTopAppBarItemSelectedListener(findViewById(R.id.topAppBar));
+
 
     }
 
@@ -86,6 +86,14 @@ public class MainActivity extends AppCompatActivity {
 
                 });
                 popup.show();
+            }
+            else if (item.getItemId() == R.id.navigation_notifications){
+                Navigation.findNavController(this,R.id.nav_host_fragment)
+                        .navigate(R.id.navigation_notifications);
+            }
+            else if (item.getItemId() == R.id.navigation_home){
+                Navigation.findNavController(this,R.id.nav_host_fragment)
+                        .navigate(R.id.navigation_home);
             }
             return true;
         });

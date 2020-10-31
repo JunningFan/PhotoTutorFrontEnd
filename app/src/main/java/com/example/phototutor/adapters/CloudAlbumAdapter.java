@@ -4,7 +4,12 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.provider.MediaStore;
+import android.util.Log;
+import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+
+import com.bumptech.glide.Glide;
 import com.example.phototutor.Photo.Photo;
 import com.fivehundredpx.greedolayout.GreedoLayoutSizeCalculator;
 
@@ -32,11 +37,21 @@ public class CloudAlbumAdapter extends AlbumAdapter implements GreedoLayoutSizeC
     public double aspectRatioForIndex(int i) {
         if(i < getItemCount()){
             Photo photo = photoList.get(i);
-            return photo.getWidth()/photo.getHeight();
+            return (double)photo.getWidth()/(double)photo.getHeight();
         }
         else{
-            return 0;
+            return 1;
         }
     }
+
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder)
+    {
+        super.onViewRecycled(holder);
+        ImageView imageView = (ImageView) holder.imageView;
+        if (imageView != null)
+            Glide.get(context).clearMemory();
+    }
+
 
 }

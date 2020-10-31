@@ -44,6 +44,7 @@ import android.webkit.MimeTypeMap;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.phototutor.BuildConfig;
 import com.example.phototutor.LocalAlbumActivity;
 import com.example.phototutor.Photo.Photo;
@@ -331,11 +332,6 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
                     String picturePath = cursor.getString(columnIndex);
                     Bitmap newBitmap = BitmapFactory.decodeFile(picturePath);
                     photo.updatePhotoBitmap(requireActivity().getFilesDir(), newBitmap);
-//                    db.photoDAO().getPhotoById(photo.id).observe(
-//                            requireActivity(), i -> {
-//                                Bitmap hi = BitmapFactory.decodeFile(i.imageURI.getPath());
-//                            }
-//                    );
                     mViewModel.updateDataset(requireContext(),photo);
 
                     cursor.close();

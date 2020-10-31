@@ -99,7 +99,8 @@ public class Photo {
         setLocation(new Coordinates(latitude, longitude));
     }
 
-    public Photo(Bitmap bitmap, Long timestamp, double latitude, double longitude, double elevation, double orientation){
+    public Photo(Bitmap bitmap, Long timestamp, double latitude, double longitude,
+                 double elevation, double orientation){
         this(bitmap, timestamp);
         setLocation(new Coordinates(latitude, longitude));
         this.elevation = elevation;
