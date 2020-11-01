@@ -132,8 +132,8 @@ public class Photo {
             FileOutputStream thumbnail_out = new FileOutputStream(thumbnailPath,false);
             imageURI= Uri.fromFile(path);
             thumbnailURI = Uri.fromFile(thumbnailPath);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-            thumbnail.compress(Bitmap.CompressFormat.JPEG,100,thumbnail_out);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            thumbnail.compress(Bitmap.CompressFormat.PNG,100,thumbnail_out);
             out.close();
             thumbnail_out.close();
             return true;

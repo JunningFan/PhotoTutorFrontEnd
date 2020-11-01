@@ -33,6 +33,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+import me.gujun.android.taggroup.TagGroup;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -47,7 +48,7 @@ public class UploadFragment extends DialogFragment {
     private LocalAlbumViewModel mViewModel;
     private Photo photo;
     private String TAG = "UploadFragment";
-    private String authKey ="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJRCI6MSwiQWNjZXNzIjp0cnVlLCJFeHBpcmUiOjE2MDQyMzMwNDZ9.RHeOoS2lMgAa2HLTTHUVsjNqUxOAxf9XUBgYxlvHY_CB68aUdl6BfUBCSjOU9jHw9W-ADt46xMqg5dH9pNIWuQ";
+    private String authKey ="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJRCI6MSwiQWNjZXNzIjp0cnVlLCJFeHBpcmUiOjE2MDQzMTI3Mzl9.BJTzL-stDaPCs_kMfdWYFF4t3yQxXc3yixM8lzlkRpiFE9KrYwVJRcwjv9Yjcg08b5mgs3qfMgeVM6j8F8ZJxA";
 
     View view;
 
@@ -57,6 +58,7 @@ public class UploadFragment extends DialogFragment {
     PhotoUploader photoUploader;
     EditText titleEditText;
 
+    TagGroup mTagGroup;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -102,6 +104,10 @@ public class UploadFragment extends DialogFragment {
                     }
                 }
         );
+
+        mTagGroup = (TagGroup) view.findViewById(R.id.photo_tags);
+        mTagGroup.setTags(new String[]{});
+        mTagGroup.getTags();
     }
 
     //
@@ -111,7 +117,9 @@ public class UploadFragment extends DialogFragment {
         if(title.isEmpty()) {
             title = "Untitled";
         }
-        photoUploader.uploadPhotoInfo(authKey, photo, imgId, title,
+        String[] tags = mTagGroup.getTags();
+
+        photoUploader.uploadPhotoInfo(authKey, photo, imgId, title, tags,
                 new PhotoUploader.PhotoUploaderCallback() {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -120,6 +128,7 @@ public class UploadFragment extends DialogFragment {
                             Toast.makeText(getContext(), "Upload Complete", Toast.LENGTH_SHORT).show();
                             getActivity().onBackPressed();
                         } else {
+                            Log.e(this.getClass().getSimpleName(), response.toString());
                             Toast.makeText(getContext(), "Server error, please try again later or contact technical support", Toast.LENGTH_SHORT).show();
                             unlockViews();
                         }
@@ -141,7 +150,7 @@ public class UploadFragment extends DialogFragment {
 
     private void lockViews(){
         view.findViewById(R.id.btn_submit).setClickable(false);
-        view.findViewById(R.id.et_desc).setFocusable(false);
+        view.findViewById(R.id.photo_tags).setFocusable(false);
         view.findViewById(R.id.et_title).setFocusable(false);
         ((TextView)view.findViewById(R.id.btn_submit)).setText("Submitting");
 
@@ -149,7 +158,7 @@ public class UploadFragment extends DialogFragment {
 
     private void unlockViews() {
         view.findViewById(R.id.btn_submit).setClickable(true);
-        view.findViewById(R.id.et_desc).setFocusable(true);
+        view.findViewById(R.id.photo_tags).setFocusable(true);
         view.findViewById(R.id.et_title).setFocusable(true);
         ((TextView)view.findViewById(R.id.btn_submit)).setText("Submit");
 
@@ -173,6 +182,7 @@ public class UploadFragment extends DialogFragment {
                                 Log.e(this.getClass().getSimpleName(), e.getMessage());
                             }
                         } else {
+                            Log.e(this.getClass().getSimpleName(), response.toString());
                             Toast.makeText(getContext(), "Server error, please try again later or contact technical support", Toast.LENGTH_SHORT).show();
                             unlockViews();
                             uploadImage();

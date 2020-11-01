@@ -93,4 +93,7 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
 
     implementation 'com.itkacher.okhttpprofiler:okhttpprofiler:1.0.7'
+
+    //AndroidTagGroup
+    implementation 'me.gujun.android.taggroup:library:1.4@aar'
 }

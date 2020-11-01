@@ -10,8 +10,10 @@ import androidx.core.content.FileProvider;
 
 import com.example.phototutor.BuildConfig;
 import com.example.phototutor.Photo.Photo;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -54,7 +56,7 @@ public class PhotoUploader extends ServerClient {
 
     }
 
-    public void uploadPhotoInfo(String authKey, Photo photo, int id,String title, PhotoUploaderCallback callback){
+    public void uploadPhotoInfo(String authKey, Photo photo, int id, String title, String[] tags, PhotoUploaderCallback callback){
         File photoFile = new File(photo.imageURI.getPath());
 
         JSONObject info = new JSONObject();
@@ -70,7 +72,11 @@ public class PhotoUploader extends ServerClient {
             info.put("Orientation", photo.getOrientation());
             info.put("Elevation", photo.getElevation());
             info.put("Timestamp", photo.timestamp/1000); // convert millisecs to unix standard
-
+            JSONArray tagsJsonArr = new JSONArray();
+            for(String tag: tags) {
+                tagsJsonArr.put(tag);
+            }
+            info.put("Tags", tagsJsonArr);
             Geocoder geocoder = new Geocoder(context);
             try {
                 String country = (geocoder.getFromLocation(photo.getLatitude(), photo.getLongitude(), 1)).get(0).getCountryName();
