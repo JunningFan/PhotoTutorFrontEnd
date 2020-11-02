@@ -4,7 +4,11 @@ import android.net.Uri;
 
 import com.example.phototutor.Photo.Photo;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.itkacher.okhttpprofiler.OkHttpProfilerInterceptor;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.util.Arrays;
@@ -31,9 +35,11 @@ import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
 
-class ServerClient{
+public class ServerClient{
     static private String host_address = "http://whiteboard.house:8000";
 
+//    static private String host_address = "https://picsum.photos";
+//    static private String host_address = "https://xieranmaya.github.io";
     static private Retrofit retrofit = initRetrofit();
 
 
@@ -53,6 +59,9 @@ class ServerClient{
                 .build();
         return retrofit;
 
+    }
+    static public String getBaseURL(){
+        return host_address;
     }
 
     public APIServer getService(){
@@ -83,6 +92,20 @@ class ServerClient{
         @GET("/upload/{id}")
         Call<ResponseBody> getPhotoInfo(
                 @Path("id") Integer id);
+
+
+        @Headers("Content-type: application/json")
+        @POST("/els/picture/_search")
+        Call<ResponseBody> getPhotosByEls(@Body JsonObject body);
+
+
+        @GET("/picture")
+        Call<ResponseBody> getAllPictures();
+
+
+        @GET("/picture/{id}")
+        Call<ResponseBody> getPhotoDetail(@Path("id") Integer id);
+
 
     }
 }
