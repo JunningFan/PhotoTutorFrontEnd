@@ -40,6 +40,8 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     List<Photo> photoList;
     Context context;
     LayoutInflater inflater;
+    public DiskCacheStrategy diskCacheStrategy = DiskCacheStrategy.AUTOMATIC;
+    public boolean skipMemoryCache = false;
     private ImageGridOnClickCallBack imageGridOnClickCallBack;
     private String TAG = "AlbumAdapter";
 
@@ -82,9 +84,9 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
                     .load(current.thumbnailURI)
                     .placeholder(R.drawable.ic_loading)
                     .format(DecodeFormat.PREFER_RGB_565)
-                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .diskCacheStrategy(diskCacheStrategy)
                     .override(Target.SIZE_ORIGINAL)
-                    .skipMemoryCache(true)
+                    .skipMemoryCache(skipMemoryCache)
 
 //                    .apply(RequestOptions.bitmapTransform(new CropTransformation(1920,1080)))
 
@@ -123,6 +125,13 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
         notifyDataSetChanged();
     }
 
+    public void addPhotos(List<Photo> photos){
+        Log.w(TAG, "add photos:"+String.valueOf(photos.size()));
+        int origCount = getItemCount();
+        photoList.addAll(photos);
+        updateGlide();
+        notifyItemRangeInserted(origCount,photos.size());
+    }
     public class ViewHolder extends RecyclerView.ViewHolder{
         final ImageView imageView;
         public ViewHolder(@NonNull View itemView) {

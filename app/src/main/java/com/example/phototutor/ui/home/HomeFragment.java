@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,6 +20,7 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.viewpager2.widget.ViewPager2;
 
 
 import com.example.phototutor.Photo.CloudPhoto;
@@ -41,6 +43,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -56,6 +59,7 @@ public class HomeFragment extends Fragment {
     private CloudAlbumAdapter adapter;
     private RecyclerView cloud_photo_gallery;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private boolean isScrolling = false;
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         homeViewModel =
@@ -69,7 +73,7 @@ public class HomeFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         cloud_photo_gallery = view.findViewById(R.id.cloud_photo_gallery);
         adapter = new CloudAlbumAdapter(requireContext());
-
+        adapter.setPhotos(new ArrayList<>());
         GreedoLayoutManager layoutManager = new GreedoLayoutManager(adapter);
 
         cloud_photo_gallery.setLayoutManager(layoutManager);
@@ -77,55 +81,78 @@ public class HomeFragment extends Fragment {
                 requireContext().getResources().getDisplayMetrics());
         cloud_photo_gallery.addItemDecoration(new GreedoSpacingItemDecoration(spacing));
 
-
+        cloud_photo_gallery.setAdapter(adapter);
         swipeRefreshLayout = view.findViewById(R.id.swap_fresh_layout);
         swipeRefreshLayout.setOnRefreshListener(() -> downloadPhotos());
 
         swipeRefreshLayout.setRefreshing(true);
+        cloud_photo_gallery.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int currentItem = layoutManager.getChildCount();
+                int totalItems = layoutManager.getItemCount();
+                int scrollOutItems = layoutManager.findFirstVisibleItemPosition();
+                if (isScrolling && currentItem + scrollOutItems == totalItems){
+                    swipeRefreshLayout.setRefreshing(true);
+                    isScrolling = false;
+                    downloadPhotos();
 
+                }
+            }
+
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if(newState ==RecyclerView.SCROLL_STATE_DRAGGING) {
+                    isScrolling = true;
+                }
+            }
+        });
     }
 
 
     private void downloadPhotos(){
 
         PhotoDownloader downloader = new PhotoDownloader(requireContext());
-        downloader.downloadAllPhotos(new PhotoDownloader.OnPhotoDownloaded(){
+        downloader.downloadPhotosByGeo(0,0,adapter.getItemCount(),30, new PhotoDownloader.OnPhotoDownloaded(){
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            public void onFailResponse(String message, int code) {
+                Toast.makeText(requireContext(),message,Toast.LENGTH_SHORT);
+            }
+
+            @Override
+            public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+
+            }
+
+            @Override
+            public void onSuccessResponse(JSONArray imageJSONs) {
                 List<Photo> photoList = new ArrayList<>();
                 try {
-                    JSONObject data = new JSONObject(response.body().string());
-                    JSONArray array = data.getJSONArray("data");
-                    for(int i =0; i < array.length()/2;i++){
+                    JSONArray array = imageJSONs;
+                    for (int i = 0; i < array.length(); i++) {
                         JSONObject object = array.getJSONObject(i);
                         CloudPhoto photo = CloudPhoto.createCloudPhotoFromJSON(object);
                         photoList.add(photo);
                     }
 
-                    adapter.setPhotos(photoList);
+                    adapter.addPhotos(photoList);
                     Log.w(this.getClass().getName(), "" + adapter.getItemCount());
-                    adapter.setImageGridOnClickCallBack(new AlbumAdapter.ImageGridOnClickCallBack(){
-
-                        @Override
-                        public void run(int pos) {
-                            return;
-                        }
+                    adapter.setImageGridOnClickCallBack(pos -> {
+                        return;
                     });
 
-                    cloud_photo_gallery.setAdapter(adapter);
                     swipeRefreshLayout.setRefreshing(false);
-
-                } catch (JSONException | IOException | URISyntaxException e) {
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }
-
             }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-
-            }
-        } );
+        });
     }
 
     @Override

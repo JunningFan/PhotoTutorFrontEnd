@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -24,18 +25,59 @@ import retrofit2.Response;
 public class PhotoDownloader extends ServerClient {
 
 
-    public interface OnPhotoDownloaded extends Callback<ResponseBody> {}
+    public abstract static class OnPhotoDownloaded implements Callback<ResponseBody>{
+        abstract public void onFailResponse(String message,int code );
+
+        abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);
+
+        abstract public void onSuccessResponse(JSONArray imageJSONs);
+
+        private JSONArray getImageJSONs(JSONObject object) throws JSONException {
+            JSONObject hits = object.getJSONObject("hits");
+            JSONArray srcList = hits.getJSONArray("hits");
+            JSONArray imageList = new JSONArray();
+            for(int i =0; i<srcList.length();i ++) {
+                JSONObject source = (JSONObject) srcList.get(i);
+                imageList.put(source.getJSONObject("_source"));
+            }
+            return imageList;
+        }
+
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            if(response.code() != 200) onFailResponse(response.message(),response.code());
+            else{
+
+                try {
+                    JSONObject data = null;
+                    data = new JSONObject(response.body().string());
+                    JSONArray imageJSONs = getImageJSONs(data);
+                    onSuccessResponse(imageJSONs);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+            onFailRequest(call,t);
+        }
+    }
+
     private Context context;
 
     public PhotoDownloader(Context context){
         this.context = context;
     }
 
-    public void downloadPhotosByGeo(OnPhotoDownloaded onPhotoDownloaded){
+    public void downloadPhotosByGeo(long lat, long lon, int from, int size, OnPhotoDownloaded onPhotoDownloaded){
 
         JsonObject jsonObj = new JsonObject();
-        jsonObj.addProperty("from",0);
-        jsonObj.addProperty("size",10);
+        jsonObj.addProperty("from",from);
+        jsonObj.addProperty("size",size);
         JsonObject query = new JsonObject();
         JsonObject geo_bounding_box = new JsonObject();
         JsonObject geoHash = new JsonObject();

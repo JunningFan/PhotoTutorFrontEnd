@@ -20,16 +20,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
 
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 import com.example.phototutor.adapters.AlbumAdapter;
+import com.example.phototutor.adapters.LocalAlbumAdapter;
+import com.fivehundredpx.greedolayout.GreedoLayoutManager;
 
 import java.util.List;
 
 public class LocalAlbumFragment extends Fragment {
 
     private LocalAlbumViewModel mViewModel;
-    private AlbumAdapter adapter;
+    private LocalAlbumAdapter adapter;
     private static String TAG = "LocalAlbumFragment";
 
     @Nullable
@@ -55,10 +58,11 @@ public class LocalAlbumFragment extends Fragment {
         mViewModel = ViewModelProviders.of(requireActivity()).get(LocalAlbumViewModel.class);
         mViewModel.loadDatabase(requireContext());
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(requireContext(),
-                3,GridLayoutManager.VERTICAL,false);
+
         RecyclerView local_album_recycleview = getView().findViewById(R.id.local_album_recyclerview);
-        adapter = new AlbumAdapter(requireContext());
+        adapter = new LocalAlbumAdapter(requireContext());
+        adapter.diskCacheStrategy = DiskCacheStrategy.NONE;
+        adapter.skipMemoryCache = true;
         adapter.setImageGridOnClickCallBack(
                 pos -> {
 
@@ -70,6 +74,7 @@ public class LocalAlbumFragment extends Fragment {
                     ).navigate(R.id.action_local_album_fragment_to_local_photo_detail_fragment);
                 }
         );
+        GreedoLayoutManager gridLayoutManager = new GreedoLayoutManager(adapter);
         local_album_recycleview.setAdapter(adapter);
         local_album_recycleview.setLayoutManager(gridLayoutManager);
         // TODO: Use the ViewModel
