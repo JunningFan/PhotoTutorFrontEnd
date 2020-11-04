@@ -42,6 +42,15 @@ public class MainActivity extends AppCompatActivity {
         configNavigationItemSelectedListener(navView);
         configTopAppBarItemSelectedListener(findViewById(R.id.topAppBar));
 
+        final Button editProfileButton = findViewById(R.id.editProfile);
+
+        editProfileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, EditProfileActivity.class);
+                startActivity(intent);
+            }
+        });
 
     }
 

@@ -128,7 +128,6 @@ public class RegisterActivity extends AppCompatActivity {
                 Log.d("OKHTTP3", response.body().string());
             }
         });
-//        setResult(Activity.RESULT_OK);
     }
 
     // A placeholder username validation check
