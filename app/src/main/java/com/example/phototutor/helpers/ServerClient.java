@@ -49,8 +49,8 @@ public class ServerClient{
         OkHttpClient client = new OkHttpClient.Builder()
                 .protocols(Arrays.asList(Protocol.HTTP_1_1))
                 .addInterceptor(new OkHttpProfilerInterceptor())
-                .connectTimeout(60, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS).build();
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS).build();
 
         retrofit = new Retrofit.Builder()
                 .baseUrl(host_address)
@@ -76,10 +76,18 @@ public class ServerClient{
 
         @Multipart
         @POST("/upload/")
-        Call<ResponseBody> uploadPhoto(
+        Call<ResponseBody> uploadImage(
                 @Header("Authorization") String authKey,
                 @Part MultipartBody.Part photo
         );
+
+
+        @POST("/picture/")
+        Call<ResponseBody> uploadImageInfo(
+                @Header("Authorization") String authKey,
+                @Body RequestBody info
+        );
+
 
         @GET("/upload/{id}")
         Call<ResponseBody> getPhotoInfo(
