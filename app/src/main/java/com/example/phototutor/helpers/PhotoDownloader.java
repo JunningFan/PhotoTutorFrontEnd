@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
+import com.example.phototutor.Photo.CloudPhoto;
 import com.example.phototutor.Photo.Photo;
 import com.google.gson.JsonObject;
 
@@ -13,6 +14,10 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -24,15 +29,34 @@ import retrofit2.Response;
 
 public class PhotoDownloader extends ServerClient {
 
+    public static class PhotoDownloadResult {
+        PhotoDownloadResult(JSONArray imageArray, int totalSize)
+                throws JSONException, MalformedURLException, URISyntaxException {
 
-    public abstract static class OnPhotoDownloaded implements Callback<ResponseBody>{
-        abstract public void onFailResponse(String message,int code );
+            for (int i = 0; i < imageArray.length(); i++) {
+                JSONObject object = imageArray.getJSONObject(i);
+                CloudPhoto photo = CloudPhoto.createCloudPhotoFromJSON(object);
+                this.imageArray.add(photo);
+            }
 
-        abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);
+            this.totalSize = totalSize;
+        }
+        private List<CloudPhoto> imageArray = new ArrayList<>();
+        private int totalSize = 0;
 
-        abstract public void onSuccessResponse(JSONArray imageJSONs);
+        public List<CloudPhoto> getImageArray() {
+            return imageArray;
+        }
+        public int getTotalSize() {
+            return totalSize;
+        }
+    }
 
-        private JSONArray getImageJSONs(JSONObject object) throws JSONException {
+
+    public abstract static class OnPhotoDownloadedByGeo extends OnPhotoDownloaded {
+
+        @Override
+        public PhotoDownloadResult getImageJSONs(JSONObject object) throws JSONException, MalformedURLException, URISyntaxException {
             JSONObject hits = object.getJSONObject("hits");
             JSONArray srcList = hits.getJSONArray("hits");
             JSONArray imageList = new JSONArray();
@@ -40,8 +64,34 @@ public class PhotoDownloader extends ServerClient {
                 JSONObject source = (JSONObject) srcList.get(i);
                 imageList.put(source.getJSONObject("_source"));
             }
-            return imageList;
+            return new PhotoDownloadResult(imageList, hits.getJSONObject("total").getInt("value"));
         }
+
+    }
+
+    public abstract static class onDownloadAllPhotos extends OnPhotoDownloaded{
+        private JSONArray array = new JSONArray();
+        @Override
+        public PhotoDownloadResult getImageJSONs(JSONObject object) throws JSONException, MalformedURLException, URISyntaxException {
+            JSONArray array = object.getJSONArray("data");
+            JSONArray newArray = new JSONArray();
+            for(int i=0;i<array.length()/2;i++){
+                newArray.put(array.get(i));
+            }
+            array = newArray;
+            return new PhotoDownloadResult(newArray,newArray.length());
+        }
+
+    }
+    private abstract static class OnPhotoDownloaded implements Callback<ResponseBody>{
+        abstract public void onFailResponse(String message,int code );
+
+        abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);
+
+        abstract public void onSuccessResponse(PhotoDownloadResult result);
+
+        protected abstract PhotoDownloadResult getImageJSONs(JSONObject object)
+                throws JSONException, MalformedURLException, URISyntaxException;
 
         @Override
         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -51,11 +101,13 @@ public class PhotoDownloader extends ServerClient {
                 try {
                     JSONObject data = null;
                     data = new JSONObject(response.body().string());
-                    JSONArray imageJSONs = getImageJSONs(data);
-                    onSuccessResponse(imageJSONs);
+                    PhotoDownloadResult result = getImageJSONs(data);
+                    onSuccessResponse(result);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
             }

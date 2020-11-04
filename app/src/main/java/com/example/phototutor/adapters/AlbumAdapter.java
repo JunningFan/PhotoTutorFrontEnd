@@ -36,8 +36,8 @@ import java.util.Random;
 
 import jp.wasabeef.glide.transformations.CropTransformation;
 
-public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> {
-    List<Photo> photoList;
+public abstract class AlbumAdapter<T> extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> {
+    List<T> photoList;
     Context context;
     LayoutInflater inflater;
     public DiskCacheStrategy diskCacheStrategy = DiskCacheStrategy.AUTOMATIC;
@@ -47,6 +47,10 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
 
     public interface ImageGridOnClickCallBack {
         void run(int pos);
+    }
+
+    public List<T> getPhotoList() {
+        return photoList;
     }
 
     public AlbumAdapter(Context context ){
@@ -71,7 +75,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull AlbumAdapter.ViewHolder holder, int position) {
         if (photoList != null) {
-            Photo current = photoList.get(position);
+            Photo current = (Photo) photoList.get(position);
 //            holder.imageView.setImageDrawable(context.getDrawable(R.drawable.ic_camera_flip));
 //            Glide.with(context)
 //                    .load(current.imageURI)
@@ -118,14 +122,14 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
         return photoList==null?0:photoList.size();
     }
 
-    public void setPhotos(List<Photo> photos){
+    public void setPhotos(List<T> photos){
         Log.w(TAG, "photos:"+String.valueOf(photos.size()));
         photoList = photos;
         updateGlide();
         notifyDataSetChanged();
     }
 
-    public void addPhotos(List<Photo> photos){
+    public void addPhotos(List<T> photos){
         Log.w(TAG, "add photos:"+String.valueOf(photos.size()));
         int origCount = getItemCount();
         photoList.addAll(photos);

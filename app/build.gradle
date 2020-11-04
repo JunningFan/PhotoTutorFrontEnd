@@ -100,4 +100,8 @@ dependencies {
     implementation 'jp.wasabeef:glide-transformations:4.2.0'
 
     implementation 'com.fivehundredpx:greedo-layout:1.5.1'
+
+    implementation 'com.github.yuanyang1991:DragDismissLayout:1.0.3'
+
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
 }

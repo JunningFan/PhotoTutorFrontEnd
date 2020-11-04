@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -36,6 +37,7 @@ import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexWrap;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -115,42 +117,54 @@ public class HomeFragment extends Fragment {
     private void downloadPhotos(){
 
         PhotoDownloader downloader = new PhotoDownloader(requireContext());
-        downloader.downloadPhotosByGeo(0,0,adapter.getItemCount(),30, new PhotoDownloader.OnPhotoDownloaded(){
+        downloader.downloadPhotosByGeo(0,0,adapter.getItemCount(),30, new PhotoDownloader.OnPhotoDownloadedByGeo(){
             @Override
             public void onFailResponse(String message, int code) {
-                Toast.makeText(requireContext(),message,Toast.LENGTH_SHORT);
+                swipeRefreshLayout.setRefreshing(false);
+                Toast.makeText(requireContext(),
+                        "Network Failed. Please check the network",Toast.LENGTH_LONG);
+                Snackbar.make(requireView(),
+                        message,
+                        Snackbar.LENGTH_INDEFINITE)
+                        .setAction("Retry", view -> {
+                            swipeRefreshLayout.setRefreshing(true);
+                            downloadPhotos();
+                        })
+
+                        .show();
             }
 
             @Override
             public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                swipeRefreshLayout.setRefreshing(false);
+                Toast.makeText(requireContext(),
+                        "Network Failed. Please check the network",Toast.LENGTH_LONG);
+                Snackbar.make(requireView(),
+                            "Network Failed. Please check the network",
+                            Snackbar.LENGTH_INDEFINITE)
 
+                        .setAction("Retry", view -> {
+                            swipeRefreshLayout.setRefreshing(true);
+                            downloadPhotos();
+                        })
+//                        .setAnchorView(requireView().findViewById(R.id.nav_view))
+                        .show();
             }
 
             @Override
-            public void onSuccessResponse(JSONArray imageJSONs) {
-                List<Photo> photoList = new ArrayList<>();
-                try {
-                    JSONArray array = imageJSONs;
-                    for (int i = 0; i < array.length(); i++) {
-                        JSONObject object = array.getJSONObject(i);
-                        CloudPhoto photo = CloudPhoto.createCloudPhotoFromJSON(object);
-                        photoList.add(photo);
-                    }
+            public void onSuccessResponse(PhotoDownloader.PhotoDownloadResult result) {
+                List<CloudPhoto> photoList = result.getImageArray();
+                adapter.addPhotos(photoList);
+                Log.w(this.getClass().getName(), "" + adapter.getItemCount());
+                adapter.setImageGridOnClickCallBack(pos -> {
+                    homeViewModel.setPhotos(adapter.getPhotoList());
+                    Bundle args = new Bundle();
+                    args.putInt("pos",pos);
+                    Navigation.findNavController(requireActivity(),R.id.nav_host_fragment)
+                            .navigate(R.id.action_navigation_home_to_navigation_cloud_photo_detail,args);
+                });
 
-                    adapter.addPhotos(photoList);
-                    Log.w(this.getClass().getName(), "" + adapter.getItemCount());
-                    adapter.setImageGridOnClickCallBack(pos -> {
-                        return;
-                    });
-
-                    swipeRefreshLayout.setRefreshing(false);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
     }

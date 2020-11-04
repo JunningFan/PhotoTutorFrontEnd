@@ -9,7 +9,7 @@ import com.bumptech.glide.Glide;
 import com.example.phototutor.Photo.Photo;
 import com.fivehundredpx.greedolayout.GreedoLayoutSizeCalculator;
 
-public class LocalAlbumAdapter extends AlbumAdapter implements GreedoLayoutSizeCalculator.SizeCalculatorDelegate{
+public class LocalAlbumAdapter extends AlbumAdapter<Photo> implements GreedoLayoutSizeCalculator.SizeCalculatorDelegate{
     public LocalAlbumAdapter(Context context) {
         super(context);
     }
@@ -19,12 +19,5 @@ public class LocalAlbumAdapter extends AlbumAdapter implements GreedoLayoutSizeC
         return 1.0;
     }
 
-    @Override
-    public void onViewRecycled(@NonNull ViewHolder holder)
-    {
-        super.onViewRecycled(holder);
-        ImageView imageView = (ImageView) holder.imageView;
-        if (imageView != null)
-            Glide.get(context).clearMemory();
-    }
+
 }
