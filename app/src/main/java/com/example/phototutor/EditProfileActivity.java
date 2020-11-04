@@ -1,13 +1,16 @@
 package com.example.phototutor;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -16,45 +19,32 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
 public class EditProfileActivity extends AppCompatActivity {
+    EditText name;
+    EditText bio;
+    ImageView userImage;
+    TextView changeProfilePhotoButton;
+    Button updateButton;
 
-    private String authKey ="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJRCI6MSwiQWNjZXNzIjp0cnVlLCJFeHBpcmUiOjE2MDQ0MTEzNzN9.EhSIO6etnZGoEwyyOkyNKH95e6QztUCh1oKIHnvRKcUhbDhiWIrr24k93yXMenbqqPc3-BYLDkhbaYpTnERXpA";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
-        final EditText name = findViewById(R.id.editTextName);
-        final EditText bio = findViewById(R.id.editTextBio);
-        final ImageView userImage = (ImageView) findViewById(R.id.userImage);
-        final TextView changeProfilePhotoButton=(TextView)findViewById(R.id.changeProfilePhoto);
-        final Button updateButton = findViewById(R.id.updateButton);
+        name = findViewById(R.id.editTextName);
+        bio = findViewById(R.id.editTextBio);
+        userImage = (ImageView) findViewById(R.id.userImage);
+        changeProfilePhotoButton=(TextView)findViewById(R.id.changeProfilePhoto);
+        updateButton = findViewById(R.id.updateButton);
 
         int imageResource = getResources().getIdentifier("@drawable/avatar", null, this.getPackageName());
         userImage.setImageResource(imageResource);
 
-//        SharedPreferences sharedPreferences = getSharedPreferences("login", Context.MODE_PRIVATE);
-
-
         changeProfilePhotoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
             public void onClick(View v) {
-                //perform your action here
                 Log.e("onClick!", "change profile button is clicked");
-                Intent intent = new Intent(EditProfileActivity.this, LocalAlbumActivity.class);
-                startActivity(intent);
+                selectImage(EditProfileActivity.this);
             }
         });
 
@@ -67,54 +57,73 @@ public class EditProfileActivity extends AppCompatActivity {
                 if(name.getText().toString().isEmpty()) {
                     Name = null;
                 }
-
                 if(bio.getText().toString().isEmpty()) {
                     Bio = null;
                 }
-                putDataToDatabase(Name, Bio, Photo);
-                Toast.makeText(getApplicationContext(), "Details updated", Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(EditProfileActivity.this, LocalAlbumActivity.class);
+                Toast.makeText(getApplicationContext(), "Details updated", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(EditProfileActivity.this, MainActivity.class);
                 startActivity(intent);
             }
         });
     }
 
-    public void putDataToDatabase(String name, String bio, Integer photo) {
-        OkHttpClient client = new OkHttpClient();
-        String url = "http://whiteboard.house:8000/user/";
-        Log.d("OKHTTP3", "PUT Function called");
-        MediaType JSON = MediaType.parse("application/json;charset=utf-8");
-        JSONObject actualData = new JSONObject();
-        try {
-            actualData.put("Nickname", name);
-            actualData.put("Signature", bio);
-            actualData.put("Img", photo);
-
-        } catch (JSONException e) {
-            Log.d("OKHTTP3", "JSON Exception");
-            e.printStackTrace();
-        }
-
-        RequestBody body = RequestBody.create(JSON, actualData.toString());
-        Log.d("OKHTTP3", "Request body created");
-        Request newReq = new Request.Builder()
-                .url(url)
-                .put(body)
-                .addHeader("Authorization", authKey)
-                .build();
-
-        client.newCall(newReq).enqueue(new Callback() {
+    private void selectImage(Object context) {
+        final CharSequence[] options = { "Take Photo", "Choose from Gallery","Cancel" };
+    
+        AlertDialog.Builder builder = new AlertDialog.Builder((Context) context);
+        builder.setTitle("Choose your profile picture");
+    
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+    
             @Override
-            public void onFailure(Call call, IOException e) {
-                Log.d("OKHTTP3", "Exception while doing request.");
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                Log.d("OKHTTP3", "Request Done, got the response.");
-                Log.d("OKHTTP3", response.body().string());
+            public void onClick(DialogInterface dialog, int item) {
+    
+                if (options[item].equals("Take Photo")) {
+                    Intent takePicture = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(takePicture, 0);
+    
+                } else if (options[item].equals("Choose from Gallery")) {
+                    Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    startActivityForResult(pickPhoto , 1);
+    
+                } else if (options[item].equals("Cancel")) {
+                    dialog.dismiss();
+                }
             }
         });
+        builder.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_CANCELED) {
+            switch (requestCode) {
+                case 0:
+                    if (resultCode == RESULT_OK && data != null) {
+                        Bitmap selectedImage = (Bitmap) data.getExtras().get("data");
+                        userImage.setImageBitmap(selectedImage);
+                    }
+
+                    break;
+                case 1:
+                    if (resultCode == RESULT_OK && data != null) {
+                        Uri selectedImage = data.getData();
+                        String[] filePathColumn = {MediaStore.Images.Media.DATA};
+                        if (selectedImage != null) {
+                            Cursor cursor = getContentResolver().query(selectedImage,
+                                    filePathColumn, null, null, null);
+                            if (cursor != null) {
+                                cursor.moveToFirst();
+                                selectedImage = data.getData();
+                                userImage.setImageURI(selectedImage);
+                                cursor.close();
+                            }
+                        }
+
+                    }
+                    break;
+            }
+        }
     }
 }

@@ -6,6 +6,30 @@
     android:layout_height="match_parent"
     tools:context=".EditProfileActivity">
 
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="500dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/myCardView"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            app:cardCornerRadius="50dp">
+
+            <ImageView
+                android:id="@+id/userImage"
+                android:layout_width="100dp"
+                android:layout_height="102dp"
+                android:scaleType="centerCrop" />
+        </androidx.cardview.widget.CardView>
+    </RelativeLayout>
+
     <TextView
         android:id="@+id/TextViewName"
         android:layout_width="wrap_content"
@@ -64,18 +88,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextBio"
         app:layout_constraintVertical_bias="0.301" />
-
-    <ImageView
-        android:id="@+id/userImage"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.109"
-        tools:srcCompat="@tools:sample/avatars" />
 
     <TextView
         android:id="@+id/changeProfilePhoto"
