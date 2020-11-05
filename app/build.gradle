@@ -97,6 +97,9 @@ dependencies {
 
     implementation 'com.itkacher.okhttpprofiler:okhttpprofiler:1.0.7'
 
+    //AndroidTagGroup
+    implementation 'me.gujun.android.taggroup:library:1.4@aar'
+
     implementation 'com.google.android:flexbox:2.0.1'
     implementation 'jp.wasabeef:glide-transformations:4.2.0'
 
