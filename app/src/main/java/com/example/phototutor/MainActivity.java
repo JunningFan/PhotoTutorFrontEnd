@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.PopupMenu;
 
 import com.example.phototutor.ui.login.ui.login.LoginActivity;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -27,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
     private static SharedPreferences sharedPreferences;
     public static final String fileName = "login";
     public static final String Username = "username";
+
+    private LocationRequest locationRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
