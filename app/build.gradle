@@ -104,4 +104,7 @@ dependencies {
     implementation 'jp.wasabeef:glide-transformations:4.2.0'
 
     implementation 'com.fivehundredpx:greedo-layout:1.5.1'
+
+    //AndroidTagGroup
+    implementation 'me.gujun.android.taggroup:library:1.4@aar'
 }
