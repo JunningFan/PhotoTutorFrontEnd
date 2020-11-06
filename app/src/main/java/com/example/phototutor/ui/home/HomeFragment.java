@@ -72,6 +72,7 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
         super.onViewCreated(view, savedInstanceState);
         cloud_photo_gallery = view.findViewById(R.id.cloud_photo_gallery);
         adapter = new CloudAlbumAdapter(requireContext());
