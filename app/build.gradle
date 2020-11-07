@@ -49,6 +49,7 @@ dependencies {
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
 
     implementation "com.squareup.okhttp3:okhttp:3.11.0"
+    implementation 'com.google.android.gms:play-services-location:17.1.0'
     // CameraX core library
     def camerax_version = '1.0.0-beta10'
     implementation "androidx.camera:camera-core:$camerax_version"
@@ -96,6 +97,9 @@ dependencies {
 
     implementation 'com.itkacher.okhttpprofiler:okhttpprofiler:1.0.7'
 
+    //AndroidTagGroup
+    implementation 'me.gujun.android.taggroup:library:1.4@aar'
+
     implementation 'com.google.android:flexbox:2.0.1'
     implementation 'jp.wasabeef:glide-transformations:4.2.0'
 
@@ -105,4 +109,7 @@ dependencies {
 
     implementation 'de.hdodenhof:circleimageview:3.1.0'
 
+
+    //AndroidTagGroup
+    implementation 'me.gujun.android.taggroup:library:1.4@aar'
 }
