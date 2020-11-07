@@ -50,6 +50,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -84,6 +85,8 @@ public class HomeFragment extends Fragment {
     MutableLiveData<Double[]> coordinate = new MutableLiveData<Double[]>(new Double[]{Double.valueOf(720), Double.valueOf(720)});
     private final int FUSED_LOCATION_REQUEST_CODE = 0;
 
+    private Observer coordUpdateObserver;
+
     double latInUse = 0;
     double lngInUse = 0;
 
@@ -106,21 +109,25 @@ public class HomeFragment extends Fragment {
             listenLocationChange();
         }
 
-         coordinate.observe(getViewLifecycleOwner(), observer -> {
-            if(coordinate.getValue()[0] != 720) {
-                try {
-                    Log.d(this.getClass().getSimpleName(), "coordination" + coordinate.getValue()[0].toString() + " " + coordinate.getValue()[1].toString());
-                    Geocoder geocoder = new Geocoder(getContext());
-                    String po = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getPostalCode();
-                    String adminArea = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getAdminArea();
-                    String locality = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getLocality();
-                    ((MaterialToolbar)(getActivity().findViewById(R.id.topAppBar))).setTitle(locality  + " " + po);
-                } catch (IOException e) {
-                    ((MaterialToolbar)(getActivity().findViewById(R.id.topAppBar))).setTitle("No network");
+        coordUpdateObserver = new Observer() {
+            @Override
+            public void onChanged(Object o) {
+                if(coordinate.getValue()[0] != 720) {
+                    try {
+                        Log.d(this.getClass().getSimpleName(), "coordination" + coordinate.getValue()[0].toString() + " " + coordinate.getValue()[1].toString());
+                        Geocoder geocoder = new Geocoder(getContext());
+                        String po = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getPostalCode();
+                        String adminArea = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getAdminArea();
+                        String locality = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getLocality();
+                        ((MaterialToolbar)(getActivity().findViewById(R.id.topAppBar))).setTitle(locality  + " " + po);
+                    } catch (IOException e) {
+                        ((MaterialToolbar)(getActivity().findViewById(R.id.topAppBar))).setTitle("No network");
+                    }
                 }
             }
+        };
 
-        });
+        coordinate.observe(getViewLifecycleOwner(), coordUpdateObserver);
 
         cloud_photo_gallery = view.findViewById(R.id.cloud_photo_gallery);
         adapter = new CloudAlbumAdapter(requireContext());
@@ -177,81 +184,79 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    @SuppressLint("MissingPermission")
     private void downloadPhotos(){
         PhotoDownloader downloader = new PhotoDownloader(requireContext());
-        latInUse = coordinate.getValue()[0];
-        lngInUse = coordinate.getValue()[1];
-        downloader.downloadPhotosByGeo(latInUse,lngInUse,adapter.getItemCount(),30, new PhotoDownloader.OnPhotoDownloadedByGeo(){
+        //wait for valid coord
+        Observer ob = new Observer() {
             @Override
-            public void onFailResponse(String message, int code) {
-                swipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(requireContext(),
-                        "Network Failed. Please check the network",Toast.LENGTH_LONG);
-                Snackbar.make(requireView(),
-                        message,
-                        Snackbar.LENGTH_INDEFINITE)
-                        .setAction("Retry", view -> {
-                            swipeRefreshLayout.setRefreshing(true);
-                            downloadPhotos();
-                        })
+            public void onChanged(Object o) {
+                if(coordinate.getValue()[0] == 720) {
+                    return;
+                }
+                coordinate.removeObserver(this);
+                latInUse = coordinate.getValue()[0];
+                lngInUse = coordinate.getValue()[1];
+                downloader.downloadPhotosByGeo(latInUse,lngInUse,adapter.getItemCount(),30, new PhotoDownloader.OnPhotoDownloadedByGeo(){
+                    @Override
+                    public void onFailResponse(String message, int code) {
+                        swipeRefreshLayout.setRefreshing(false);
+                        Toast.makeText(requireContext(),
+                                "Network Failed. Please check the network",Toast.LENGTH_LONG);
+                        Snackbar.make(requireView(),
+                                message,
+                                Snackbar.LENGTH_INDEFINITE)
+                                .setAction("Retry", view -> {
+                                    swipeRefreshLayout.setRefreshing(true);
+                                    downloadPhotos();
+                                })
 
-                        .show();
-            }
+                                .show();
+                    }
 
-            @Override
-            public void onFailRequest(Call<ResponseBody> call, Throwable t) {
-                swipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(requireContext(),
-                        "Network Failed. Please check the network",Toast.LENGTH_LONG);
-                Snackbar.make(requireView(),
-                            "Network Failed. Please check the network",
-                            Snackbar.LENGTH_INDEFINITE)
+                    @Override
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                        swipeRefreshLayout.setRefreshing(false);
+                        Toast.makeText(requireContext(),
+                                "Network Failed. Please check the network",Toast.LENGTH_LONG);
+                        Snackbar.make(requireView(),
+                                "Network Failed. Please check the network",
+                                Snackbar.LENGTH_INDEFINITE)
 
-                        .setAction("Retry", view -> {
-                            swipeRefreshLayout.setRefreshing(true);
-                            downloadPhotos();
-                        })
+                                .setAction("Retry", view -> {
+                                    swipeRefreshLayout.setRefreshing(true);
+                                    downloadPhotos();
+                                })
 //                        .setAnchorView(requireView().findViewById(R.id.nav_view))
-                        .show();
-            }
+                                .show();
+                    }
 
-            @Override
-            public void onSuccessResponse(PhotoDownloader.PhotoDownloadResult result) {
-                List<CloudPhoto> photoList = result.getImageArray();
-                adapter.addPhotos(photoList);
-                Log.w(this.getClass().getName(), "" + adapter.getItemCount());
-                adapter.setImageGridOnClickCallBack(pos -> {
-                    homeViewModel.setPhotos(adapter.getPhotoList());
-                    Bundle args = new Bundle();
-                    args.putInt("pos",pos);
-                    Navigation.findNavController(requireActivity(),R.id.nav_host_fragment)
-                            .navigate(R.id.action_navigation_home_to_navigation_cloud_photo_detail,args);
+                    @Override
+                    public void onSuccessResponse(PhotoDownloader.PhotoDownloadResult result) {
+                        List<CloudPhoto> photoList = result.getImageArray();
+                        adapter.addPhotos(photoList);
+                        Log.w(this.getClass().getName(), "" + adapter.getItemCount());
+                        adapter.setImageGridOnClickCallBack(pos -> {
+                            homeViewModel.setPhotos(adapter.getPhotoList());
+                            Bundle args = new Bundle();
+                            args.putInt("pos",pos);
+                            Navigation.findNavController(requireActivity(),R.id.nav_host_fragment)
+                                    .navigate(R.id.action_navigation_home_to_navigation_cloud_photo_detail,args);
+                        });
+
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
                 });
-
-                swipeRefreshLayout.setRefreshing(false);
             }
-        });
+        };
+        coordinate.observe(getViewLifecycleOwner(), ob);
     }
 
     @Override
     public void onResume() {
         super.onResume();
         downloadPhotos();
-        coordinate.observe(getViewLifecycleOwner(), observer -> {
-            if(coordinate.getValue()[0] != 720) {
-                try {
-                    Log.d(this.getClass().getSimpleName(), "coordination" + coordinate.getValue()[0].toString() + " " + coordinate.getValue()[1].toString());
-                    Geocoder geocoder = new Geocoder(getContext());
-                    String po = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getPostalCode();
-                    String adminArea = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getAdminArea();
-                    String locality = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getLocality();
-                    ((MaterialToolbar)(getActivity().findViewById(R.id.topAppBar))).setTitle(locality  + " " + po);
-                } catch (IOException e) {
-                    ((MaterialToolbar)(getActivity().findViewById(R.id.topAppBar))).setTitle("No network");
-                }
-            }
-
-        });
+        coordinate.observe(getViewLifecycleOwner(), coordUpdateObserver);
 
     }
 
