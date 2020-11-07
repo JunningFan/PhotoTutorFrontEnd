@@ -11,10 +11,14 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -48,8 +52,7 @@ public class UploadFragment extends DialogFragment {
     private LocalAlbumViewModel mViewModel;
     private Photo photo;
     private String TAG = "UploadFragment";
-    private String authKey ="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJRCI6MSwiQWNjZXNzIjp0cnVlLCJFeHBpcmUiOjE2MDQzMTI3Mzl9.BJTzL-stDaPCs_kMfdWYFF4t3yQxXc3yixM8lzlkRpiFE9KrYwVJRcwjv9Yjcg08b5mgs3qfMgeVM6j8F8ZJxA";
-
+    private String authKey = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJRCI6MSwiQWNjZXNzIjp0cnVlLCJFeHBpcmUiOjE2MDQ4NTM1MzB9.fZjmXePNA1Hexs8q2dyVj6ZuVOVx4IaAFXVITw808xoEoMGWQvfjgy3rtHz9Pt3UQJgv2zIrrVTkLf-E56ONkA";
     View view;
 
     private MutableLiveData<Boolean> preloadDone = new MutableLiveData<Boolean>(new Boolean(false));
@@ -57,8 +60,11 @@ public class UploadFragment extends DialogFragment {
 
     PhotoUploader photoUploader;
     EditText titleEditText;
-
+    // tags
     TagGroup mTagGroup;
+    // weather
+    AutoCompleteTextView weatherExposedMenu;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -108,6 +114,32 @@ public class UploadFragment extends DialogFragment {
         mTagGroup = (TagGroup) view.findViewById(R.id.photo_tags);
         mTagGroup.setTags(new String[]{});
         mTagGroup.getTags();
+
+        String[] weathers = new String[]{Photo.CLEAR, Photo.PARTLY_CLOUDY, Photo.MOSTLY_CLOUDY, Photo.OVERCAST, Photo.RAIN, Photo.SNOW, Photo.MISTY, Photo.UNKNOWN};
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(
+                        this.getContext(),
+                        R.layout.weather_dropdown_item,
+                        weathers);
+        weatherExposedMenu = (AutoCompleteTextView)getView().findViewById(R.id.filled_exposed_dropdown);
+        weatherExposedMenu.setAdapter(adapter);
+        weatherExposedMenu.setText(photo.weather);
+        weatherExposedMenu.setInputType(InputType.TYPE_NULL);
+        adapter.getFilter().filter(null);
+        weatherExposedMenu.showDropDown();
+        weatherExposedMenu.dismissDropDown();
+        weatherExposedMenu.setOnTouchListener(
+                new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (!weatherExposedMenu.getText().toString().equals(""))
+                            adapter.getFilter().filter(null);
+                        weatherExposedMenu.showDropDown();
+                        return false;
+                    }
+                }
+        );
+
     }
 
     //
@@ -118,11 +150,12 @@ public class UploadFragment extends DialogFragment {
             title = "Untitled";
         }
         String[] tags = mTagGroup.getTags();
+        Log.w(TAG,weatherExposedMenu.getText().toString());
 
-        photoUploader.uploadPhotoInfo(authKey, photo, imgId, title, tags,
+        photoUploader.uploadPhotoInfo(authKey, photo, imgId, title, tags, weatherExposedMenu.getText().toString(),
                 new PhotoUploader.PhotoUploaderCallback() {
                     @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {x
                         Log.d(this.getClass().getSimpleName(), response.toString());
                         if(response.isSuccessful()) {
                             Toast.makeText(getContext(), "Upload Complete", Toast.LENGTH_SHORT).show();
@@ -153,6 +186,7 @@ public class UploadFragment extends DialogFragment {
         view.findViewById(R.id.photo_tags).setFocusable(false);
         view.findViewById(R.id.et_title).setFocusable(false);
         ((TextView)view.findViewById(R.id.btn_submit)).setText("Submitting");
+        view.findViewById(R.id.filled_exposed_dropdown).setFocusable(false);
 
     }
 
@@ -161,6 +195,7 @@ public class UploadFragment extends DialogFragment {
         view.findViewById(R.id.photo_tags).setFocusable(true);
         view.findViewById(R.id.et_title).setFocusable(true);
         ((TextView)view.findViewById(R.id.btn_submit)).setText("Submit");
+        view.findViewById(R.id.filled_exposed_dropdown).setFocusable(true);
 
     }
 

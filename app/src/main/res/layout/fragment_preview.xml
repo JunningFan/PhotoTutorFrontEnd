@@ -110,6 +110,21 @@
                 android:textColorLink="#000000"
                 android:textSize="24sp" />
 
+            <TextView
+                android:id="@+id/textView_weather_preview"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:alpha="255"
+                android:drawableLeft="@drawable/ic_baseline_wb_sunny_36"
+                android:drawablePadding="5dp"
+                android:gravity="center"
+                android:text="Placeholder"
+                android:textColor="#FFFFFF"
+                android:textColorHighlight="#000000"
+                android:textColorLink="#000000"
+                android:textSize="24sp" />
+
             <fragment
                 android:id="@+id/map_preview"
                 android:name="com.google.android.gms.maps.SupportMapFragment"

@@ -33,6 +33,24 @@
             android:textSize="24sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <com.google.android.material.textfield.TextInputLayout
+
+        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+
+        <AutoCompleteTextView
+            android:id="@+id/filled_exposed_dropdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Weather"
+            android:inputType="none" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+
     <me.gujun.android.taggroup.TagGroup
         android:id="@+id/photo_tags"
         android:layout_width="match_parent"

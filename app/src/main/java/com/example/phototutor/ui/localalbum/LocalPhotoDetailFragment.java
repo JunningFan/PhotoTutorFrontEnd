@@ -90,6 +90,8 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
     private TextView textView_basic_meta;
     private TextView textView_other_meta;
     private TextView textView_timestamp;
+    private TextView textView_weather;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -149,6 +151,8 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
         textView_basic_meta = (TextView) view.findViewById(R.id.textView_basic_metadata);
         textView_other_meta = (TextView) view.findViewById(R.id.textView_other_metadata);
         textView_timestamp = (TextView) view.findViewById(R.id.textView_timestamp);
+        textView_weather = (TextView) view.findViewById(R.id.textView_weather);
+
 
         super.onViewCreated(view, savedInstanceState);
         Log.w(TAG,"onViewCreated");
@@ -309,6 +313,9 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         java.util.Date currenTimeZone = new java.util.Date((photo.timestamp));
         textView_timestamp.setText(sdf.format(currenTimeZone));
+        StringBuilder weather_display_builder = new StringBuilder(photo.weather);
+        weather_display_builder.setCharAt(0, Character.toUpperCase(photo.weather.charAt(0)));
+        textView_weather.setText(weather_display_builder.toString());
         if (photoMarker != null) {
             photoMarker.remove();
         }

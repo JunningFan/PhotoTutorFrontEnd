@@ -110,7 +110,6 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
     private OrientationHelper orientationHelper;
     private float[] orientationDegrees = new float[3]; //R, P, A
 
-    private WeatherGetter weatherGetter;
 
     Bitmap bitmap;
 
@@ -249,7 +248,6 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
         orientationHelper = new OrientationHelper(getContext(), this);
         orientationDegrees[0] = orientationDegrees[1] = orientationDegrees[2] = 0;
 
-        weatherGetter = new WeatherGetter();
 
         if ((!hasPermissions(requireContext())) || !(GpsHelper.checkGpsPermission(getActivity()) == GpsHelper.PERMISSION_STATE_GRANTED)) {
             // Request camera-related permissions
@@ -566,6 +564,7 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
             // camera provides access to CameraControl & CameraInfo
             camera = cameraProvider.bindToLifecycle(
                     this, cameraSelector, preview, imageCapture, imageAnalyzer);
+
 
             // Attach the viewfinder's surface provider to preview use case
             preview.setSurfaceProvider(cameraView.getSurfaceProvider());
