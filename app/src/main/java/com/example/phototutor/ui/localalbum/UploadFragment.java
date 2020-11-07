@@ -155,7 +155,7 @@ public class UploadFragment extends DialogFragment {
         photoUploader.uploadPhotoInfo(authKey, photo, imgId, title, tags, weatherExposedMenu.getText().toString(),
                 new PhotoUploader.PhotoUploaderCallback() {
                     @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {x
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                         Log.d(this.getClass().getSimpleName(), response.toString());
                         if(response.isSuccessful()) {
                             Toast.makeText(getContext(), "Upload Complete", Toast.LENGTH_SHORT).show();

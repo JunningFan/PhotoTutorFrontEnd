@@ -1,6 +1,11 @@
 package com.example.phototutor.ui.home;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.pm.PackageManager;
 import android.database.DataSetObserver;
+import android.location.Geocoder;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,7 +19,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.Navigation;
@@ -37,6 +44,13 @@ import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexWrap;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONArray;
@@ -62,6 +76,17 @@ public class HomeFragment extends Fragment {
     private RecyclerView cloud_photo_gallery;
     private SwipeRefreshLayout swipeRefreshLayout;
     private boolean isScrolling = false;
+
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+
+    MutableLiveData<Double[]> coordinate = new MutableLiveData<Double[]>(new Double[]{Double.valueOf(720), Double.valueOf(720)});
+    private final int FUSED_LOCATION_REQUEST_CODE = 0;
+
+    double latInUse = 0;
+    double lngInUse = 0;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         homeViewModel =
@@ -74,6 +99,29 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         super.onViewCreated(view, savedInstanceState);
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this.getActivity());
+        if(ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, FUSED_LOCATION_REQUEST_CODE);
+        } else {
+            listenLocationChange();
+        }
+
+         coordinate.observe(getViewLifecycleOwner(), observer -> {
+            if(coordinate.getValue()[0] != 720) {
+                try {
+                    Log.d(this.getClass().getSimpleName(), "coordination" + coordinate.getValue()[0].toString() + " " + coordinate.getValue()[1].toString());
+                    Geocoder geocoder = new Geocoder(getContext());
+                    String po = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getPostalCode();
+                    String adminArea = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getAdminArea();
+                    String locality = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getLocality();
+                    ((MaterialToolbar)(getActivity().findViewById(R.id.topAppBar))).setTitle(locality  + " " + po);
+                } catch (IOException e) {
+                    ((MaterialToolbar)(getActivity().findViewById(R.id.topAppBar))).setTitle("No network");
+                }
+            }
+
+        });
+
         cloud_photo_gallery = view.findViewById(R.id.cloud_photo_gallery);
         adapter = new CloudAlbumAdapter(requireContext());
         adapter.setPhotos(new ArrayList<>());
@@ -114,11 +162,26 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case FUSED_LOCATION_REQUEST_CODE:
+                if(grantResults.length == 2 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    listenLocationChange();
+                } else {
+                    Toast.makeText(getContext(), "location information is necessary for the photo recommendation service", Toast.LENGTH_SHORT);
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, FUSED_LOCATION_REQUEST_CODE);
+                }
+                break;
+            default:
+        }
+    }
 
     private void downloadPhotos(){
-
         PhotoDownloader downloader = new PhotoDownloader(requireContext());
-        downloader.downloadPhotosByGeo(0,0,adapter.getItemCount(),30, new PhotoDownloader.OnPhotoDownloadedByGeo(){
+        latInUse = coordinate.getValue()[0];
+        lngInUse = coordinate.getValue()[1];
+        downloader.downloadPhotosByGeo(latInUse,lngInUse,adapter.getItemCount(),30, new PhotoDownloader.OnPhotoDownloadedByGeo(){
             @Override
             public void onFailResponse(String message, int code) {
                 swipeRefreshLayout.setRefreshing(false);
@@ -174,5 +237,60 @@ public class HomeFragment extends Fragment {
     public void onResume() {
         super.onResume();
         downloadPhotos();
+        coordinate.observe(getViewLifecycleOwner(), observer -> {
+            if(coordinate.getValue()[0] != 720) {
+                try {
+                    Log.d(this.getClass().getSimpleName(), "coordination" + coordinate.getValue()[0].toString() + " " + coordinate.getValue()[1].toString());
+                    Geocoder geocoder = new Geocoder(getContext());
+                    String po = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getPostalCode();
+                    String adminArea = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getAdminArea();
+                    String locality = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getLocality();
+                    ((MaterialToolbar)(getActivity().findViewById(R.id.topAppBar))).setTitle(locality  + " " + po);
+                } catch (IOException e) {
+                    ((MaterialToolbar)(getActivity().findViewById(R.id.topAppBar))).setTitle("No network");
+                }
+            }
+
+        });
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        coordinate.removeObservers(getViewLifecycleOwner());
+    }
+
+    //for fused location listenr
+    @SuppressLint("MissingPermission")
+    private void listenLocationChange() {
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(100);
+        locationCallback = new LocationCallback(){
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location: locationResult.getLocations()) {
+                    if(location != null) {
+                        Log.d(this.getClass().getSimpleName(), "change" + coordinate.getValue()[0].toString() +" " +  coordinate.getValue()[1].toString());
+                        coordinate.setValue(new Double[]{location.getLatitude(), location.getLongitude()});
+                    }
+                }
+            }
+        };
+        mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(this.getActivity(), new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if(location != null) {
+                    Log.d(this.getClass().getSimpleName(), "change" + coordinate.getValue()[0].toString() +" " +  coordinate.getValue()[1].toString());
+                    coordinate.setValue(new Double[]{location.getLatitude(), location.getLongitude()});
+
+                }
+            }
+        });
+        mFusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
     }
 }
