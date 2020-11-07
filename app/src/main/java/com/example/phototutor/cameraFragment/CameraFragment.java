@@ -74,12 +74,23 @@ import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
@@ -99,6 +110,9 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
     private OrientationHelper orientationHelper;
     private float[] orientationDegrees = new float[3]; //R, P, A
 
+    private WeatherGetter weatherGetter;
+
+    Bitmap bitmap;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -235,6 +249,8 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
         orientationHelper = new OrientationHelper(getContext(), this);
         orientationDegrees[0] = orientationDegrees[1] = orientationDegrees[2] = 0;
 
+        weatherGetter = new WeatherGetter();
+
         if ((!hasPermissions(requireContext())) || !(GpsHelper.checkGpsPermission(getActivity()) == GpsHelper.PERMISSION_STATE_GRANTED)) {
             // Request camera-related permissions
             if (!hasPermissions(requireContext())) {
@@ -295,10 +311,73 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
                                 new ImageCapture.OnImageCapturedCallback() {
                                     @Override
                                     public void onCaptureSuccess(@NonNull ImageProxy image) {
-                                        Bitmap bitmap = imageProxyToBitmap(image);
+                                        bitmap = imageProxyToBitmap(image);
                                         bitmap = photoPreprocess(bitmap);
                                         //
                                         Bundle gps_bdl = GpsHelper.getCoordination(getActivity(), locationManager);
+                                        okhttp3.Callback weatherSubroutine = new okhttp3.Callback() {
+                                            @Override
+                                            public void onFailure(okhttp3.Call call, IOException e) {
+                                                Log.d("OKHTTP3", "Exception while doing request.");
+                                                mViewModel.select(
+                                                        new Photo(bitmap, System.currentTimeMillis(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), orientationDegrees[1], orientationDegrees[2], Photo.UNKNOWN)
+                                                );
+                                                Log.w("in camera fragment", mViewModel.getSelected().getValue().toString());
+                                                Navigation.findNavController(
+                                                        requireActivity(), R.id.camera_nav_host_fragment
+                                                ).navigate(R.id.action_camera_fragment_to_preview_fragment);
+                                            }
+
+                                            @Override
+                                            public void onResponse(Call call, Response response) throws IOException {
+                                                if(response.isSuccessful()) {
+                                                    Log.d(this.getClass().getSimpleName(), response.toString());
+                                                    String weather = Photo.UNKNOWN;
+                                                    String responseStr = response.body().string();
+                                                    Log.e("in camera fragment", responseStr);
+                                                    try {
+                                                        JSONObject weatherResponse = new JSONObject(responseStr);
+                                                        JSONObject weatherSubJSON = new JSONArray(weatherResponse.getString("weather")).getJSONObject(0);//new JSONObject(weatherResponse.getString("weather"));
+                                                        switch(weatherSubJSON.getString("id").charAt(0)) {
+                                                            case '8':
+                                                                // clear sky / clouds
+                                                                if(weatherSubJSON.getString("id").charAt(2) == 0) {
+                                                                    weather = Photo.CLEAR;
+                                                                } else if (weatherSubJSON.getString("id").charAt(2) == 1 || weatherSubJSON.getString("id").charAt(2) == 2) {
+                                                                    weather = Photo.PARTLY_CLOUDY;
+                                                                } else if (weatherSubJSON.getString("id").charAt(2) == 3) {
+                                                                    weather = Photo.MOSTLY_CLOUDY;
+                                                                } else {
+                                                                    weather = Photo.OVERCAST;
+                                                                }
+                                                                break;
+                                                            case '2':
+                                                            case '5':
+                                                            case '3':
+                                                                weather = Photo.RAIN;
+                                                                break;
+                                                            case '6':
+                                                                weather = Photo.SNOW;
+                                                                break;
+                                                            case '7':
+                                                                weather = Photo.MISTY;
+                                                                break;
+                                                            default:
+                                                                weather = Photo.UNKNOWN;
+                                                        }
+                                                    } catch (JSONException e) {
+                                                        Log.w(this.getClass().getSimpleName(),"invalid weather response");
+                                                    }
+                                                    mViewModel.select(
+                                                            new Photo(bitmap, System.currentTimeMillis(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), orientationDegrees[1], orientationDegrees[2], weather)
+                                                    );
+                                                    Navigation.findNavController(
+                                                            requireActivity(), R.id.camera_nav_host_fragment
+                                                    ).navigate(R.id.action_camera_fragment_to_preview_fragment);
+                                                }
+                                            }
+                                        };
+                                        /*
                                         mViewModel.select(
                                                 new Photo(bitmap, System.currentTimeMillis(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), orientationDegrees[1], orientationDegrees[2])
                                         );
@@ -306,9 +385,9 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
                                         Navigation.findNavController(
                                                 requireActivity(), R.id.camera_nav_host_fragment
                                         ).navigate(R.id.action_camera_fragment_to_preview_fragment);
-
+                                        */
                                         super.onCaptureSuccess(image);
-
+                                        getWeather(gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), weatherSubroutine);
                                     }
 
                                     @Override
@@ -606,5 +685,24 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
 
     public void onOrientationUpdate(float[] orientation) {
         OrientationHelper.getDegreesFromRadian(orientation, orientationDegrees);
+    }
+
+    private String getWeather(double lat, double lng, Callback callback) {
+        String host_address = "http://api.openweathermap.org/data/2.5/weather?";
+        String openWeatherAPIKey = "4da4e693f83e9293ffb90c926b750203";
+
+        String weather = Photo.UNKNOWN;
+
+        OkHttpClient client = new OkHttpClient();
+        Log.d("OKHTTP3", "Request body created");
+        Request newReq = new Request.Builder()
+                .url(host_address+"lat="+Double.toString(lat)+"&lon="+Double.toString(lng)+"&appid="+openWeatherAPIKey)
+                .get()
+                .build();
+
+
+        client.newCall(newReq).enqueue(callback);
+
+        return weather;
     }
 }

@@ -98,7 +98,7 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
                     String.valueOf(photo.getBitmap().getWidth())+' ' + String.valueOf(photo.getBitmap().getHeight()));
             Toast.makeText(getActivity(), "lat: " + Double.toString(photo.getLatitude()) +
                     "lon: " + Double.toString(photo.getLongitude()) + "\nr: " + Double.toString(photo.getElevation()) +
-                    "o: " + Double.toString(photo.getOrientation()) + "time: " + Long.toString(photo.timestamp), Toast.LENGTH_LONG).show();
+                    "o: " + Double.toString(photo.getOrientation()) + "time: " + Long.toString(photo.timestamp) + "w: "+ photo.weather, Toast.LENGTH_LONG).show();
 
             imageView.post(
                     () -> imageView.setImageBitmap(photo.getBitmap())

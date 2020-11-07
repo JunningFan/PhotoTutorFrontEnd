@@ -91,6 +91,11 @@ public class Photo {
         lastModifiedTime = timestamp;
     }
 
+    public Photo(Bitmap bitmap, long currentTimeMillis, double latitude, double longitude, float orientationDegree, float orientationDegree1, String weather) {
+        this(bitmap, currentTimeMillis, latitude, longitude, orientationDegree, orientationDegree1);
+        this.weather = weather;
+    }
+
     public int getWidth() {
         return width;
     }

@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
             listenLocationChange();
         }
 
-        coordinate.observe(this, observer -> {
+        /*coordinate.observe(this, observer -> {
             if(coordinate.getValue()[0] != 720) {
                 try {
                     Log.d(this.getClass().getSimpleName(), "coordination" + coordinate.getValue()[0].toString() + " " + coordinate.getValue()[1].toString());
@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-        });
+        });*/
     }
 
     private void configTopAppBarItemSelectedListener(MaterialToolbar topAppBar ){
