@@ -59,6 +59,18 @@ public class Photo {
     public double orientation;
     public double elevation;
 
+    // Weather typer constants
+    public static String CLEAR = "clear";
+    public static String PARTLY_CLOUDY = "partly_cloudy";
+    public static String MOSTLY_CLOUDY = "mostly_cloudy";
+    public static String OVERCAST = "overcast";
+    public static String RAIN = "raining";
+    public static String SNOW = "snow";
+    public static String MISTY = "misty";
+    public static String UNKNOWN = "unknown";
+
+    public String weather;
+
     @Ignore
     private Bitmap bitmap;
     @Ignore

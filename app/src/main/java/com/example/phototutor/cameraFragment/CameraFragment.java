@@ -99,6 +99,8 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
     private OrientationHelper orientationHelper;
     private float[] orientationDegrees = new float[3]; //R, P, A
 
+    WeatherGetter weatherGetter;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -235,6 +237,9 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
         orientationHelper = new OrientationHelper(getContext(), this);
         orientationDegrees[0] = orientationDegrees[1] = orientationDegrees[2] = 0;
 
+        // Initialize weatherGetter
+        weatherGetter = new WeatherGetter();
+
         if ((!hasPermissions(requireContext())) || !(GpsHelper.checkGpsPermission(getActivity()) == GpsHelper.PERMISSION_STATE_GRANTED)) {
             // Request camera-related permissions
             if (!hasPermissions(requireContext())) {
@@ -299,6 +304,7 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
                                         bitmap = photoPreprocess(bitmap);
                                         //
                                         Bundle gps_bdl = GpsHelper.getCoordination(getActivity(), locationManager);
+                                        weatherGetter.getWeather(gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"));
                                         mViewModel.select(
                                                 new Photo(bitmap, System.currentTimeMillis(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), orientationDegrees[1], orientationDegrees[2])
                                         );
