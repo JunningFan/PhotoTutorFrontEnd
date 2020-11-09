@@ -99,12 +99,13 @@ public class ServerClient{
         @GET("/picture/{id}")
         Call<ResponseBody> getPhotoDetail(@Path("id") Integer id);
 
-        // @PUT("/user")
-        // Call<ResponseBody> updateUserDetails(@Header("Authorization") String authKey, String name, String bio, Integer image);
+        @GET("/user")
+        Call<ResponseBody> getUserData(@Header("Authorization") String authKey);
 
-        @Headers({ "Content-Type: application/json;charset=UTF-8"})
-        @PUT("/user")
-        Call<ResponseBody> updateUserDetails(@Header("Authorization") String authKey);
+        @Headers("Content-type: application/json")
+        @PUT("/user/")
+        Call<ResponseBody> uploadUserData(@Header("Authorization") String authKey, @Body RequestBody body);
+
     }
 }
 

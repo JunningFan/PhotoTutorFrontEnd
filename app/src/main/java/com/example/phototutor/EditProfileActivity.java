@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -19,7 +20,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.example.phototutor.helpers.ProfileEditor;
+
+import org.json.JSONObject;
+
+import okhttp3.ResponseBody;
+
 public class EditProfileActivity extends AppCompatActivity {
+    private SharedPreferences sharedPreferences;
+
     EditText name;
     EditText bio;
     ImageView userImage;
@@ -33,17 +43,22 @@ public class EditProfileActivity extends AppCompatActivity {
 
         name = findViewById(R.id.editTextName);
         bio = findViewById(R.id.editTextBio);
-        userImage = (ImageView) findViewById(R.id.userImage);
-        changeProfilePhotoButton=(TextView)findViewById(R.id.changeProfilePhoto);
+        userImage = findViewById(R.id.userImage);
+        changeProfilePhotoButton = findViewById(R.id.changeProfilePhoto);
         updateButton = findViewById(R.id.updateButton);
 
-        int imageResource = getResources().getIdentifier("@drawable/avatar", null, this.getPackageName());
-        userImage.setImageResource(imageResource);
+        sharedPreferences = getSharedPreferences("login", MODE_PRIVATE);
+        String accessToken = sharedPreferences.getString("accessToken", "null");
+
+        Glide
+                .with(this)
+                .load("http://whiteboard.house:8000/img/small/avatar.jpg")
+                .centerCrop()
+                .into(userImage);
 
         changeProfilePhotoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("onClick!", "change profile button is clicked");
                 selectImage(EditProfileActivity.this);
             }
         });
@@ -51,15 +66,8 @@ public class EditProfileActivity extends AppCompatActivity {
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String Name = name.getText().toString();
-                String Bio = bio.getText().toString();
-                Integer Photo = 1;
-                if(name.getText().toString().isEmpty()) {
-                    Name = null;
-                }
-                if(bio.getText().toString().isEmpty()) {
-                    Bio = null;
-                }
+                ProfileEditor profileEditor = new ProfileEditor(EditProfileActivity.this);
+                profileEditor.uploadDetails(accessToken, name.getText().toString(), bio.getText().toString(), userImage.getId());
                 Toast.makeText(getApplicationContext(), "Details updated", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(EditProfileActivity.this, MainActivity.class);
                 startActivity(intent);

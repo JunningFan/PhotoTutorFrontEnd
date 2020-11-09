@@ -25,9 +25,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.phototutor.EditProfileActivity;
 import com.example.phototutor.MainActivity;
 import com.example.phototutor.R;
 import com.example.phototutor.RegisterActivity;
+import com.example.phototutor.helpers.ProfileEditor;
 
 import org.json.JSONException;
 import org.json.JSONObject;
