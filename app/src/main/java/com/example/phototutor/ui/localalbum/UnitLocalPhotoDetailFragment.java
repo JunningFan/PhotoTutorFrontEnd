@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.ColorInt;
@@ -78,12 +79,13 @@ public class UnitLocalPhotoDetailFragment extends Fragment {
 
         super.onViewCreated(view, savedInstanceState);
         String photo_url = getArguments().getString("photo_url");
-
+        String thumnail_url = getArguments().getString("thumbnail_url");
         ImageView imageView = view.findViewById(R.id.image_view);
         Log.w(this.getClass().getSimpleName(), "viewing a new photo page");
         Glide.with(view)
-                .load(new File(photo_url))
+                .load(Uri.parse(photo_url))
                 .placeholder(R.drawable.ic_loading)
+                .thumbnail(Glide.with(view).load(Uri.parse(thumnail_url)))
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .skipMemoryCache(true)
                 .into(imageView);
@@ -96,6 +98,9 @@ public class UnitLocalPhotoDetailFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_unit_local_photo_detail, container, false);
     }
+
+
+
 
 
 

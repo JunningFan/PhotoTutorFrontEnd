@@ -53,7 +53,10 @@ public class PhotoDownloader extends ServerClient {
     }
 
 
-    public abstract static class OnPhotoDownloadedByGeo extends OnPhotoDownloaded {
+    public abstract static class OnPhotoDownloadedbyUser extends OnPhotoDownloadedByEls{}
+    public abstract static class OnPhotoDownloadedByGeo extends OnPhotoDownloadedByEls{}
+
+    public abstract static class OnPhotoDownloadedByEls extends OnPhotoDownloaded {
 
         @Override
         public PhotoDownloadResult getImageJSONs(JSONObject object) throws JSONException, MalformedURLException, URISyntaxException {
@@ -125,6 +128,7 @@ public class PhotoDownloader extends ServerClient {
         this.context = context;
     }
 
+
     public void downloadPhotosByGeo(long lat, long lon, int from, int size, OnPhotoDownloaded onPhotoDownloaded){
 
         JsonObject jsonObj = new JsonObject();
@@ -159,6 +163,7 @@ public class PhotoDownloader extends ServerClient {
 
     }
 
+
     public void getPhotoById(int id){
         getService().getPhotoDetail(id).enqueue(new Callback<ResponseBody>() {
             @Override
@@ -171,5 +176,20 @@ public class PhotoDownloader extends ServerClient {
 
             }
         });
+    }
+
+
+    public void downloadPhotoByUserId(int id,int from, int size, OnPhotoDownloaded onPhotoDownloaded){
+        JsonObject jsonObj = new JsonObject();
+        jsonObj.addProperty("from",from);
+        jsonObj.addProperty("size",100);
+        JsonObject query = new JsonObject();
+        JsonObject match = new JsonObject();
+        match.addProperty("UserID",id);
+        query.add("match",match);
+        jsonObj.add("query",query);
+
+        getService().getPhotosByEls(jsonObj).enqueue(onPhotoDownloaded);
+
     }
 }

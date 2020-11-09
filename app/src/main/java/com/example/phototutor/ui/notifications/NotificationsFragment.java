@@ -73,6 +73,12 @@ public class NotificationsFragment extends Fragment {
                 .load("https://picsum.photos/200/300")
                 .placeholder(R.drawable.ic_camera)
                 .into((ImageView)view.findViewById(R.id.avatar));
+
+        Glide.with(requireContext())
+                .load("https://picsum.photos/seed/picsum/200/300")
+                .placeholder(R.drawable.ic_camera)
+                .into((ImageView)view.findViewById(R.id.image_wall));
+
         cloudAlbumAdapter = new CloudAlbumAdapter(requireContext());
         userFollowInfos = view.findViewById(R.id.user_follows);
 
@@ -167,7 +173,7 @@ public class NotificationsFragment extends Fragment {
                         .setAction("Retry", view -> {
                             downloadPhotos();
                         })
-//                        .setAnchorView(requireView().findViewById(R.id.nav_view))
+                        .setAnchorView(requireActivity().findViewById(R.id.nav_view))
                         .show();
             }
 

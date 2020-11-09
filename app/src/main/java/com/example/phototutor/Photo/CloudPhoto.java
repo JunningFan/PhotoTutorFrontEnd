@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -24,11 +25,15 @@ public class CloudPhoto extends Photo {
     private int userId;
     private String title;
     private int nLike;
+    private String disc;
     private List<String> tags;
+
     static public CloudPhoto createCloudPhotoFromJSON(JSONObject json) throws JSONException, MalformedURLException, URISyntaxException {
         CloudPhoto photo = new CloudPhoto();
         photo.id = json.getInt("ID");
         photo.title = json.getString("Title");
+        photo.disc = "";
+
         photo.userId = json.getInt("UserID");
         double longitude = json.getDouble("Lng");
         double latitude = json.getDouble("Lat");
@@ -53,12 +58,28 @@ public class CloudPhoto extends Photo {
         JSONArray jsonTags = json.getJSONArray("Tags");
         photo.tags = new ArrayList<>();
         for(int i =0;i<jsonTags.length();i++)
-            photo.tags.add(jsonTags.getString(i));
+            photo.tags.add(jsonTags.getJSONObject(i).getString("Name"));
         return photo;
     }
 
     static private long getLongDataFromStringData(String data){
         ZonedDateTime dateTime = ZonedDateTime.parse(data);
         return    dateTime.toInstant().toEpochMilli();
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public int getnLike() {
+        return nLike;
+    }
+
+    public List<String> getTags(){
+        return tags;
+    }
+
+    public int getUserId() {
+        return userId;
     }
 }

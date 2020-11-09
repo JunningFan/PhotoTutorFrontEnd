@@ -107,6 +107,21 @@ public class ServerClient{
         Call<ResponseBody> getPhotoDetail(@Path("id") Integer id);
 
 
+
+
+        //------------------------------------------------------
+
+
+        @GET("/user/detail/{id}")
+        Call<ResponseBody> getUserDetail(@Path("id") Integer id);
+
+        @GET("/user/follow/ers/{id}")
+        Call<ResponseBody> getUserFollowers(@Path("id") Integer id);
+
+        @GET("/user/follow/ing/{id}")
+        Call<ResponseBody> getUserFollowing(@Path("id") Integer id);
+
+
     }
 }
 

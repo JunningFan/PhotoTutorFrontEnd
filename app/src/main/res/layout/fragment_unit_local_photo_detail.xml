@@ -6,11 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/unit_local_photo_container"
-    android:background="@color/cardview_dark_background"
+    android:background="@android:color/transparent"
     tools:context=".cameraFragment.PreviewFragment">
     <androidx.viewpager.widget.ViewPager
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+
         android:id="@+id/photo_view_pager" />
 
     <com.github.chrisbanes.photoview.PhotoView

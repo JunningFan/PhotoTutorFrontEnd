@@ -112,4 +112,11 @@ dependencies {
 
     //AndroidTagGroup
     implementation 'me.gujun.android.taggroup:library:1.4@aar'
+
+
+    implementation 'com.trafi:anchor-bottom-sheet-behavior:0.13-alpha'
+
+    implementation 'com.github.jd-alexander:LikeButton:0.2.3'
+
+    implementation 'com.github.medyo:fancybuttons:1.9.1'
 }
