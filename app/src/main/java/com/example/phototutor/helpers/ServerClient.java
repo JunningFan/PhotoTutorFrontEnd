@@ -32,6 +32,7 @@ import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
 
@@ -106,6 +107,12 @@ public class ServerClient{
         @GET("/picture/{id}")
         Call<ResponseBody> getPhotoDetail(@Path("id") Integer id);
 
+        @GET("/user")
+        Call<ResponseBody> getUserData(@Header("Authorization") String authKey);
+
+        @Headers("Content-type: application/json")
+        @PUT("/user/")
+        Call<ResponseBody> uploadUserData(@Header("Authorization") String authKey, @Body RequestBody body);
 
 
 
