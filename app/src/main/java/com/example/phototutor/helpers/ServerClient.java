@@ -1,5 +1,7 @@
 package com.example.phototutor.helpers;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 
 import com.example.phototutor.Photo.Photo;
@@ -37,11 +39,13 @@ import retrofit2.http.Part;
 import retrofit2.http.Path;
 
 public class ServerClient{
+    Context context;
     static private String host_address = "http://whiteboard.house:8000";
 
 //    static private String host_address = "https://picsum.photos";
 //    static private String host_address = "https://xieranmaya.github.io";
     static private Retrofit retrofit = initRetrofit();
+
 
 
     static private APIServer service =  retrofit.create(APIServer.class);;
@@ -128,7 +132,11 @@ public class ServerClient{
         @GET("/user/follow/ing/{id}")
         Call<ResponseBody> getUserFollowing(@Path("id") Integer id);
 
+    }
 
+    public String getAuthorizationToken(Context context){
+        SharedPreferences sharedPreferences = context.getSharedPreferences("login",Context.MODE_PRIVATE);
+        return sharedPreferences.getString("accessToken", "null");
     }
 }
 

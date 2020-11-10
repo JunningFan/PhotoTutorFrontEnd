@@ -1,6 +1,7 @@
 package com.example.phototutor.ui.userprofile;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
@@ -12,6 +13,7 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.target.Target;
+import com.example.phototutor.EditProfileActivity;
 import com.example.phototutor.Photo.CloudPhoto;
 import com.example.phototutor.R;
 import com.example.phototutor.adapters.AlbumAdapter;
@@ -41,12 +44,14 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.Url;
 
 public class UserProfileFragment extends Fragment {
     private CloudPhotoDetailViewModel cloudPhotoDetailViewModel;
@@ -142,15 +147,8 @@ public class UserProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Button user_action_btn = view.findViewById(R.id.user_action_btn);
-        if(isPrimaryUser){
-            user_action_btn.setText("Edit Profile");
-            user_action_btn.setOnClickListener(view1->onEditProfileClicked());
-        }
-        else{
-            user_action_btn.setText("Follow");
-            user_action_btn.setOnClickListener(view1->onFollowProfileClicked(userId));
-        }
+
+
         cloudPhotoDetailViewModel = ViewModelProviders.of(requireActivity()).get(CloudPhotoDetailViewModel.class);
         user_name = view.findViewById(R.id.user_name);
         user_signature  = view.findViewById(R.id.user_signature);
@@ -248,42 +246,53 @@ public class UserProfileFragment extends Fragment {
 
     }
 
-    private void downloadUserInfo(){
-        if(isPrimaryUser) downloader.getPrimaryUserDetail(userId);
-        else{
-            downloader.getUserDetail(userId, new UserInfoDownloader.UserDetailRequestCallback() {
-                @Override
-                public void onSuccessResponse(User user) {
-                    user_name.setText(user.getNickName());
-                    user_signature.setText( user.getSignature());
-                    Glide.with(requireContext())
-                            .load(user.getAvatarUrl())
-                            .placeholder(R.drawable.ic_camera)
-                            .into(user_avatar);
+    private UserInfoDownloader.UserDetailRequestCallback callback = new UserInfoDownloader.UserDetailRequestCallback() {
+        @Override
+        public void onSuccessResponse(User user) {
+            user_name.setText(user.getNickName());
+            user_signature.setText( user.getSignature());
+            Glide.with(requireContext())
+                    .load(user.getAvatarUrl())
+                    .placeholder(R.drawable.ic_camera)
+                    .into(user_avatar);
 
-                    TextView tab_show_count = userFollowInfos.getTabAt(1).getCustomView()
-                            .findViewById(R.id.tab_show_count);
+            TextView tab_show_count = userFollowInfos.getTabAt(1).getCustomView()
+                    .findViewById(R.id.tab_show_count);
 
-                    tab_show_count.setText(String.valueOf(user.getnFollowers()));
+            tab_show_count.setText(String.valueOf(user.getnFollowers()));
 
-                    tab_show_count = userFollowInfos.getTabAt(2).getCustomView()
-                            .findViewById(R.id.tab_show_count);
+            tab_show_count = userFollowInfos.getTabAt(2).getCustomView()
+                    .findViewById(R.id.tab_show_count);
 
-                    tab_show_count.setText(String.valueOf(user.getnFollowerings()));
-
-                }
-
-                @Override
-                public void onFailResponse(String message, int code) {
-
-                }
-
-                @Override
-                public void onFailRequest(Call<ResponseBody> call, Throwable t) {
-
-                }
-            });
+            tab_show_count.setText(String.valueOf(user.getnFollowerings()));
+            Button user_action_btn = requireView().findViewById(R.id.user_action_btn);
+            if(isPrimaryUser){
+                user_action_btn.setText("Edit Profile");
+                user_action_btn.setOnClickListener(view1->onEditProfileClicked(
+                        user.getSignature(),user.getNickName(),user.getAvatarUrl()));
+            }
+            else{
+                user_action_btn.setText("Follow");
+                user_action_btn.setOnClickListener(view1->onFollowProfileClicked(userId));
+            }
         }
+
+        @Override
+        public void onFailResponse(String message, int code) {
+
+        }
+
+        @Override
+        public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+
+        }
+    };
+
+    private void downloadUserInfo(){
+        if(isPrimaryUser)
+            downloader.getPrimaryUserDetail(callback);
+        else
+            downloader.getUserDetail(userId, callback);
     }
 
     private void downloadUserFollowings(){
@@ -384,8 +393,12 @@ public class UserProfileFragment extends Fragment {
     }
 
 
-    public void onEditProfileClicked(){
-
+    public void onEditProfileClicked(String signature, String nickname, URL avatarUrl){
+        Intent intent = new Intent(requireActivity(), EditProfileActivity.class);
+        intent.putExtra("signature", signature );
+        intent.putExtra("nickname", nickname );
+        intent.putExtra("avatarUrl", avatarUrl);
+        startActivity(intent);
     }
 
     public void onFollowProfileClicked(int id){

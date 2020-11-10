@@ -117,9 +117,9 @@ public class UserInfoDownloader extends ServerClient {
         return user;
     }
 
-    public void getPrimaryUserDetail(int id){
+    public void getPrimaryUserDetail(UserDetailRequestCallback callback){
 
-        //TODO
+        getService().getUserData(getAuthorizationToken(context)).enqueue(callback);
 
     }
     public void getUserDetail(int id,UserDetailRequestCallback callback){
