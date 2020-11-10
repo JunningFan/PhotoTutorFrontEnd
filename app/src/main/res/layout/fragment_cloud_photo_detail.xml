@@ -138,14 +138,17 @@
                     android:layout_gravity="center"
                     android:layout_weight="2"
                     android:layout_height="wrap_content">
+
                     <ImageButton
+                        android:id="@+id/button_comment"
+                        style="@android:style/Widget.Material.Light.ImageButton"
                         android:layout_width="@dimen/round_button_small"
                         android:layout_height="@dimen/round_button_small"
-                        android:background="@android:color/transparent"
-                        android:src = "@drawable/ic_comment"
                         android:layout_marginHorizontal="@dimen/margin_xsmall"
 
-                        android:scaleType="fitXY"/>
+                        android:scaleType="fitXY"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_comment" />
 
                     <ToggleButton
                         android:id="@+id/button_favorite"

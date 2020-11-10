@@ -83,19 +83,13 @@ public class UserInfoDownloader extends ServerClient {
     public static abstract class UserfollowerRequestCallback extends UserfollowingRequestCallback{}
     public static abstract class UserfollowingRequestCallback extends RequestCallback{
 
-        @Override
-        protected boolean isArray() {
-            return true;
-        }
-
         abstract public void onSuccessResponse(List<User> users);
 
         @Override
-        public void onSuccessResponse(JSONObject object) throws JSONException {}
+        public void onSuccessResponse(JSONObject object) throws JSONException, MalformedURLException {
 
-        @Override
-        public void onSuccessResponse(JSONArray array) throws JSONException, MalformedURLException {
             ArrayList<User> users = new ArrayList();
+            JSONArray array = object.getJSONArray("data");
             for(int i=0;i<array.length();i++){
                 User user = UserInfoDownloader.extractUser(array.getJSONObject(i));
                 users.add(user);
@@ -103,6 +97,9 @@ public class UserInfoDownloader extends ServerClient {
 
             onSuccessResponse(users);
         }
+
+        @Override
+        public void onSuccessResponse(JSONArray array) throws JSONException, MalformedURLException {}
     }
 
 

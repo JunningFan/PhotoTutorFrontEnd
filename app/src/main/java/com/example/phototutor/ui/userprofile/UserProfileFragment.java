@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -131,9 +132,9 @@ public class UserProfileFragment extends Fragment {
             public TextView nfollowers;
             public MyViewHolder(View itemView) {
                 super(itemView);
-                user_name = itemView.findViewById(R.id.user_name);
-                avatar = itemView.findViewById(R.id.avatar);
-                nfollowers =  itemView.findViewById(R.id.nfollowers);
+                user_name = itemView.findViewById(R.id.user_list_user_name);
+                avatar = itemView.findViewById(R.id.user_list_avatar);
+                nfollowers =  itemView.findViewById(R.id.user_list_nfollowers);
             }
         }
 
@@ -141,6 +142,15 @@ public class UserProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Button user_action_btn = view.findViewById(R.id.user_action_btn);
+        if(isPrimaryUser){
+            user_action_btn.setText("Edit Profile");
+            user_action_btn.setOnClickListener(view1->onEditProfileClicked());
+        }
+        else{
+            user_action_btn.setText("Follow");
+            user_action_btn.setOnClickListener(view1->onFollowProfileClicked(userId));
+        }
         cloudPhotoDetailViewModel = ViewModelProviders.of(requireActivity()).get(CloudPhotoDetailViewModel.class);
         user_name = view.findViewById(R.id.user_name);
         user_signature  = view.findViewById(R.id.user_signature);
@@ -371,5 +381,14 @@ public class UserProfileFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+    }
+
+
+    public void onEditProfileClicked(){
+
+    }
+
+    public void onFollowProfileClicked(int id){
+
     }
 }

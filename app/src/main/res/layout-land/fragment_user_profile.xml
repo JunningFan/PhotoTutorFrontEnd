@@ -83,6 +83,7 @@
                 android:gravity="left"
                 android:layout_height="wrap_content">
             <TextView
+                android:id="@+id/user_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/lato_bold"
@@ -90,6 +91,7 @@
                 android:textColor="#000000"
                 android:textSize="28sp" />
             <TextView
+                android:id="@+id/user_signature"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -107,6 +109,7 @@
                 android:gravity="center"
                 android:layout_height="wrap_content">
                 <Button
+                    android:id="@+id/user_action_btn"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="100dp"
                     android:layout_height="35dp"

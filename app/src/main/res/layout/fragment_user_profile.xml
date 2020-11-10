@@ -90,6 +90,7 @@
 
 
             <Button
+                android:id="@+id/user_action_btn"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_marginHorizontal="@dimen/margin_xsmall"
                 android:layout_width="match_parent"

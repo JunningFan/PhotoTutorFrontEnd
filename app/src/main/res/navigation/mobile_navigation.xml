@@ -26,7 +26,11 @@
         android:id="@+id/navigation_cloud_photo_detail"
         android:name="com.example.phototutor.ui.cloudphoto.CloudPhotoDetailFragment"
         android:label="fragment_cloud_photo_detail"
-        tools:layout="@layout/fragment_cloud_photo_detail" />
+        tools:layout="@layout/fragment_cloud_photo_detail" >
+        <action
+            android:id="@+id/action_navigation_cloud_photo_detail_to_navigation_user_profile"
+            app:destination="@id/navigation_user_profile" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_user_profile"

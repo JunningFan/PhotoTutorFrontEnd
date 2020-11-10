@@ -253,16 +253,16 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         mViewModel.getCurrIdx().observe(requireActivity(), idx -> {
             index = idx;
         });
-        photoViewPager.setOnClickListener(view12 -> {
-            Log.w(TAG,"photoViewPager clicked");
-            View buttonSheetDetail = view12.findViewById(R.id.button_sheet_container);
-            if (buttonSheetDetail.getVisibility() == View.VISIBLE)
-                buttonSheetDetail.setVisibility(View.GONE);
-            else{
-                buttonSheetDetail.setVisibility(View.VISIBLE);
-            }
-
-        });
+//        photoViewPager.setOnClickListener(view12 -> {
+//            Log.w(TAG,"photoViewPager clicked");
+//            View buttonSheetDetail = view12.findViewById(R.id.button_sheet_container);
+//            if (buttonSheetDetail.getVisibility() == View.VISIBLE)
+//                buttonSheetDetail.setVisibility(View.GONE);
+//            else{
+//                buttonSheetDetail.setVisibility(View.VISIBLE);
+//            }
+//
+//        });
         photoViewPager.registerOnPageChangeCallback(
                 new ViewPager2.OnPageChangeCallback(){
                     @Override
@@ -290,6 +290,13 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                     Glide.with(CloudPhotoDetailFragment.this.getContext())
                             .load(user.getAvatarUrl())
                             .into(avatarView);
+                avatarView.setOnClickListener(view -> {
+                    Bundle args = new Bundle();
+                    args.putInt("userId",user.getId());
+                    Navigation.findNavController(requireActivity(), R.id.nav_host_fragment)
+                            .navigate(R.id.action_navigation_cloud_photo_detail_to_navigation_user_profile,args);
+
+                });
             }
 
             @Override
@@ -401,5 +408,4 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         }
 
     }
-
 }
