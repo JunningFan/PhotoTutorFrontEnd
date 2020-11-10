@@ -67,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
         final Button loginButton = findViewById(R.id.login);
         final Button registerButton = findViewById(R.id.register);
 
-//        sharedPreferences = getSharedPreferences(filename, Context.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(filename, Context.MODE_PRIVATE);
 //        if(sharedPreferences.contains(Username)) {
 //            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
 //            startActivity(intent);
