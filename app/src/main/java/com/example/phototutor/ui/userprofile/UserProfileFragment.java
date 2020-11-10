@@ -273,7 +273,7 @@ public class UserProfileFragment extends Fragment {
             }
             else{
                 user_action_btn.setText("Follow");
-                user_action_btn.setOnClickListener(view1->onFollowProfileClicked(userId));
+                user_action_btn.setOnClickListener(view1->onFollowBtnClicked(userId));
             }
         }
 
@@ -390,18 +390,25 @@ public class UserProfileFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        downloadUserInfo();
+        downloadUserFollowers();
+        downloadUserFollowings();
+        downloadPhotos();
     }
 
 
     public void onEditProfileClicked(String signature, String nickname, URL avatarUrl){
+        Log.w("UserProfile",signature);
         Intent intent = new Intent(requireActivity(), EditProfileActivity.class);
         intent.putExtra("signature", signature );
         intent.putExtra("nickname", nickname );
-        intent.putExtra("avatarUrl", avatarUrl);
+        intent.putExtra("avatarUrl", avatarUrl.toString());
         startActivity(intent);
     }
 
-    public void onFollowProfileClicked(int id){
+    public void onFollowBtnClicked(int id){
 
     }
+
+
 }

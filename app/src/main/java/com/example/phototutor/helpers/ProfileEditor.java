@@ -17,41 +17,58 @@ import retrofit2.Response;
 
 public class ProfileEditor extends ServerClient  {
 
-    public interface ProfileEditorCallback extends Callback<ResponseBody> {}
+    public static abstract class ProfileEditorCallback implements Callback<ResponseBody> {
+        abstract public void onFailResponse(String message,int code );
+
+        abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);
+
+        abstract public void onSuccessResponse();
+
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            if(response.isSuccessful()){
+                onSuccessResponse();
+
+            }else {
+                onFailResponse(response.message(),response.code());
+            }
+        }
+
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+            onFailRequest(call, t);
+        }
+    }
     private Context context;
 
     public ProfileEditor(Context context){
         this.context = context;
     }
 
-    public void uploadDetails(String authKey, String nickname, String signature, Integer image){
+    public void uploadDetails( String nickname, String signature, int imgId, ProfileEditorCallback callback) {
         JSONObject userData = new JSONObject();
         try {
             userData.put("Nickname", nickname);
             userData.put("Signature", signature);
-            // userData.put("img", image);
+            userData.put("Img", imgId);
         } catch (JSONException e) {
-            Log.d("OKHTTP3", "JSON Exception");
             e.printStackTrace();
         }
-
         RequestBody requestBody = RequestBody.create(String.valueOf(userData),MediaType.parse("application/json"));
-        getService().uploadUserData(authKey,requestBody).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.e("Profile Editor", "User details updated.");
-                try {
-                    Log.e("OKHTTP3", response.body().string());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+        getService().uploadUserData(getAuthorizationToken(context),requestBody).enqueue(callback);
+    }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e("Profile Editor", "Fail to update user's details.");
-            }
-        });
+
+    public void uploadDetails( String nickname, String signature, ProfileEditorCallback callback){
+        JSONObject userData = new JSONObject();
+        try {
+            userData.put("Nickname", nickname);
+            userData.put("Signature", signature);
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
+        RequestBody requestBody = RequestBody.create(String.valueOf(userData),MediaType.parse("application/json"));
+        getService().uploadUserData(getAuthorizationToken(context),requestBody).enqueue(callback);
 
     }
 }

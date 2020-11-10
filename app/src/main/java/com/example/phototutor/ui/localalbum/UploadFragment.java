@@ -48,7 +48,6 @@ public class UploadFragment extends DialogFragment {
     private LocalAlbumViewModel mViewModel;
     private Photo photo;
     private String TAG = "UploadFragment";
-    private String authKey ="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJRCI6MSwiQWNjZXNzIjp0cnVlLCJFeHBpcmUiOjE2MDQzMTI3Mzl9.BJTzL-stDaPCs_kMfdWYFF4t3yQxXc3yixM8lzlkRpiFE9KrYwVJRcwjv9Yjcg08b5mgs3qfMgeVM6j8F8ZJxA";
 
     View view;
 
@@ -119,29 +118,28 @@ public class UploadFragment extends DialogFragment {
         }
         String[] tags = mTagGroup.getTags();
 
-        photoUploader.uploadPhotoInfo(authKey, photo, imgId, title, tags,
+        photoUploader.uploadPhotoInfo(photo, imgId, title, tags,
                 new PhotoUploader.PhotoUploaderCallback() {
                     @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        Log.d(this.getClass().getSimpleName(), response.toString());
-                        if(response.isSuccessful()) {
-                            Toast.makeText(getContext(), "Upload Complete", Toast.LENGTH_SHORT).show();
-                            getActivity().onBackPressed();
-                        } else {
-                            Log.e(this.getClass().getSimpleName(), response.toString());
-                            Toast.makeText(getContext(), "Server error, please try again later or contact technical support", Toast.LENGTH_SHORT).show();
-                            unlockViews();
-                        }
+                    public void onFailResponse(String message, int code) {
+                        Toast.makeText(getContext(), "Server error, please try again later or contact technical support", Toast.LENGTH_SHORT).show();
+                        unlockViews();
                     }
 
                     @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
                         Log.e(
                                 TAG,
                                 "---TTTT :: POST msg from server :: " + t.toString()
                         );
                         Toast.makeText(getContext(),"Network issue, please try again later", Toast.LENGTH_SHORT).show();
                         unlockViews();
+                    }
+
+                    @Override
+                    public void onSuccessResponse(int imgId) {
+                        Toast.makeText(getContext(), "Upload Complete", Toast.LENGTH_SHORT).show();
+                        getActivity().onBackPressed();
                     }
                 }
 
@@ -165,40 +163,28 @@ public class UploadFragment extends DialogFragment {
     }
 
     private void uploadImage() {
-        photoUploader.uploadPhoto(authKey
-                ,
-                photo,
+        photoUploader.uploadPhoto(photo,
                 new PhotoUploader.PhotoUploaderCallback() {
                     @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        Log.w(TAG,response.toString());
-                        if(response.isSuccessful()) {
-                            preloadDone.postValue(new Boolean(true));
-                            try {
-                                imgId = new JSONObject(response.body().string()).getInt("img");
-                            } catch (JSONException e) {
-                                Log.e(this.getClass().getSimpleName(), e.getMessage());
-                            } catch (IOException e) {
-                                Log.e(this.getClass().getSimpleName(), e.getMessage());
-                            }
-                        } else {
-                            Log.e(this.getClass().getSimpleName(), response.toString());
-                            Toast.makeText(getContext(), "Server error, please try again later or contact technical support", Toast.LENGTH_SHORT).show();
-                            unlockViews();
-                            uploadImage();
-                        }
+                    public void onFailResponse(String message, int code) {
+                        Toast.makeText(getContext(), "Server error, please try again later or contact technical support", Toast.LENGTH_SHORT).show();
+                        unlockViews();
+                        uploadImage();
                     }
 
                     @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-                        Log.e(
-                                TAG,
-                                "---TTTT :: POST msg from server :: " + t.toString()
-                        );
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
                         Toast.makeText(getContext(),"Network issue, please try again later", Toast.LENGTH_SHORT).show();
                         unlockViews();
                         uploadImage();
                     }
+
+                    @Override
+                    public void onSuccessResponse(int id) {
+                        preloadDone.postValue(new Boolean(true));
+                        imgId = id;
+                    }
+
                 }
         );
     }

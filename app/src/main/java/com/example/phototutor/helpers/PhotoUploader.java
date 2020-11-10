@@ -19,6 +19,8 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -30,33 +32,98 @@ import retrofit2.Response;
 
 public class PhotoUploader extends ServerClient {
 
-    public interface PhotoUploaderCallback extends Callback<ResponseBody>{}
+    public static abstract  class PhotoInfoUploader implements Callback<ResponseBody>{
+
+        abstract public void onFailResponse(String message,int code );
+
+        abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);
+
+        abstract public void onSuccessResponse();
+
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            if(!response.isSuccessful()){
+                onFailResponse(response.message(),response.code());
+            }
+            else{
+                onSuccessResponse();
+            }
+        }
+
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+            onFailRequest(call,t);
+        }
+
+    }
+
+    public static abstract class PhotoUploaderCallback implements Callback<ResponseBody> {
+
+        abstract public void onFailResponse(String message,int code );
+
+        abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);
+
+        abstract public void onSuccessResponse(int imgId);
+
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            if(!response.isSuccessful()){
+                onFailResponse(response.message(),response.code());
+            }
+            else{
+                try {
+                    onSuccessResponse(new JSONObject(response.body().string()).getInt("img"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+            onFailRequest(call,t);
+        }
+    }
+
     private Context context;
 
     public PhotoUploader(Context context){
         this.context = context;
     }
-    public void uploadPhoto(String authKey, Photo photo, PhotoUploaderCallback callback){
-            File photoFile = new File(photo.imageURI.getPath());
 
+    public void uploadPhoto(Photo photo, PhotoUploaderCallback callback){
+
+        File photoFile = new File(photo.imageURI.getPath());
+
+
+        String type = "";
+        if(photo.imageURI.toString().startsWith("content")){
+           type = context.getContentResolver().getType(photo.imageURI);
+        }
+        else{
             String extention = MimeTypeMap.getFileExtensionFromUrl(photoFile.getPath());
-            String type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extention);
-            Log.w("PhotoUploader", type);
-            RequestBody requestPhotoFile = RequestBody.create(
-                    photoFile, MediaType.parse(type));
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extention);
+        }
 
+        Log.w("PhotoUploader", type);
+        Log.w("PhotoUploader", photoFile.getAbsolutePath());
+        RequestBody requestPhotoFile = RequestBody.create(
+                photoFile, MediaType.parse(type));
 
-            MultipartBody.Part body = MultipartBody.Part.createFormData(
-                    "upload",
-                    photoFile.getName(),
-                    requestPhotoFile);
+        Log.w("PhotoUploader", photoFile.getPath());
+        MultipartBody.Part body = MultipartBody.Part.createFormData(
+                "upload",
+                photoFile.getName(),
+                requestPhotoFile);
 
-            Log.w("PhotoUploader",body.headers().toString());
-            getService().uploadImage(authKey,body).enqueue(callback);
+        Log.w("PhotoUploader",body.headers().toString());
+        getService().uploadImage(getAuthorizationToken(context) ,body).enqueue(callback);
 
     }
 
-    public void uploadPhotoInfo(String authKey, Photo photo, int id, String title, String[] tags, PhotoUploaderCallback callback){
+    public void uploadPhotoInfo(Photo photo, int id, String title, String[] tags, PhotoUploaderCallback callback){
         File photoFile = new File(photo.imageURI.getPath());
 
         JSONObject info = new JSONObject();
@@ -98,10 +165,10 @@ public class PhotoUploader extends ServerClient {
         }
 
         RequestBody requestBody = RequestBody.create(String.valueOf(info), MediaType.parse("application/json"));
-        getService().uploadImageInfo(authKey,requestBody).enqueue(callback);
+        getService().uploadImageInfo(getAuthorizationToken(context),requestBody).enqueue(callback);
     }
 
-    public void getPhoto(String authKey, int id){
+    public void getPhoto(int id){
 
         getService().getPhotoInfo(id).enqueue(new Callback<ResponseBody>() {
             @Override

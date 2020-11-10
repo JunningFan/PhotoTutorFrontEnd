@@ -123,7 +123,7 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
             Bundle bundle = new Bundle();
 
             bundle.putString("photo_url", adapter.photos.get(position).imageURI.toString());
-
+            bundle.putString("thumbnail_url", adapter.photos.get(position).thumbnailURI.toString());
             UnitLocalPhotoDetailFragment fragment = new UnitLocalPhotoDetailFragment();
             fragment.setArguments(bundle);
             return fragment;

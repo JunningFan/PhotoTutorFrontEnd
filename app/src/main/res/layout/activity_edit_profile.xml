@@ -1,31 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.example.lib.DragDismissLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.thefuntasty.hauler.HaulerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent"
-    >
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F7F9FA"
+    android:id="@+id/hauler_view"
+    android:theme="@style/AppTheme.Draggable"
     tools:context=".EditProfileActivity">
 
-
-    <RelativeLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="530dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:background="@android:color/transparent"
+        android:fillViewport="true">
+
+
+    <LinearLayout
+        android:background="#F7F9FA"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/avatar_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        >
 
         <androidx.cardview.widget.CardView
             android:id="@+id/myCardView"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/avatar_field"
             app:cardCornerRadius="50dp">
 
             <ImageView
@@ -34,82 +46,92 @@
                 android:layout_height="102dp"
                 android:scaleType="centerCrop" />
         </androidx.cardview.widget.CardView>
-    </RelativeLayout>
 
-    <TextView
-        android:id="@+id/TextViewName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Name"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.114"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.323" />
+        <Button
+            android:id="@+id/changeProfilePhoto"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:clickable="true"
+            android:text="Change Profile Photo"
+            app:layout_constraintLeft_toLeftOf="@id/avatar_field"
+            app:layout_constraintRight_toRightOf="@id/avatar_field"
+            app:layout_constraintTop_toBottomOf="@id/myCardView" />
 
-    <EditText
-        android:id="@+id/editTextName"
-        android:layout_width="249dp"
-        android:layout_height="47dp"
-        android:ems="10"
-        android:hint="Your Name"
-        android:inputType="textPersonName"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.362" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <TextView
-        android:id="@+id/TextViewBio"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Bio"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.117"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.477" />
+    <LinearLayout
+        android:layout_weight="2"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/margin_medium"
+        android:layout_height="wrap_content">
 
-    <EditText
-        android:id="@+id/editTextBio"
-        android:layout_width="254dp"
-        android:layout_height="43dp"
-        android:ems="10"
-        android:hint="Your Biography"
-        android:inputType="textPersonName"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.518" />
+        <com.google.android.material.textfield.TextInputLayout
+            app:boxBackgroundColor ="#F7F9FA"
+            android:hint="Nickname"
+            app:errorEnabled="true"
 
-    <Button
-        android:id="@+id/updateButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Update"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextBio"
-        app:layout_constraintVertical_bias="0.301" />
+            app:counterMaxLength="20"
+            app:counterEnabled="true"
+            app:endIconMode="clear_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/changeProfilePhoto"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Change Profile Photo"
-        android:clickable="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.508"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.25" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextName"
+                android:imeOptions="actionNext"
+                android:singleLine="true"
+                android:nextFocusForward="@+id/editTextBio"
+                app:boxBackgroundColor ="@android:color/transparent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
 
-</com.example.lib.DragDismissLayout>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:hint="Signature"
+            app:counterEnabled="true"
+            app:counterMaxLength="150"
+            app:errorEnabled="true"
+            android:layout_marginTop="@dimen/margin_medium"
+            android:layout_width="match_parent"
+            app:endIconMode="clear_text"
+            app:boxBackgroundColor ="#F7F9FA"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextBio"
+                android:imeOptions="actionNext"
+                android:singleLine="true"
+                app:boxBackgroundColor ="@android:color/transparent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_marginVertical="@dimen/margin_small"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/updateButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Update"
+                android:layout_centerHorizontal="true"
+                />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</com.thefuntasty.hauler.HaulerView>
