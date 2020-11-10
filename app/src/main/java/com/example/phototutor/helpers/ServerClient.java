@@ -132,6 +132,10 @@ public class ServerClient{
         @GET("/user/follow/ing/{id}")
         Call<ResponseBody> getUserFollowing(@Path("id") Integer id);
 
+        @GET("/user/follow/ami/{id}")
+        Call<ResponseBody> getAmiFollowInfo(@Header("Authorization") String authKey,@Path("id") int id);
+
+
     }
 
     public String getAuthorizationToken(Context context){

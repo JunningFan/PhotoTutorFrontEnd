@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import mehdi.sakout.fancybuttons.FancyButton;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Url;
@@ -123,6 +124,27 @@ public class UserProfileFragment extends Fragment {
                     .format(DecodeFormat.PREFER_RGB_565)
                     .into(holder.avatar);
             holder.nfollowers.setText("" + users.get(position).getnFollowers() +" followers");
+            downloader.getAmiFollowing(users.get(position).getId(), new UserInfoDownloader.UserIsFollowingRequestCallback() {
+                @Override
+                public void onSuccessResponse(boolean isFollowing) {
+                    if(isFollowing){
+                        holder.user_list_follow_btn.setText("unfollow");
+                    }
+                    else{
+                        holder.user_list_follow_btn.setText("follow");
+                    }
+                }
+
+                @Override
+                public void onFailResponse(String message, int code) {
+
+                }
+
+                @Override
+                public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+
+                }
+            });
         }
 
         @Override
@@ -135,11 +157,13 @@ public class UserProfileFragment extends Fragment {
             public CircleImageView avatar;
             public TextView user_name;
             public TextView nfollowers;
+            FancyButton user_list_follow_btn;
             public MyViewHolder(View itemView) {
                 super(itemView);
                 user_name = itemView.findViewById(R.id.user_list_user_name);
                 avatar = itemView.findViewById(R.id.user_list_avatar);
                 nfollowers =  itemView.findViewById(R.id.user_list_nfollowers);
+                user_list_follow_btn = itemView.findViewById(R.id.user_list_follow_btn);
             }
         }
 
