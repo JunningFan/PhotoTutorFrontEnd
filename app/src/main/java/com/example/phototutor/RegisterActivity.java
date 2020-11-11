@@ -12,6 +12,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.example.phototutor.ui.login.ui.login.LoginActivity;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,6 +41,14 @@ public class RegisterActivity extends AppCompatActivity {
         final EditText confirmPassword = findViewById(R.id.editTextConfirmPassword);
         final Button confirmButton = findViewById(R.id.confirmButton);
 
+        final TextInputLayout usernameLayout = (TextInputLayout) findViewById(R.id.UsernameLayout);
+        final TextInputLayout nicknameLayout = (TextInputLayout) findViewById(R.id.editTextNicknameLayout);
+        final TextInputLayout passwordLayout = (TextInputLayout) findViewById(R.id.editTextPasswordLayout);
+        final TextInputLayout confirmPasswordLayout = (TextInputLayout) findViewById(R.id.editTextConfirmPasswordLayout);
+
+        passwordLayout.passwordVisibilityToggleRequested(true);
+        confirmPasswordLayout.passwordVisibilityToggleRequested(true);
+
         TextWatcher afterTextChangedListener = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -56,25 +66,40 @@ public class RegisterActivity extends AppCompatActivity {
                 String Nickname = nickname.getText().toString();
                 String password1 = password.getText().toString();
                 String password2 = confirmPassword.getText().toString();
+                confirmButton.setEnabled(false);
 
-                if(!isUsernameValid(Username)){
-                    username.setError("Please enter a valid username!");
+                if(!Username.isEmpty()){
+                    usernameLayout.setErrorEnabled(false);
+
+                } else {
+                    usernameLayout.setErrorEnabled(true);
+                    usernameLayout.setError("Please enter a valid username!");
                 }
 
-                if(Nickname.isEmpty()) {
-                    nickname.setError("Please enter a valid nickname!");
+                if(!Nickname.isEmpty()){
+                    nicknameLayout.setErrorEnabled(false);
+
+                } else {
+                    nicknameLayout.setErrorEnabled(true);
+                    nicknameLayout.setError("Please enter a valid nickname!");
                 }
 
                 if(isPasswordValid(password1)) {
+                    passwordLayout.setErrorEnabled(false);
                     if(password1.equals(password2) != true) {
-                        confirmPassword.setError("Passwords not matched!");
+                        confirmPasswordLayout.setErrorEnabled(true);
+                        confirmPasswordLayout.setError("Passwords do not matched!");
+                    } else {
+                        confirmPasswordLayout.setErrorEnabled(false);
                     }
-                    if(!Username.isEmpty() && !Nickname.isEmpty()) {
+                    if(!Username.isEmpty() && !Nickname.isEmpty() && password1.equals(password2)) {
                         confirmButton.setEnabled(true);
                         postUserDataToDatabase(Username, Nickname, password1);
                     }
                 } else {
-                    password.setError("Password must be more than 5 characters!");
+                    passwordLayout.setErrorEnabled(true);
+                    passwordLayout.setError("Password must be more than 5 characters!");
+
                 }
             }
         };
@@ -86,8 +111,8 @@ public class RegisterActivity extends AppCompatActivity {
         confirmButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                startActivity(intent);
+                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                    startActivity(intent);
             }
         });
     }
@@ -128,19 +153,6 @@ public class RegisterActivity extends AppCompatActivity {
                 Log.d("OKHTTP3", response.body().string());
             }
         });
-    }
-
-    // A placeholder username validation check
-    private boolean isUsernameValid(String username) {
-        if (username.isEmpty()) {
-            return false;
-        }
-//        if (username.contains("@")) {
-//            return true;
-//        }else {
-//            return false;
-//        }
-        return true;
     }
 
     // A placeholder password validation check

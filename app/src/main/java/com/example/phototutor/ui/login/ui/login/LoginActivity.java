@@ -66,14 +66,7 @@ public class LoginActivity extends AppCompatActivity {
         final EditText passwordEditText = findViewById(R.id.password);
         final Button loginButton = findViewById(R.id.login);
         final Button registerButton = findViewById(R.id.register);
-//        final Button openButton = findViewById(R.id.open);
-//
-//        openButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                openDialog();
-//            }
-//        });
+
         sharedPreferences = getSharedPreferences(filename, Context.MODE_PRIVATE);
 //        if(sharedPreferences.contains(Username)) {
 //            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
