@@ -123,4 +123,7 @@ dependencies {
     implementation 'com.github.medyo:fancybuttons:1.9.1'
 
     implementation 'cc.cloudist.acplibrary:library:1.2.1'
+
+    //noinspection GradleCompatible
+    implementation 'com.android.support:design:24.1.1\''
 }
