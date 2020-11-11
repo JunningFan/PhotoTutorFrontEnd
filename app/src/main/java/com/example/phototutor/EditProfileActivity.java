@@ -51,7 +51,7 @@ import retrofit2.Call;
 
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
-public class EditProfileActivity extends AppCompatActivity {
+public class EditProfileActivity extends MyAppCompatActivity {
     private SharedPreferences sharedPreferences;
 
     TextInputEditText name;

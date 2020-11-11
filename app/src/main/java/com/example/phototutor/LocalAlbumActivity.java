@@ -12,7 +12,7 @@ import android.widget.GridLayout;
 import com.example.phototutor.adapters.AlbumAdapter;
 import com.example.phototutor.ui.localalbum.LocalAlbumFragment;
 
-public class LocalAlbumActivity extends AppCompatActivity {
+public class LocalAlbumActivity extends MyAppCompatActivity {
     private String TAG = "LocalAlbumActivity";
 
     @Override

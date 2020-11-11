@@ -19,7 +19,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".EditProfileActivity"></activity>
+        <activity android:name=".CommentActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+        </activity>
+        <activity android:name=".EditProfileActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -36,13 +43,10 @@
             android:name=".ui.login.ui.login.LoginActivity"
             android:label="PhotoTutor">
             <intent-filter>
-
-                <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LocalAlbumActivity"></activity>
+        <activity android:name=".LocalAlbumActivity" />
         <activity
             android:name=".CameraActivity"
             android:rotationAnimation="seamless"
