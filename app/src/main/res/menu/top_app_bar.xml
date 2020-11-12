@@ -7,7 +7,10 @@
         android:title="Log Out" />
     <item
         android:id="@+id/range"
-        android:icon="@drawable/ic_baseline_zoom_in_24"
         android:title="Distance"
-        app:showAsAction="always" />
+        app:actionLayout="@layout/distance_dropdown_item"
+        app:showAsAction="always"
+         />
+
+
 </menu>

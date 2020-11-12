@@ -9,12 +9,18 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -56,6 +62,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -87,12 +94,20 @@ public class HomeFragment extends Fragment {
     private LocationCallback locationCallback;
     private FusedLocationProviderClient mFusedLocationProviderClient;
 
+
     MutableLiveData<Double[]> coordinate = new MutableLiveData<Double[]>(new Double[]{Double.valueOf(720), Double.valueOf(720)});
     private final int FUSED_LOCATION_REQUEST_CODE = 0;
 
     MaterialToolbar topAppBar;
 
+    //define distances
+    private final float[] DISTANCE_FACTORS = new float[]{0.25f, 0.5f, 1f, 2f, 4f, 8f, 16f};
+    private final String[] DISTANCE_STRINGS = new String[]{"250M", "500M", "1KM", "2KM", "4KM", "8KM", "16KM"};
 
+    AutoCompleteTextView distanceExposedMenu;
+    ArrayAdapter<String> menuAdapter;
+
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         homeViewModel =
@@ -103,8 +118,6 @@ public class HomeFragment extends Fragment {
         return root;
 
     }
-
-
 
     @SuppressLint("MissingPermission")
     private void listenLocationChange() {
@@ -205,16 +218,42 @@ public class HomeFragment extends Fragment {
                         locality = po = "Unknown";
 
                     }
-                    topAppBar.setTitle(locality  + " " + po);
+                    topAppBar.setTitle(locality );// + " " + po);
                 } catch (IOException e) {
                     topAppBar.setTitle("Disconnected");
                 }
             }
 
+
+
         });
+        Log.d("home_frag", Boolean.toString(topAppBar.getMenu().findItem(R.id.range).getActionView().findViewById(R.id.distance_filled_exposed_dropdown) == null));
 
-
-
+        String[] distances = DISTANCE_STRINGS.clone();
+        menuAdapter =
+                new ArrayAdapter<>(
+                        this.getContext(),
+                        R.layout.weather_dropdown_item,
+                        distances);
+        distanceExposedMenu = (AutoCompleteTextView)topAppBar.getMenu().findItem(R.id.range).getActionView().findViewById(R.id.distance_filled_exposed_dropdown);
+        distanceExposedMenu.setAdapter(menuAdapter);
+        distanceExposedMenu.setText(distances[2]);
+        distanceExposedMenu.setInputType(InputType.TYPE_NULL);
+        menuAdapter.getFilter().filter(null);
+        distanceExposedMenu.clearFocus();
+        //distanceExposedMenu.showDropDown();
+        distanceExposedMenu.dismissDropDown();
+        distanceExposedMenu.setOnTouchListener(
+                new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (!distanceExposedMenu.getText().toString().equals(""))
+                            menuAdapter.getFilter().filter(null);
+                        distanceExposedMenu.showDropDown();
+                        return false;
+                    }
+                }
+        );
 
 
         cloud_photo_gallery = view.findViewById(R.id.cloud_photo_gallery);
@@ -285,7 +324,9 @@ public class HomeFragment extends Fragment {
 
     private void downloadPhotosWithValidGeo() {
         PhotoDownloader downloader = new PhotoDownloader(requireContext());
-        downloader.downloadPhotosByGeo( coordinate.getValue()[0], coordinate.getValue()[1],adapter.getItemCount(),30, 20, new PhotoDownloader.OnPhotoDownloadedByGeo(){
+        downloader.downloadPhotosByGeo( coordinate.getValue()[0], coordinate.getValue()[1],adapter.getItemCount(),30,
+                DISTANCE_FACTORS[java.util.Arrays.asList(DISTANCE_STRINGS).indexOf(distanceExposedMenu.getText().toString())],
+                new PhotoDownloader.OnPhotoDownloadedByGeo(){
             @Override
             public void onFailResponse(String message, int code) {
                 swipeRefreshLayout.setRefreshing(false);
@@ -343,5 +384,11 @@ public class HomeFragment extends Fragment {
     public void onResume() {
         super.onResume();
         refreshPhotos();
+        if(distanceExposedMenu != null) {
+            distanceExposedMenu.clearFocus();
+            distanceExposedMenu.dismissDropDown();
+            menuAdapter.getFilter().filter(null);
+        }
+
     }
 }

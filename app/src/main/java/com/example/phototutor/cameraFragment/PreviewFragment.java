@@ -60,8 +60,7 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
 
     BottomSheetBehavior bottomSheetBehavior;
 
-    private TextView textView_basic_meta;
-    private TextView textView_other_meta;
+
     private TextView textView_timestamp;
     private TextView textView_weather;
 
@@ -108,27 +107,6 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
             imageView.post(
                     () -> imageView.setImageBitmap(photo.getBitmap())
             );
-
-            textView_basic_meta = (TextView) getView().findViewById(R.id.textView_basic_metadata_preview);
-            if(textView_basic_meta == null) {
-                Log.e(this.getClass().getSimpleName(),"text view not found");
-            }
-
-
-            StringBuilder sbuf_expo = new StringBuilder();
-            Formatter fmt_expo = new Formatter(sbuf_expo);
-            if(currphoto.shutter_speed > 0) {
-                fmt_expo.format("f/%.1f  1/%ds  ISO:%d", currphoto.aperture, (int)currphoto.shutter_speed, currphoto.iso);
-            } else {
-                fmt_expo.format("f/%.1f  %.1fs  ISO:%d", currphoto.aperture, Math.abs(currphoto.shutter_speed), currphoto.iso);
-            }
-            textView_basic_meta.setText(sbuf_expo.toString());
-
-            textView_other_meta = (TextView) getView().findViewById(R.id.textView_other_metadata_preview);
-            StringBuilder sbuf_other = new StringBuilder();
-            Formatter fmt_other = new Formatter(sbuf_other);
-            fmt_other.format("%dmm", currphoto.focal_length);
-            textView_other_meta.setText(fmt_other.toString());
 
             textView_timestamp = (TextView) getView().findViewById(R.id.textView_timestamp_preview);
             Calendar calendar = Calendar.getInstance();
@@ -209,7 +187,7 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
             return;
         }
         mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
         mMap.getUiSettings().setAllGesturesEnabled(false);  // disable touching to the map before the animation is rendered
 

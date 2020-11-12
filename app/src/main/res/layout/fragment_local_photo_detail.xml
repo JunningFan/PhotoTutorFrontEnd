@@ -39,36 +39,6 @@
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
             <TextView
-                android:id="@+id/textView_basic_metadata"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:alpha="255"
-                android:drawableLeft="@drawable/ic_baseline_exposure_36"
-                android:drawablePadding="5dp"
-                android:gravity="center"
-                android:text="Placeholder"
-                android:textColor="#FFFFFF"
-                android:textColorHighlight="#000000"
-                android:textColorLink="#000000"
-                android:textSize="24sp" />
-
-            <TextView
-                android:id="@+id/textView_other_metadata"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:alpha="255"
-                android:drawableLeft="@drawable/ic_baseline_camera_36"
-                android:drawablePadding="5dp"
-                android:gravity="center"
-                android:text="Placeholder"
-                android:textColor="#FFFFFF"
-                android:textColorHighlight="#000000"
-                android:textColorLink="#000000"
-                android:textSize="24sp" />
-
-            <TextView
                 android:id="@+id/textView_timestamp"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"

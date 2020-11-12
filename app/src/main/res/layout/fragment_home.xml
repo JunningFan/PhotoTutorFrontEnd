@@ -17,13 +17,13 @@
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topAppBar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_location"
-            app:title = "Kingsford, NSW 2032"
             style="@style/Widget.MaterialComponents.Toolbar.Surface"
+            app:titleTextAppearance="@style/Toolbar.TitleText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             app:menu="@menu/top_app_bar"
-            />
+            app:title="Kingsford, NSW 2032"
+            app:titleMargin="0dp" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
