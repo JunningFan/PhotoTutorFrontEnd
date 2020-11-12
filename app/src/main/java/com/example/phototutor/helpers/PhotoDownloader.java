@@ -173,10 +173,17 @@ public class PhotoDownloader extends ServerClient {
         JsonObject bottom_right = new JsonObject();
         JsonObject top_left = new JsonObject();
 
-        top_left.addProperty("lat",lat+0.008983 * radius);
-        top_left.addProperty("lon",lon-0.015060  * radius);
-        bottom_right.addProperty("lat",lat-0.008983  * radius);
-        bottom_right.addProperty("lon",lon+0.015060  * radius);
+        double rad = radius / 6371.01; //6371.01 is the earth radius in KM
+        double minLat = lat / 180 * Math.PI - rad;
+        double maxLat = lat / 180 * Math.PI + rad;
+        double deltaLon = Math.asin(Math.sin(rad) / Math.cos(lat/180*Math.PI));
+        double minLon = lon / 180 * Math.PI - deltaLon;
+        double maxLon = lon / 180 * Math.PI + deltaLon;
+
+        top_left.addProperty("lat",maxLat / Math.PI * 180);
+        top_left.addProperty("lon",minLon / Math.PI * 180);
+        bottom_right.addProperty("lat",minLat / Math.PI * 180);
+        bottom_right.addProperty("lon",maxLon / Math.PI * 180);
 
         geoHash.add("top_left",top_left);
         geoHash.add("bottom_right",bottom_right);
