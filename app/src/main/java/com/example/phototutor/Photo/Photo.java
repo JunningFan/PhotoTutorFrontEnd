@@ -59,6 +59,18 @@ public class Photo {
     public double orientation;
     public double elevation;
 
+    // Weather typer constants
+    public static String CLEAR = "clear";
+    public static String PARTLY_CLOUDY = "partly_cloudy";
+    public static String MOSTLY_CLOUDY = "mostly_cloudy";
+    public static String OVERCAST = "overcast";
+    public static String RAIN = "raining";
+    public static String SNOW = "snow";
+    public static String MISTY = "misty";
+    public static String UNKNOWN = "unknown";
+
+    public String weather;
+
     @Ignore
     private Bitmap bitmap;
     @Ignore
@@ -77,6 +89,11 @@ public class Photo {
         this.aperture = 0.95;
         this.shutter_speed = -3.2;
         lastModifiedTime = timestamp;
+    }
+
+    public Photo(Bitmap bitmap, long currentTimeMillis, double latitude, double longitude, float orientationDegree, float orientationDegree1, String weather) {
+        this(bitmap, currentTimeMillis, latitude, longitude, orientationDegree, orientationDegree1);
+        this.weather = weather;
     }
 
     public int getWidth() {

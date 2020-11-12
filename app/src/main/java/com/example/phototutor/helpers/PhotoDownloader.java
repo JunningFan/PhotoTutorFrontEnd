@@ -173,10 +173,10 @@ public class PhotoDownloader extends ServerClient {
         JsonObject bottom_right = new JsonObject();
         JsonObject top_left = new JsonObject();
 
-        top_left.addProperty("lat",-32);
-        top_left.addProperty("lon",149);
-        bottom_right.addProperty("lat",-36);
-        bottom_right.addProperty("lon",153);
+        top_left.addProperty("lat",lat+0.008983);
+        top_left.addProperty("lon",lon-0.015060 );
+        bottom_right.addProperty("lat",lat-0.008983);
+        bottom_right.addProperty("lon",lon+0.015060 );
 
         geoHash.add("top_left",top_left);
         geoHash.add("bottom_right",bottom_right);

@@ -10,7 +10,7 @@ public class CameraViewModel extends ViewModel {
     private final MutableLiveData<Photo> selected = new MutableLiveData<Photo>();
 
     public void select(Photo item) {
-        selected.setValue(item);
+        selected.postValue(item);
     }
 
     public LiveData<Photo> getSelected() {

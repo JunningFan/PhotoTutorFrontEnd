@@ -63,6 +63,7 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
     private TextView textView_basic_meta;
     private TextView textView_other_meta;
     private TextView textView_timestamp;
+    private TextView textView_weather;
 
     SupportMapFragment mapFragment;
     private GoogleMap mMap;
@@ -102,7 +103,7 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
                     String.valueOf(photo.getBitmap().getWidth())+' ' + String.valueOf(photo.getBitmap().getHeight()));
             Toast.makeText(getActivity(), "lat: " + Double.toString(photo.getLatitude()) +
                     "lon: " + Double.toString(photo.getLongitude()) + "\nr: " + Double.toString(photo.getElevation()) +
-                    "o: " + Double.toString(photo.getOrientation()) + "time: " + Long.toString(photo.timestamp), Toast.LENGTH_LONG).show();
+                    "o: " + Double.toString(photo.getOrientation()) + "time: " + Long.toString(photo.timestamp) + "w: "+ photo.weather, Toast.LENGTH_LONG).show();
 
             imageView.post(
                     () -> imageView.setImageBitmap(photo.getBitmap())
@@ -136,6 +137,11 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             java.util.Date currenTimeZone=new java.util.Date((photo.timestamp));
             textView_timestamp.setText(sdf.format(currenTimeZone));
+
+            textView_weather = (TextView) getView().findViewById(R.id.textView_weather_preview);
+            StringBuilder weather_display_builder = new StringBuilder(currphoto.weather);
+            weather_display_builder.setCharAt(0, Character.toUpperCase(currphoto.weather.charAt(0)));
+            textView_weather.setText(weather_display_builder.toString());
 
         });
 
