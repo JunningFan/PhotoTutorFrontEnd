@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.TimeZone;
 
 public class CloudPhoto extends Photo {
-    static int LIKE = 1;
-    static int NEUTRAL = 0;
-    static int DISLIKE=2;
+    public final static int LIKE = 1;
+    public final static int NEUTRAL = 0;
+    public final static int DISLIKE=2;
 
     private int userId;
     private String title;

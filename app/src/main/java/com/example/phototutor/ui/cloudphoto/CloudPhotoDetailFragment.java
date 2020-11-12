@@ -40,9 +40,11 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.bumptech.glide.Glide;
+import com.example.phototutor.MyAppCompatActivity;
 import com.example.phototutor.Photo.CloudPhoto;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
+import com.example.phototutor.helpers.PhotoDownloader;
 import com.example.phototutor.helpers.PhotoLikeHelper;
 import com.example.phototutor.helpers.UserInfoDownloader;
 import com.example.phototutor.ui.comment.CommentFragment;
@@ -96,6 +98,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     private Marker photoMarker;
     UserInfoDownloader downloader;
     PhotoLikeHelper likeHelper;
+    PhotoDownloader photoDownloader;
 
     private TextView textView_basic_meta;
     private TextView textView_other_meta;
@@ -193,8 +196,10 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         downloader = new UserInfoDownloader(requireContext());
+        photoDownloader = new PhotoDownloader(requireContext());
         likeHelper = new PhotoLikeHelper(requireContext());
-
+        dislike_button = view.findViewById(R.id.dislike_button);
+        like_button = view.findViewById(R.id.like_button);
         textView_basic_meta = (TextView) view.findViewById(R.id.textView_basic_metadata);
         textView_other_meta = (TextView) view.findViewById(R.id.textView_other_metadata);
         textView_timestamp = (TextView) view.findViewById(R.id.textView_timestamp);
@@ -306,8 +311,6 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                 }
         );
 
-        dislike_button = view.findViewById(R.id.dislike_button);
-        like_button = view.findViewById(R.id.like_button);
         like_button.setOnClickListener(view1 -> {
             CloudPhoto photo = adapter.photos.get(index);
             if(like_button.isChecked()){
@@ -455,6 +458,40 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         if (photoMarker != null) {
             photoMarker.remove();
         }
+        photoDownloader.getPhotoInfoById(photo.id, new PhotoDownloader.OnDownloadPhotoById() {
+            @Override
+            public void onFailResponse(String message, int code) {
+                dislike_button.setEnabled(false);
+                like_button.setEnabled(false);
+            }
+
+            @Override
+            public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                dislike_button.setEnabled(false);
+                like_button.setEnabled(false);
+
+            }
+
+            @Override
+            public void onSuccessResponse(CloudPhoto photo) {
+                dislike_button.setEnabled(true);
+                like_button.setEnabled(true);
+
+                switch (photo.checkLiked(((MyAppCompatActivity) requireActivity()).getPrimaryUserId())) {
+                    case CloudPhoto.DISLIKE:
+                        dislike_button.setChecked(true);
+                        break;
+                    case CloudPhoto.LIKE:
+                        like_button.setChecked(true);
+                        break;
+                    case CloudPhoto.NEUTRAL:
+                        dislike_button.setChecked(false);
+                        like_button.setChecked(false);
+                }
+            }
+        });
+
+
         mapFragment.getMapAsync(this);
     }
 
