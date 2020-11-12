@@ -265,6 +265,7 @@ public class HomeFragment extends Fragment {
                     }
                 }
             };
+            coordinate.observe(getViewLifecycleOwner(), observerValidLocation);
         } else {
             downloadPhotosWithValidGeo();
         }
