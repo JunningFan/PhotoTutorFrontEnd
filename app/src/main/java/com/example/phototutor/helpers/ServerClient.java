@@ -151,6 +151,9 @@ public class ServerClient{
         @Headers("Content-type: application/json")
         @POST("/picture/{id}/comment")
         Call<ResponseBody> commentPhoto(@Header("Authorization") String authKey,@Path("id") int id, @Body JsonObject body);
+
+        @GET("/picture")
+        Call<ResponseBody> getUserNotifications(@Header("Authorization") String authKey);
     }
 
     public String getAuthorizationToken(Context context){
