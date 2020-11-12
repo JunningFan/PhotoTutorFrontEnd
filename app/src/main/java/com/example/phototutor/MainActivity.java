@@ -95,7 +95,7 @@ public class MainActivity extends MyAppCompatActivity {
             }
             else if (item.getItemId() == R.id.navigation_user_profile){
                 Bundle bundle = new Bundle();
-                bundle.putInt("userId",1); //TODO add primary user id
+                bundle.putInt("userId",getPrimaryUserId()); //TODO add primary user id
                 bundle.putBoolean("primaryUser",true);
                 Navigation.findNavController(this,R.id.nav_host_fragment)
                         .navigate(R.id.navigation_user_profile,bundle);

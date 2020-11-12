@@ -67,13 +67,15 @@ public class CloudPhoto extends Photo {
         photo.tags = new ArrayList<>();
         for(int i =0;i<jsonTags.length();i++)
             photo.tags.add(jsonTags.getJSONObject(i).getString("Name"));
-        JSONArray votesJSONArray = json.getJSONArray("Votes");
-        for(int i=0;i<votesJSONArray.length();i++){
-            JSONObject votesObject = votesJSONArray.getJSONObject(i);
-            if(votesObject.getBoolean("Like"))
-                photo.likedUserIds.add(votesObject.getInt("UID"));
-            else
-                photo.dislikeUserIds.add(votesObject.getInt("UID"));
+        if(!json.isNull("Votes")){
+            JSONArray votesJSONArray = json.getJSONArray("Votes");
+            for(int i=0;i<votesJSONArray.length();i++){
+                JSONObject votesObject = votesJSONArray.getJSONObject(i);
+                if(votesObject.getBoolean("Like"))
+                    photo.likedUserIds.add(votesObject.getInt("UID"));
+                else
+                    photo.dislikeUserIds.add(votesObject.getInt("UID"));
+            }
         }
         return photo;
     }
