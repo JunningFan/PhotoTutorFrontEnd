@@ -41,7 +41,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends MyAppCompatActivity {
 
     private static SharedPreferences sharedPreferences;
     public static final String fileName = "login";

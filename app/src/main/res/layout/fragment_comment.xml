@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:fitsSystemWindows="true"
+    >
+    <RelativeLayout
+        android:id="@+id/container"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:layout_width="match_parent"
+            android:id="@+id/toolbar"
+            app:navigationIcon="@drawable/ic_baseline_close_24"
+            android:background="@android:color/transparent"
+            app:layout_scrollFlags="scroll|enterAlways"
+            android:layout_height="?attr/actionBarSize"/>
+
+        <LinearLayout
+            android:id="@+id/contentRoot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/toolbar"
+            android:orientation="vertical">
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
+                    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                        android:id="@+id/comment_swipe_refresh_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvComments"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scrollbars="none" />
+
+                    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+                </FrameLayout>
+        </LinearLayout>
+
+    </RelativeLayout>
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/reply_tool_bar"
+        android:layout_gravity="bottom"
+        android:layout_width="match_parent"
+        app:navigationIcon="@drawable/ic_at"
+        app:menu="@menu/comment_bottom_bar_menu"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/etComment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="5"
+            android:textColor="#555555"
+            android:textSize="14sp" />
+
+    </com.google.android.material.appbar.MaterialToolbar>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -25,16 +25,19 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.target.Target;
 import com.example.phototutor.EditProfileActivity;
+import com.example.phototutor.MyAppCompatActivity;
 import com.example.phototutor.Photo.CloudPhoto;
 import com.example.phototutor.R;
 import com.example.phototutor.adapters.AlbumAdapter;
 import com.example.phototutor.adapters.CloudAlbumAdapter;
 import com.example.phototutor.helpers.PhotoDownloader;
+import com.example.phototutor.helpers.UserFollowHelper;
 import com.example.phototutor.helpers.UserInfoDownloader;
 import com.example.phototutor.ui.cloudphoto.CloudPhotoDetailViewModel;
 import com.example.phototutor.user.User;
@@ -49,6 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import mehdi.sakout.fancybuttons.FancyButton;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Url;
@@ -67,9 +71,14 @@ public class UserProfileFragment extends Fragment {
     private boolean isPrimaryUser;
     private UserInfoDownloader downloader;
 
+    private SwipeRefreshLayout photo_swipe_fresh_layout;
+    private SwipeRefreshLayout followers_swipe_fresh_layout;
+    private SwipeRefreshLayout following_swipe_fresh_layout;
+
     private TextView user_signature;
     private TextView user_name;
     private CircleImageView user_avatar;
+    Button user_action_btn;
 
     @Nullable
     @Override
@@ -95,6 +104,12 @@ public class UserProfileFragment extends Fragment {
             int origPos = getItemCount();
             this.users.addAll(users);
             notifyItemRangeInserted(origPos,users.size());
+        }
+
+        public void setUsers(List<User> users){
+            int origPos = getItemCount();
+            this.users = users;
+            notifyItemRangeRemoved(0,origPos);
         }
 
         @NonNull
@@ -123,7 +138,32 @@ public class UserProfileFragment extends Fragment {
                     .format(DecodeFormat.PREFER_RGB_565)
                     .into(holder.avatar);
             holder.nfollowers.setText("" + users.get(position).getnFollowers() +" followers");
+            downloader.getAmiFollowing(users.get(position).getId(), new UserInfoDownloader.UserIsFollowingRequestCallback() {
+                @Override
+                public void onSuccessResponse(boolean isFollowing) {
+                    if(isFollowing){
+                        holder.user_list_follow_btn.setText("unfollow");
+                        holder.user_list_follow_btn.setOnClickListener(view->UserProfileFragment.this.onUnFollowBtnClicked(users.get(position).getId()));
+
+                    }
+                    else{
+                        holder.user_list_follow_btn.setText("follow");
+                        holder.user_list_follow_btn.setOnClickListener(view->UserProfileFragment.this.onFollowBtnClicked(users.get(position).getId()));
+                    }
+                }
+
+                @Override
+                public void onFailResponse(String message, int code) {
+                    if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
+                }
+
+                @Override
+                public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+
+                }
+            });
         }
+
 
         @Override
         public int getItemCount() {
@@ -135,15 +175,18 @@ public class UserProfileFragment extends Fragment {
             public CircleImageView avatar;
             public TextView user_name;
             public TextView nfollowers;
+            FancyButton user_list_follow_btn;
             public MyViewHolder(View itemView) {
                 super(itemView);
                 user_name = itemView.findViewById(R.id.user_list_user_name);
                 avatar = itemView.findViewById(R.id.user_list_avatar);
                 nfollowers =  itemView.findViewById(R.id.user_list_nfollowers);
+                user_list_follow_btn = itemView.findViewById(R.id.user_list_follow_btn);
             }
         }
 
     }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -153,6 +196,9 @@ public class UserProfileFragment extends Fragment {
         user_name = view.findViewById(R.id.user_name);
         user_signature  = view.findViewById(R.id.user_signature);
         user_avatar = view.findViewById(R.id.avatar);
+        user_action_btn = requireView().findViewById(R.id.user_action_btn);
+
+
         downloader = new UserInfoDownloader(requireContext());
         Glide.with(requireContext())
                 .load("https://picsum.photos/seed/picsum/200/300")
@@ -162,6 +208,7 @@ public class UserProfileFragment extends Fragment {
         cloudAlbumAdapter = new CloudAlbumAdapter(requireContext());
         followerAdapter = new UserListAdapter(requireContext());
         followingAdapter = new UserListAdapter(requireContext());
+
         userFollowInfos = view.findViewById(R.id.user_follows);
 
         for (int i = 0; i < userFollowInfos.getTabCount();i++){
@@ -181,18 +228,18 @@ public class UserProfileFragment extends Fragment {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 switch (tab.getPosition()){
-                    case 0: cloud_photo_gallery.setVisibility(View.VISIBLE);break;
-                    case 1: followerRecycleView.setVisibility(View.VISIBLE);break;
-                    case 2: followingRecycleView.setVisibility(View.VISIBLE);break;
+                    case 0: photo_swipe_fresh_layout.setVisibility(View.VISIBLE);break;
+                    case 1: followers_swipe_fresh_layout.setVisibility(View.VISIBLE);break;
+                    case 2: following_swipe_fresh_layout.setVisibility(View.VISIBLE);break;
                 }
             }
 
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
                 switch (tab.getPosition()){
-                    case 0: cloud_photo_gallery.setVisibility(View.INVISIBLE);break;
-                    case 1: followerRecycleView.setVisibility(View.INVISIBLE);break;
-                    case 2: followingRecycleView.setVisibility(View.INVISIBLE);break;
+                    case 0: photo_swipe_fresh_layout.setVisibility(View.INVISIBLE);break;
+                    case 1: followers_swipe_fresh_layout.setVisibility(View.INVISIBLE);break;
+                    case 2: following_swipe_fresh_layout.setVisibility(View.INVISIBLE);break;
                 }
             }
 
@@ -205,6 +252,13 @@ public class UserProfileFragment extends Fragment {
         cloud_photo_gallery = view.findViewById(R.id.cloud_photo_gallery);
         followerRecycleView = view.findViewById(R.id.followers);
         followingRecycleView = view.findViewById(R.id.following);
+
+        photo_swipe_fresh_layout = view.findViewById(R.id.photo_swipe_fresh_layout);
+        photo_swipe_fresh_layout.setOnRefreshListener(()->refreshUserPhoto());
+        followers_swipe_fresh_layout = view.findViewById(R.id.followers_swipe_fresh_layout);
+        followers_swipe_fresh_layout.setOnRefreshListener(()->refreshUserFollowers());
+        following_swipe_fresh_layout = view.findViewById(R.id.following_swipe_fresh_layout);
+        following_swipe_fresh_layout.setOnRefreshListener(()->refreshUserFollowings());
 
         followerRecycleView.setLayoutManager(new LinearLayoutManager(requireContext()));
         followingRecycleView.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -223,10 +277,6 @@ public class UserProfileFragment extends Fragment {
         cloud_photo_gallery.addItemDecoration(new GreedoSpacingItemDecoration(spacing));
         cloud_photo_gallery.setAdapter(cloudAlbumAdapter);
 
-        downloadPhotos();
-        downloadUserInfo();
-        downloadUserFollowings();
-        downloadUserFollowers();
 
         AppBarLayout mAppLayout = view.findViewById(R.id.app_bar_layout);
         mAppLayout.addOnOffsetChangedListener(
@@ -265,21 +315,43 @@ public class UserProfileFragment extends Fragment {
                     .findViewById(R.id.tab_show_count);
 
             tab_show_count.setText(String.valueOf(user.getnFollowerings()));
-            Button user_action_btn = requireView().findViewById(R.id.user_action_btn);
+
             if(isPrimaryUser){
                 user_action_btn.setText("Edit Profile");
                 user_action_btn.setOnClickListener(view1->onEditProfileClicked(
                         user.getSignature(),user.getNickName(),user.getAvatarUrl()));
             }
             else{
-                user_action_btn.setText("Follow");
-                user_action_btn.setOnClickListener(view1->onFollowBtnClicked(userId));
+                downloader.getAmiFollowing(user.getId(), new UserInfoDownloader.UserIsFollowingRequestCallback() {
+                    @Override
+                    public void onSuccessResponse(boolean isFollowing) {
+                        if(isFollowing){
+                            user_action_btn.setText("unfollow");
+                            user_action_btn.setOnClickListener(view1->onUnFollowBtnClicked(userId));
+                        }
+                        else{
+                            user_action_btn.setText("follow");
+                            user_action_btn.setOnClickListener(view1->onFollowBtnClicked(userId));
+                        }
+                    }
+
+                    @Override
+                    public void onFailResponse(String message, int code) {
+                        if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
+                    }
+
+                    @Override
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+
+                    }
+                });
+
             }
         }
 
         @Override
         public void onFailResponse(String message, int code) {
-
+            if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
         }
 
         @Override
@@ -296,77 +368,85 @@ public class UserProfileFragment extends Fragment {
     }
 
     private void downloadUserFollowings(){
+        following_swipe_fresh_layout.setRefreshing(true);
         downloader.downloadUserFollowing(userId, new UserInfoDownloader.UserfollowingRequestCallback() {
             @Override
             public void onSuccessResponse(List<User> users) {
+                following_swipe_fresh_layout.setRefreshing(false);
+                Log.w("downloadUserFollowings",""+users.size());
                 followingAdapter.addUsers(users);
             }
 
             @Override
             public void onFailResponse(String message, int code) {
-
+                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
+                following_swipe_fresh_layout.setRefreshing(false);
+                setErrorSnackBar(message,following_swipe_fresh_layout,view->refreshUserFollowings());
             }
 
             @Override
             public void onFailRequest(Call<ResponseBody> call, Throwable t) {
-
+                following_swipe_fresh_layout.setRefreshing(false);
+                setErrorSnackBar("Network failed. Please retry",following_swipe_fresh_layout,view->refreshUserFollowings());
             }
         });
     }
 
+
+    private void setErrorSnackBar(String message, SwipeRefreshLayout swipeRefreshLayout,View.OnClickListener listener ){
+        Snackbar.make(requireView(),
+                message,
+                Snackbar.LENGTH_INDEFINITE)
+
+                .setAction("Retry",listener)
+                .setAnchorView(requireView().findViewById(R.id.nav_view))
+                .show();
+    }
+
     private void downloadUserFollowers(){
+        followers_swipe_fresh_layout.setRefreshing(true);
         downloader.downloadUserFollower(userId, new UserInfoDownloader.UserfollowerRequestCallback() {
             @Override
             public void onSuccessResponse(List<User> users) {
+
+                followers_swipe_fresh_layout.setRefreshing(false);
                 followerAdapter.addUsers(users);
             }
 
             @Override
             public void onFailResponse(String message, int code) {
-
+                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
+                followers_swipe_fresh_layout.setRefreshing(false);
+                setErrorSnackBar(message,following_swipe_fresh_layout,view->refreshUserFollowers());
             }
 
             @Override
             public void onFailRequest(Call<ResponseBody> call, Throwable t) {
-
+                followers_swipe_fresh_layout.setRefreshing(false);
+                setErrorSnackBar("Network Failed. Please Retry.",following_swipe_fresh_layout,view->refreshUserFollowers());
             }
         });
     }
     private void downloadPhotos(){
-
+        photo_swipe_fresh_layout.setRefreshing(true);
         PhotoDownloader downloader = new PhotoDownloader(requireContext());
         downloader.downloadPhotoByUserId(userId,0, cloudAlbumAdapter.getItemCount(), new PhotoDownloader.OnPhotoDownloadedbyUser(){
             @Override
             public void onFailResponse(String message, int code) {
-                Toast.makeText(requireContext(),
-                        "Network Failed. Please check the network",Toast.LENGTH_LONG);
-                Snackbar.make(requireView(),
-                        message,
-                        Snackbar.LENGTH_INDEFINITE)
-                        .setAction("Retry", view -> {
-                            downloadPhotos();
-                        })
-
-                        .show();
+                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
+                photo_swipe_fresh_layout.setRefreshing(false);
+                setErrorSnackBar(message,following_swipe_fresh_layout,view->refreshUserPhoto());
             }
 
             @Override
             public void onFailRequest(Call<ResponseBody> call, Throwable t) {
-                Toast.makeText(requireContext(),
-                        "Network Failed. Please check the network",Toast.LENGTH_LONG);
-                Snackbar.make(requireView(),
-                        "Network Failed. Please check the network",
-                        Snackbar.LENGTH_INDEFINITE)
-
-                        .setAction("Retry", view -> {
-                            downloadPhotos();
-                        })
-//                        .setAnchorView(requireView().findViewById(R.id.nav_view))
-                        .show();
+                photo_swipe_fresh_layout.setRefreshing(false);
+                setErrorSnackBar("Network Failed. Please Retry.",following_swipe_fresh_layout,view->refreshUserPhoto());
             }
 
             @Override
             public void onSuccessResponse(PhotoDownloader.PhotoDownloadResult result) {
+                photo_swipe_fresh_layout.setRefreshing(false);
                 List<CloudPhoto> cloudPhotos = result.getImageArray();
                 cloudAlbumAdapter.setPhotos(cloudPhotos);
 
@@ -391,9 +471,9 @@ public class UserProfileFragment extends Fragment {
     public void onResume() {
         super.onResume();
         downloadUserInfo();
-        downloadUserFollowers();
-        downloadUserFollowings();
-        downloadPhotos();
+        refreshUserFollowings();
+        refreshUserFollowers();
+        refreshUserPhoto();
     }
 
 
@@ -407,8 +487,64 @@ public class UserProfileFragment extends Fragment {
     }
 
     public void onFollowBtnClicked(int id){
+        UserFollowHelper helper = new UserFollowHelper(requireContext());
+        helper.addFollow(id, new UserFollowHelper.UserFollowActionCallback() {
+            @Override
+            public void onFailResponse(String message, int code) {
+                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
+            }
 
+            @Override
+            public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+            }
+
+            @Override
+            public void onSuccessResponse() {
+                Toast.makeText(requireContext(),"Followed",Toast.LENGTH_SHORT).show();
+                downloadUserInfo();
+                refreshUserFollowers();
+                refreshUserFollowings();
+            }
+        });
     }
 
+    public void onUnFollowBtnClicked(int id){
+        UserFollowHelper helper = new UserFollowHelper(requireContext());
+        helper.removeFollow(id, new UserFollowHelper.UserFollowActionCallback() {
+            @Override
+            public void onFailResponse(String message, int code) {
+                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
+            }
+
+            @Override
+            public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+
+            }
+
+            @Override
+            public void onSuccessResponse() {
+                Toast.makeText(requireContext(),"UnFollowed",Toast.LENGTH_SHORT).show();
+                downloadUserInfo();
+                refreshUserFollowers();
+                refreshUserFollowings();
+            }
+        });
+    }
+
+    public void refreshUserPhoto(){
+        cloudAlbumAdapter.setPhotos(new ArrayList<>());
+        downloadPhotos();
+    }
+
+    public void refreshUserFollowers(){
+        followerAdapter.setUsers(new ArrayList<>());
+        downloadUserFollowers();
+    }
+
+    public void refreshUserFollowings(){
+        followingAdapter.setUsers(new ArrayList<>());
+        Log.w("refreshUserFollowings",""+followingAdapter.getItemCount());
+        downloadUserFollowings();
+    }
 
 }

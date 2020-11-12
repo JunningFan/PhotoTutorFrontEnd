@@ -102,7 +102,19 @@ public class UserInfoDownloader extends ServerClient {
         public void onSuccessResponse(JSONArray array) throws JSONException, MalformedURLException {}
     }
 
+    public static abstract class UserIsFollowingRequestCallback extends RequestCallback{
 
+        public abstract void onSuccessResponse(boolean isFollowing);
+
+
+        @Override
+        public void onSuccessResponse(JSONObject object) throws JSONException {
+            onSuccessResponse(object.getBoolean("data"));
+        }
+
+        @Override
+        public void onSuccessResponse(JSONArray array) throws JSONException, MalformedURLException {}
+    }
 
     private static User extractUser(JSONObject object)throws JSONException, MalformedURLException {
         int id = object.getInt("ID");
@@ -132,5 +144,9 @@ public class UserInfoDownloader extends ServerClient {
 
     public void downloadUserFollower(int userId, UserfollowerRequestCallback callback){
         getService().getUserFollowers(userId).enqueue(callback);
+    }
+
+    public void getAmiFollowing(int id, UserIsFollowingRequestCallback callback ){
+        getService().getAmiFollowInfo(getAuthorizationToken(context), id).enqueue(callback);
     }
 }

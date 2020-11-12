@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:paddingLeft="5dp"
+    android:paddingRight="5dp">
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id ="@+id/comment_avatar"
+        android:src="@drawable/ic_launcher_background"
+        android:layout_width="30dp"
+        android:layout_height="30dp"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_marginHorizontal="@dimen/margin_xsmall"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+        <TextView
+                android:id="@+id/comment_user_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@android:style/TextAppearance.Small"
+                android:gravity="center_vertical"
+                android:text="hrhlalala"
+                android:textColor="@android:color/black"/>
+
+            <TextView
+                android:id="@+id/comment_time"
+                android:layout_width="match_parent"
+                android:layout_marginHorizontal="@dimen/margin_xsmall"
+                android:layout_height="wrap_content"
+                android:textAppearance="@android:style/TextAppearance.Small"
+                android:gravity="center_vertical"
+                android:text="19 hours agao"
+                android:textColor="@android:color/darker_gray"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/comment_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="hello, it is a very good place "
+            />
+
+        <TextView
+            android:id="@+id/reply_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="reply"
+            android:textColor="@android:color/holo_green_dark"
+            android:clickable="true"
+           />
+    </LinearLayout>
+</LinearLayout>

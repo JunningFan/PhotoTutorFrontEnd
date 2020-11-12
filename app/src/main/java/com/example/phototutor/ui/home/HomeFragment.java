@@ -14,6 +14,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -216,7 +217,7 @@ public class HomeFragment extends Fragment {
 
         cloud_photo_gallery.setAdapter(adapter);
         swipeRefreshLayout = view.findViewById(R.id.swap_fresh_layout);
-        swipeRefreshLayout.setOnRefreshListener(() -> downloadPhotos());
+        swipeRefreshLayout.setOnRefreshListener(() -> refreshPhotos());
 
         swipeRefreshLayout.setRefreshing(true);
         cloud_photo_gallery.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -244,6 +245,11 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    private void refreshPhotos(){
+        adapter.setPhotos(new ArrayList<>());
+        downloadPhotos();
+    }
+
 
     private void downloadPhotos(){
 
@@ -259,7 +265,7 @@ public class HomeFragment extends Fragment {
                         Snackbar.LENGTH_INDEFINITE)
                         .setAction("Retry", view -> {
                             swipeRefreshLayout.setRefreshing(true);
-                            downloadPhotos();
+                            refreshPhotos();
                         })
 
                         .show();
@@ -270,15 +276,15 @@ public class HomeFragment extends Fragment {
                 swipeRefreshLayout.setRefreshing(false);
                 Toast.makeText(requireContext(),
                         "Network Failed. Please check the network",Toast.LENGTH_LONG);
-                Snackbar.make(requireView(),
+                Snackbar.make(getView(),
                             "Network Failed. Please check the network",
                             Snackbar.LENGTH_INDEFINITE)
 
                         .setAction("Retry", view -> {
                             swipeRefreshLayout.setRefreshing(true);
-                            downloadPhotos();
+                            refreshPhotos();
                         })
-//                        .setAnchorView(requireView().findViewById(R.id.nav_view))
+                        .setAnchorView(requireView().findViewById(R.id.nav_view))
                         .show();
             }
 
@@ -305,6 +311,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        downloadPhotos();
+        refreshPhotos();
     }
 }

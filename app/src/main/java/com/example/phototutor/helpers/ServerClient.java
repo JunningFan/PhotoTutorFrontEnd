@@ -28,6 +28,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.HEAD;
 import retrofit2.http.Header;
@@ -39,7 +40,6 @@ import retrofit2.http.Part;
 import retrofit2.http.Path;
 
 public class ServerClient{
-    Context context;
     static private String host_address = "http://whiteboard.house:8000";
 
 //    static private String host_address = "https://picsum.photos";
@@ -132,6 +132,25 @@ public class ServerClient{
         @GET("/user/follow/ing/{id}")
         Call<ResponseBody> getUserFollowing(@Path("id") Integer id);
 
+        @GET("/user/follow/ami/{id}")
+        Call<ResponseBody> getAmiFollowInfo(@Header("Authorization") String authKey,@Path("id") int id);
+
+        @Headers("Content-type: application/json")
+        @POST("/user/follow/{id}")
+        Call<ResponseBody> addFollower(@Header("Authorization") String authKey,@Path("id") int id);
+
+
+        @Headers("Content-type: application/json")
+        @DELETE("/user/follow/{id}")
+        Call<ResponseBody> removeFollower(@Header("Authorization") String authKey,@Path("id") int id);
+
+        @Headers("Content-type: application/json")
+        @POST("/els/comment/_search")
+        Call<ResponseBody> getComments(@Header("Authorization") String authKey, @Body JsonObject body);
+
+        @Headers("Content-type: application/json")
+        @POST("/picture/{id}/comment")
+        Call<ResponseBody> commentPhoto(@Header("Authorization") String authKey,@Path("id") int id, @Body JsonObject body);
     }
 
     public String getAuthorizationToken(Context context){

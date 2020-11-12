@@ -3,6 +3,7 @@ package com.example.phototutor.ui.cloudphoto;
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -32,13 +33,16 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.phototutor.Photo.CloudPhoto;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 import com.example.phototutor.helpers.UserInfoDownloader;
+import com.example.phototutor.ui.comment.CommentFragment;
 import com.example.phototutor.ui.home.HomeViewModel;
 import com.example.phototutor.ui.localalbum.LocalPhotoDetailFragment;
 import com.example.phototutor.ui.localalbum.UnitLocalPhotoDetailFragment;
@@ -55,6 +59,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.dialog.MaterialDialogs;
 import com.trafi.anchorbottomsheetbehavior.AnchorBottomSheetBehavior;
@@ -277,6 +283,18 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
 //        new MaterialAlertDialogBuilder(requireContext()).setTitle("map").setView(
 //                new MapView(requireContext())
 //        ).show();
+
+        ((ImageButton)view.findViewById(R.id.button_comment)).setOnClickListener(
+                view1 -> {
+                    CommentFragment dialog = new CommentFragment();
+                    Bundle args = new Bundle();
+                    args.putInt("photoId", adapter.photos.get(photoViewPager.getCurrentItem()).id);
+                    dialog.setArguments(args);
+                    dialog.show(requireActivity().getSupportFragmentManager(),"comment button sheet");
+
+                }
+        );
+
     }
 
 
@@ -369,11 +387,27 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(photoLL, 18.5f));
 
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-            }
-        });
+//        mMap.setOnMapClickListener(latLng -> {
+//            Log.w("map click","here");
+//            (new MaterialAlertDialogBuilder(requireContext())).setMessage("Do you want to navigate photo?")
+//                    .setNegativeButton("No",null)
+//                    .setPositiveButton("Yes", new DialogInterface.OnClickListener(){
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//                            Intent intent = new Intent(requireContext(),NavigationActivity.class);
+//                            Bundle args = new Bundle();
+//                            args.putString("photoPath", photo.thumbnailURI.toString());
+//                            args.putDouble("elevation",photo.elevation);
+//                            args.putDouble("orientation",photo.orientation);
+//                            args.putDouble("latitude",photo.getLatitude());
+//                            args.putDouble("longtitue",photo.getLongitude());
+//                            intent.putExtras(args);
+//                            startActivity(intent);
+//
+//                        }
+//                    }).show();
+//
+//        });
         mMap.setOnMapLoadedCallback(this);
 
 
@@ -384,7 +418,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     public void onMapLoaded() {
         // Add a marker in Sydney and move the camera
 
-        mMap.getUiSettings().setAllGesturesEnabled(true);
+//        mMap.getUiSettings().setAllGesturesEnabled(true);
     }
 
     private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color) {

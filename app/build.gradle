@@ -126,4 +126,9 @@ dependencies {
 
     //noinspection GradleCompatible
     implementation 'com.android.support:design:24.1.1\''
+
+    implementation 'com.libizo:customedittext:1.0.6'
+
+    implementation 'com.github.vipulasri:timelineview:1.1.5'
+
 }
