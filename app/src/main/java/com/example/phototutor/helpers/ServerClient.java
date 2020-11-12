@@ -151,6 +151,24 @@ public class ServerClient{
         @Headers("Content-type: application/json")
         @POST("/picture/{id}/comment")
         Call<ResponseBody> commentPhoto(@Header("Authorization") String authKey,@Path("id") int id, @Body JsonObject body);
+
+        @Headers("Content-type: application/json")
+        @POST("/picture/{id}/dislike")
+        Call<ResponseBody> dislikePhoto(@Header("Authorization") String authKey,@Path("id") int id);
+
+
+        @Headers("Content-type: application/json")
+        @POST("/picture/{id}/like")
+        Call<ResponseBody> likePhoto(@Header("Authorization") String authKey,@Path("id") int id);
+
+        @DELETE("/picture/{id}/dislike")
+        Call<ResponseBody> cancelDislikePhoto(@Header("Authorization") String authKey,@Path("id") int id);
+
+
+        @DELETE("/picture/{id}/like")
+        Call<ResponseBody> cancelLikePhoto(@Header("Authorization") String authKey,@Path("id") int id);
+
+
     }
 
     public String getAuthorizationToken(Context context){

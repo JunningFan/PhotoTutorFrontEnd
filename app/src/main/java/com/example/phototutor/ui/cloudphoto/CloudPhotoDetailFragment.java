@@ -1,5 +1,6 @@
 package com.example.phototutor.ui.cloudphoto;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,11 +37,13 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.bumptech.glide.Glide;
 import com.example.phototutor.Photo.CloudPhoto;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
+import com.example.phototutor.helpers.PhotoLikeHelper;
 import com.example.phototutor.helpers.UserInfoDownloader;
 import com.example.phototutor.ui.comment.CommentFragment;
 import com.example.phototutor.ui.home.HomeViewModel;
@@ -58,6 +61,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.badge.BadgeDrawable;
+import com.google.android.material.badge.BadgeUtils;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -90,6 +95,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     private boolean isMapReady = false;
     private Marker photoMarker;
     UserInfoDownloader downloader;
+    PhotoLikeHelper likeHelper;
 
     private TextView textView_basic_meta;
     private TextView textView_other_meta;
@@ -99,6 +105,8 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     private TextView textView_location;
     private TagGroup tag_group;
     private CircleImageView avatarView;
+    ToggleButton dislike_button;
+    ToggleButton like_button;
 
     private CloudPhotoDetailViewModel mViewModel;
     private PhotoDetailPagerAdapter adapter;
@@ -180,10 +188,13 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
 
 
 
+    @SuppressLint("RestrictedApi")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         downloader = new UserInfoDownloader(requireContext());
+        likeHelper = new PhotoLikeHelper(requireContext());
+
         textView_basic_meta = (TextView) view.findViewById(R.id.textView_basic_metadata);
         textView_other_meta = (TextView) view.findViewById(R.id.textView_other_metadata);
         textView_timestamp = (TextView) view.findViewById(R.id.textView_timestamp);
@@ -295,6 +306,92 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                 }
         );
 
+        dislike_button = view.findViewById(R.id.dislike_button);
+        like_button = view.findViewById(R.id.like_button);
+        like_button.setOnClickListener(view1 -> {
+            CloudPhoto photo = adapter.photos.get(index);
+            if(like_button.isChecked()){
+                likeHelper.removeLikePhoto(photo.id, new PhotoLikeHelper.LikeRequestSuccessCallback() {
+                    @Override
+                    public void onFailResponse(String message, int code) {
+                        like_button.setChecked(true);
+                    }
+
+                    @Override
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                        like_button.setChecked(true);
+                    }
+
+                    @Override
+                    public void onSuccessResponse(String message) {
+                        like_button.setChecked(false);
+                    }
+                });
+            }
+            else {
+                likeHelper.likePhoto(photo.id, new PhotoLikeHelper.LikeRequestSuccessCallback() {
+                    @Override
+                    public void onFailResponse(String message, int code) {
+                        like_button.setChecked(false);
+                        dislike_button.setChecked(false);
+                    }
+
+                    @Override
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                        like_button.setChecked(false);
+                        dislike_button.setChecked(false);
+                    }
+
+                    @Override
+                    public void onSuccessResponse(String message) {
+                        like_button.setChecked(true);
+                        dislike_button.setChecked(false);
+                    }
+                });
+            }
+
+        });
+
+        dislike_button.setOnClickListener(view1->{
+            CloudPhoto photo = adapter.photos.get(index);
+            if(dislike_button.isChecked()){
+                likeHelper.removeDislikePhoto(photo.id, new PhotoLikeHelper.LikeRequestSuccessCallback() {
+                    @Override
+                    public void onFailResponse(String message, int code) {
+                        dislike_button.setChecked(true);
+                    }
+
+                    @Override
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                        dislike_button.setChecked(true);
+                    }
+
+                    @Override
+                    public void onSuccessResponse(String message) {
+                        dislike_button.setChecked(false);
+                    }
+                });
+            }else{
+                likeHelper.dislikePhoto(photo.id, new PhotoLikeHelper.LikeRequestSuccessCallback() {
+                    @Override
+                    public void onFailResponse(String message, int code) {
+                        dislike_button.setChecked(false);
+                    }
+
+                    @Override
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                        dislike_button.setChecked(false);
+                    }
+
+                    @Override
+                    public void onSuccessResponse(String message) {
+                        dislike_button.setChecked(true);
+                        like_button.setChecked(false);
+                    }
+                });
+            }
+
+        });
     }
 
 

@@ -137,29 +137,73 @@
                     android:layoutDirection="rtl"
                     android:layout_gravity="center"
                     android:layout_weight="2"
-                    android:layout_height="wrap_content">
-
+                    android:layout_height="match_parent">
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
                     <ImageButton
                         android:id="@+id/button_comment"
                         style="@android:style/Widget.Material.Light.ImageButton"
                         android:layout_width="@dimen/round_button_small"
                         android:layout_height="@dimen/round_button_small"
-                        android:layout_marginHorizontal="@dimen/margin_xsmall"
+                        android:layout_marginHorizontal="2dp"
 
                         android:scaleType="fitXY"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:src="@drawable/ic_comment" />
-
+                        <TextView
+                            android:id="@+id/nlikeTv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_gravity="center_vertical"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
                     <ToggleButton
-                        android:id="@+id/button_favorite"
+                        android:id="@+id/dislike_button"
+                        android:layout_marginHorizontal="2dp"
                         android:layout_width="@dimen/round_button_small"
                         android:layout_height="@dimen/round_button_small"
-                        android:background="@drawable/favorite_button"
+                        android:background="@drawable/dislike_button"
                         android:checked="false"
                         android:text=""
                         android:textOff=""
                         android:textOn=""/>
+                        <TextView
+                            android:id="@+id/ndislikeTV"
+                            android:textAlignment="center"
+                            android:textColor="@android:color/white"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="12k"/>
+                    </LinearLayout>
 
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_gravity="center_vertical"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+                    <ToggleButton
+                        android:id="@+id/like_button"
+                        android:layout_marginHorizontal="2dp"
+                        android:layout_width="@dimen/round_button_small"
+                        android:layout_height="@dimen/round_button_small"
+                        android:background="@drawable/like_button"
+                        android:checked="false"
+                        android:text=""
+                        android:textOff=""
+                        android:textOn=""/>
+                        <TextView
+                            android:textAlignment="center"
+                            android:textColor="@android:color/white"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="12k"/>
+                    </LinearLayout>
                 </LinearLayout>
 
 

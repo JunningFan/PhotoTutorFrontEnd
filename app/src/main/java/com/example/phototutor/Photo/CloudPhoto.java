@@ -22,11 +22,18 @@ import java.util.List;
 import java.util.TimeZone;
 
 public class CloudPhoto extends Photo {
+    static int LIKE = 1;
+    static int NEUTRAL = 0;
+    static int DISLIKE=2;
+
     private int userId;
     private String title;
     private int nLike;
+    private int nDislike;
     private String disc;
     private List<String> tags;
+    private List<Integer> likedUserIds = new ArrayList<>();
+    private List<Integer> dislikeUserIds = new ArrayList<>();
 
     static public CloudPhoto createCloudPhotoFromJSON(JSONObject json) throws JSONException, MalformedURLException, URISyntaxException {
         CloudPhoto photo = new CloudPhoto();
@@ -55,10 +62,19 @@ public class CloudPhoto extends Photo {
                 ServerClient.getBaseURL() + '/' + json.getString("ImgSmall")
         ).toURI().toString());
         photo.nLike = json.getInt("NLike");
+        photo.nDislike = json.getInt("NDislike");
         JSONArray jsonTags = json.getJSONArray("Tags");
         photo.tags = new ArrayList<>();
         for(int i =0;i<jsonTags.length();i++)
             photo.tags.add(jsonTags.getJSONObject(i).getString("Name"));
+        JSONArray votesJSONArray = json.getJSONArray("Votes");
+        for(int i=0;i<votesJSONArray.length();i++){
+            JSONObject votesObject = votesJSONArray.getJSONObject(i);
+            if(votesObject.getBoolean("Like"))
+                photo.likedUserIds.add(votesObject.getInt("UID"));
+            else
+                photo.dislikeUserIds.add(votesObject.getInt("UID"));
+        }
         return photo;
     }
 
@@ -81,5 +97,11 @@ public class CloudPhoto extends Photo {
 
     public int getUserId() {
         return userId;
+    }
+
+    public int checkLiked(int userId){
+        if(this.likedUserIds.contains(userId)) return LIKE;
+        else if (this.dislikeUserIds.contains(userId)) return DISLIKE;
+        else return NEUTRAL;
     }
 }
