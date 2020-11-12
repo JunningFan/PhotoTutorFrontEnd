@@ -5,6 +5,5 @@
         android:id="@+id/send"
         android:icon="@drawable/ic_send"
         android:title="send"
-        android:enabled="false"
         app:showAsAction="ifRoom" />
 </menu>

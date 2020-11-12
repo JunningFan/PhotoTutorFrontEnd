@@ -2,41 +2,35 @@ package com.example.phototutor.ui.comment;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DecodeFormat;
 import com.example.phototutor.MyAppCompatActivity;
 import com.example.phototutor.R;
 import com.example.phototutor.comment.Comment;
 import com.example.phototutor.helpers.CommentHelper;
 import com.example.phototutor.helpers.UserInfoDownloader;
-import com.example.phototutor.ui.userprofile.UserProfileFragment;
 import com.example.phototutor.user.User;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -46,7 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import mehdi.sakout.fancybuttons.FancyButton;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 
@@ -63,6 +56,7 @@ public class CommentFragment extends BottomSheetDialogFragment {
     private Toolbar top_tool_bar;
 
     private int photoId;
+
     private class CommentListAdapter extends RecyclerView.Adapter<CommentFragment.CommentListAdapter.MyViewHolder>{
         private List<Comment> comments = new ArrayList<>();
         private Context context;
@@ -193,31 +187,37 @@ public class CommentFragment extends BottomSheetDialogFragment {
         reply_tool_bar = view.findViewById(R.id.reply_tool_bar);
         reply_tool_bar.setNavigationOnClickListener(view1->editTextAddAt());
 
+        reply_tool_bar.getNavigationIcon().setColorFilter(Color.parseColor("#3F5AA6"), PorterDuff.Mode.MULTIPLY);
+
         reply_tool_bar.setOnMenuItemClickListener((Toolbar.OnMenuItemClickListener) menuItem -> {
             if(menuItem.getItemId() == R.id.send){
-                helper.commentPhoto(photoId, etComment.getText().toString(), new CommentHelper.CommentSuccessCallback() {
-                    @Override
-                    public void onFailResponse(String message, int code) {
-                        setErrorSnackBar(message,view1 -> {refreshComment();});
-                    }
+                if(etComment.getText().toString().isEmpty()) {
+                    Toast.makeText(getContext(), "Comment cannot be empty!", Toast.LENGTH_SHORT).show();
+                } else {
+                    helper.commentPhoto(photoId, etComment.getText().toString(), new CommentHelper.CommentSuccessCallback() {
+                        @Override
+                        public void onFailResponse(String message, int code) {
+                            setErrorSnackBar(message,view1 -> {refreshComment();});
+                        }
 
-                    @Override
-                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
-                        setErrorSnackBar("Network failed. Please check network",view1 -> {refreshComment();});
-                    }
+                        @Override
+                        public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                            setErrorSnackBar("Network failed. Please check network",view1 -> {refreshComment();});
+                        }
 
-                    @Override
-                    public void onSuccessResponse(Comment comment) {
-                        Log.w("CommenFragment","success comment photo");
-                        ArrayList<Comment> newComments = new ArrayList<>();
-                        newComments.add(comment);
+                        @Override
+                        public void onSuccessResponse(Comment comment) {
+                            Log.w("CommenFragment","success comment photo");
+                            ArrayList<Comment> newComments = new ArrayList<>();
+                            newComments.add(comment);
 //                        CommentFragment.this.refreshComment();
-                        top_tool_bar.setTitle(""+ adapter.getItemCount()+" comments");
-                        adapter.addComments(newComments);
-                        etComment.setText("");
-                    }
-                });
-                return true;
+                            top_tool_bar.setTitle(""+ adapter.getItemCount()+" comments");
+                            adapter.addComments(newComments);
+                            etComment.setText("");
+                        }
+                    });
+                    return true;
+                }
             }
             return false;
         });
