@@ -27,6 +27,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.phototutor.EditProfileActivity;
 import com.example.phototutor.LocalAlbumActivity;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
@@ -48,6 +49,9 @@ import java.util.Calendar;
 import java.util.Formatter;
 import java.util.Locale;
 import java.util.TimeZone;
+
+import cc.cloudist.acplibrary.ACProgressConstant;
+import cc.cloudist.acplibrary.ACProgressFlower;
 
 
 public class PreviewFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapLoadedCallback {
@@ -141,12 +145,19 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
 
         view.findViewById(R.id.save_button).setOnClickListener(
                 view12 -> {
+                    ACProgressFlower loadingDialog = new ACProgressFlower.Builder(requireContext())
+                            .direction(ACProgressConstant.DIRECT_CLOCKWISE)
+                            .themeColor(Color.WHITE)
+                            .text("Saving")
+                            .fadeColor(Color.DKGRAY).build();
+                    loadingDialog.show();
                     new Thread(
                             () -> {
-                                currphoto.saveImage(requireActivity().getFilesDir());
                                 PhotoDatabase db = Room.databaseBuilder(requireActivity(),
                                         PhotoDatabase.class, "photo_album").build();
+                                currphoto.saveImage(requireActivity().getFilesDir());
                                 db.photoDAO().insertPhotos(currphoto);
+                                loadingDialog.cancel();
                                 startActivity(new Intent(getActivity(), LocalAlbumActivity.class));
 
                             }

@@ -72,7 +72,7 @@ public class PhotoDownloader extends ServerClient {
 
     }
 
-    public abstract static class onDownloadAllPhotos extends OnPhotoDownloaded{
+    public abstract static class OnDownloadAllPhotos extends OnPhotoDownloaded{
         private JSONArray array = new JSONArray();
         @Override
         public PhotoDownloadResult getImageJSONs(JSONObject object) throws JSONException, MalformedURLException, URISyntaxException {
@@ -83,6 +83,39 @@ public class PhotoDownloader extends ServerClient {
             }
             array = newArray;
             return new PhotoDownloadResult(newArray,newArray.length());
+        }
+
+    }
+
+    public abstract static class OnDownloadPhotoById implements Callback<ResponseBody> {
+        abstract public void onFailResponse(String message,int code );
+
+        abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);
+
+        abstract public void onSuccessResponse(CloudPhoto photo);
+
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            if(response.code() != 200) onFailResponse(response.message(),response.code());
+            else{
+
+                try {
+                    JSONObject data = null;
+                    data = new JSONObject(response.body().string());
+                    onSuccessResponse(CloudPhoto.createCloudPhotoFromJSON(data));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+            onFailRequest(call,t);
         }
 
     }
@@ -164,18 +197,8 @@ public class PhotoDownloader extends ServerClient {
     }
 
 
-    public void getPhotoById(int id){
-        getService().getPhotoDetail(id).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.w("getPhotoById", response.toString());
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-
-            }
-        });
+    public void getPhotoInfoById(int id, OnDownloadPhotoById callback){
+        getService().getPhotoDetail(id).enqueue(callback);
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.phototutor.ui.cloudphoto;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,12 +37,16 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.bumptech.glide.Glide;
+import com.example.phototutor.MyAppCompatActivity;
 import com.example.phototutor.NavigationActivity;
 import com.example.phototutor.Photo.CloudPhoto;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
+import com.example.phototutor.helpers.PhotoDownloader;
+import com.example.phototutor.helpers.PhotoLikeHelper;
 import com.example.phototutor.helpers.UserInfoDownloader;
 import com.example.phototutor.ui.comment.CommentFragment;
 import com.example.phototutor.ui.home.HomeViewModel;
@@ -59,6 +64,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.badge.BadgeDrawable;
+import com.google.android.material.badge.BadgeUtils;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -91,6 +98,8 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     private boolean isMapReady = false;
     private Marker photoMarker;
     UserInfoDownloader downloader;
+    PhotoLikeHelper likeHelper;
+    PhotoDownloader photoDownloader;
 
     private TextView textView_basic_meta;
     private TextView textView_other_meta;
@@ -100,6 +109,10 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     private TextView textView_location;
     private TagGroup tag_group;
     private CircleImageView avatarView;
+    ToggleButton dislike_button;
+    ToggleButton like_button;
+    private TextView nlikeTv;
+    private TextView nDislikeTv;
 
     private CloudPhotoDetailViewModel mViewModel;
     private PhotoDetailPagerAdapter adapter;
@@ -181,10 +194,15 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
 
 
 
+    @SuppressLint("RestrictedApi")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         downloader = new UserInfoDownloader(requireContext());
+        photoDownloader = new PhotoDownloader(requireContext());
+        likeHelper = new PhotoLikeHelper(requireContext());
+        dislike_button = view.findViewById(R.id.dislike_button);
+        like_button = view.findViewById(R.id.like_button);
         textView_basic_meta = (TextView) view.findViewById(R.id.textView_basic_metadata);
         textView_other_meta = (TextView) view.findViewById(R.id.textView_other_metadata);
         textView_timestamp = (TextView) view.findViewById(R.id.textView_timestamp);
@@ -192,8 +210,11 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         photo_author = (TextView)view.findViewById(R.id.photo_author);
         tag_group = (TagGroup)view.findViewById(R.id.tag_group);
         textView_location =(TextView)requireView().findViewById(R.id.textView_location);
-
         avatarView = view.findViewById(R.id.avatar);
+
+
+        nlikeTv = view.findViewById((R.id.nlikeTv));
+        nDislikeTv = view.findViewById(R.id.ndislikeTV);
         mapFragment = (SupportMapFragment)getChildFragmentManager()
                 .findFragmentById(R.id.map);
 
@@ -296,6 +317,97 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                 }
         );
 
+        like_button.setEnabled(false);
+        dislike_button.setEnabled(false);
+        like_button.setOnClickListener(view1 -> {
+            Log.w(TAG,"in dislike "+like_button.isChecked());
+            CloudPhoto photo = adapter.photos.get(index);
+            if(!like_button.isChecked()){
+                likeHelper.removeLikePhoto(photo.id, new PhotoLikeHelper.LikeRequestSuccessCallback() {
+                    @Override
+                    public void onFailResponse(String message, int code) {
+                        like_button.setChecked(true);
+                    }
+
+                    @Override
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                        like_button.setChecked(true);
+                    }
+
+                    @Override
+                    public void onSuccessResponse(String message) {
+                        like_button.setChecked(false);
+                        updateVoteInfo(photo.id);
+                    }
+                });
+            }
+            else {
+                likeHelper.likePhoto(photo.id, new PhotoLikeHelper.LikeRequestSuccessCallback() {
+                    @Override
+                    public void onFailResponse(String message, int code) {
+                        like_button.setChecked(false);
+                        dislike_button.setChecked(false);
+                    }
+
+                    @Override
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                        like_button.setChecked(false);
+                        dislike_button.setChecked(false);
+                    }
+
+                    @Override
+                    public void onSuccessResponse(String message) {
+                        like_button.setChecked(true);
+                        dislike_button.setChecked(false);
+                        updateVoteInfo(photo.id);
+                    }
+                });
+            }
+
+        });
+
+        dislike_button.setOnClickListener(view1->{
+            CloudPhoto photo = adapter.photos.get(index);
+            if(!dislike_button.isChecked()){
+                likeHelper.removeDislikePhoto(photo.id, new PhotoLikeHelper.LikeRequestSuccessCallback() {
+                    @Override
+                    public void onFailResponse(String message, int code) {
+                        dislike_button.setChecked(true);
+                    }
+
+                    @Override
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                        dislike_button.setChecked(true);
+                    }
+
+                    @Override
+                    public void onSuccessResponse(String message) {
+                        dislike_button.setChecked(false);
+                        updateVoteInfo(photo.id);
+                    }
+                });
+            }else{
+                likeHelper.dislikePhoto(photo.id, new PhotoLikeHelper.LikeRequestSuccessCallback() {
+                    @Override
+                    public void onFailResponse(String message, int code) {
+                        dislike_button.setChecked(false);
+                    }
+
+                    @Override
+                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                        dislike_button.setChecked(false);
+                    }
+
+                    @Override
+                    public void onSuccessResponse(String message) {
+                        dislike_button.setChecked(true);
+                        like_button.setChecked(false);
+                        updateVoteInfo(photo.id);
+                    }
+                });
+            }
+
+        });
     }
 
 
@@ -359,6 +471,41 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         if (photoMarker != null) {
             photoMarker.remove();
         }
+        photoDownloader.getPhotoInfoById(photo.id, new PhotoDownloader.OnDownloadPhotoById() {
+            @Override
+            public void onFailResponse(String message, int code) {
+                dislike_button.setEnabled(false);
+                like_button.setEnabled(false);
+            }
+
+            @Override
+            public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                dislike_button.setEnabled(false);
+                like_button.setEnabled(false);
+
+            }
+
+            @Override
+            public void onSuccessResponse(CloudPhoto photo) {
+                dislike_button.setEnabled(true);
+                like_button.setEnabled(true);
+                Log.w(TAG,"onSuccessResponse like " + photo.checkLiked(((MyAppCompatActivity) requireActivity()).getPrimaryUserId()));
+                switch (photo.checkLiked(((MyAppCompatActivity) requireActivity()).getPrimaryUserId())) {
+                    case CloudPhoto.DISLIKE:
+                        dislike_button.setChecked(true);
+                        break;
+                    case CloudPhoto.LIKE:
+                        like_button.setChecked(true);
+                        break;
+                    case CloudPhoto.NEUTRAL:
+                        dislike_button.setChecked(false);
+                        like_button.setChecked(false);
+                        break;
+                }
+            }
+        });
+        nlikeTv.setText(""+photo.getnLike());
+        nDislikeTv.setText(""+photo.getnDislike());
         mapFragment.getMapAsync(this);
     }
 
@@ -443,4 +590,22 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         }
 
     }
+
+    public void updateVoteInfo(int id){
+        photoDownloader.getPhotoInfoById(id, new PhotoDownloader.OnDownloadPhotoById() {
+            @Override
+            public void onFailResponse(String message, int code) { }
+
+            @Override
+            public void onFailRequest(Call<ResponseBody> call, Throwable t) { }
+
+            @Override
+            public void onSuccessResponse(CloudPhoto photo) {
+                nlikeTv.setText(""+photo.getnLike());
+                nDislikeTv.setText(""+photo.getnDislike());
+            }
+        });
+    }
+
+
 }
