@@ -251,10 +251,28 @@ public class HomeFragment extends Fragment {
     }
 
 
+
+
     private void downloadPhotos(){
 
+        if (coordinate.getValue()[0] == 720) {
+            Observer<Double[]> observerValidLocation = new Observer<Double[]>() {
+                @Override
+                public void onChanged(Double[] doubles) {
+                    if(coordinate.getValue()[0] != 720) {
+                        coordinate.removeObserver(this);
+                        downloadPhotosWithValidGeo();
+                    }
+                }
+            };
+        } else {
+            downloadPhotosWithValidGeo();
+        }
+    }
+
+    private void downloadPhotosWithValidGeo() {
         PhotoDownloader downloader = new PhotoDownloader(requireContext());
-        downloader.downloadPhotosByGeo(0,0,adapter.getItemCount(),30, new PhotoDownloader.OnPhotoDownloadedByGeo(){
+        downloader.downloadPhotosByGeo( coordinate.getValue()[0], coordinate.getValue()[1],adapter.getItemCount(),30, 20, new PhotoDownloader.OnPhotoDownloadedByGeo(){
             @Override
             public void onFailResponse(String message, int code) {
                 swipeRefreshLayout.setRefreshing(false);
@@ -277,8 +295,8 @@ public class HomeFragment extends Fragment {
                 Toast.makeText(requireContext(),
                         "Network Failed. Please check the network",Toast.LENGTH_LONG);
                 Snackbar.make(getView(),
-                            "Network Failed. Please check the network",
-                            Snackbar.LENGTH_INDEFINITE)
+                        "Network Failed. Please check the network",
+                        Snackbar.LENGTH_INDEFINITE)
 
                         .setAction("Retry", view -> {
                             swipeRefreshLayout.setRefreshing(true);

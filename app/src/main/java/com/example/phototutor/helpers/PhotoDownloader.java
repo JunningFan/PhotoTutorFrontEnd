@@ -162,7 +162,7 @@ public class PhotoDownloader extends ServerClient {
     }
 
 
-    public void downloadPhotosByGeo(long lat, long lon, int from, int size, OnPhotoDownloaded onPhotoDownloaded){
+    public void downloadPhotosByGeo(double lat, double lon, int from, int size, double radius, OnPhotoDownloaded onPhotoDownloaded){
 
         JsonObject jsonObj = new JsonObject();
         jsonObj.addProperty("from",from);
@@ -173,10 +173,10 @@ public class PhotoDownloader extends ServerClient {
         JsonObject bottom_right = new JsonObject();
         JsonObject top_left = new JsonObject();
 
-        top_left.addProperty("lat",lat+0.008983);
-        top_left.addProperty("lon",lon-0.015060 );
-        bottom_right.addProperty("lat",lat-0.008983);
-        bottom_right.addProperty("lon",lon+0.015060 );
+        top_left.addProperty("lat",lat+0.008983 * radius);
+        top_left.addProperty("lon",lon-0.015060  * radius);
+        bottom_right.addProperty("lat",lat-0.008983  * radius);
+        bottom_right.addProperty("lon",lon+0.015060  * radius);
 
         geoHash.add("top_left",top_left);
         geoHash.add("bottom_right",bottom_right);

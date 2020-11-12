@@ -147,7 +147,7 @@ public class NotificationsFragment extends Fragment {
     private void downloadPhotos(){
 
         PhotoDownloader downloader = new PhotoDownloader(requireContext());
-        downloader.downloadPhotosByGeo(0,0,cloudAlbumAdapter.getItemCount(),30, new PhotoDownloader.OnPhotoDownloadedByGeo(){
+        downloader.downloadPhotosByGeo(0,0,cloudAlbumAdapter.getItemCount(),30, 20, new PhotoDownloader.OnPhotoDownloadedByGeo(){
             @Override
             public void onFailResponse(String message, int code) {
                 Toast.makeText(requireContext(),
