@@ -21,16 +21,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-
-        <activity android:name=".CommentActivity"
-            android:windowSoftInputMode="adjustResize"
-            >
-
+        <activity android:name=".NotificationActivity"></activity>
+        <activity
+            android:name=".CommentActivity"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
         <activity android:name=".EditProfileActivity" />
 
