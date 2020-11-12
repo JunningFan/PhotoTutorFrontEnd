@@ -38,7 +38,7 @@ import uk.co.appoly.arcorelocation.utils.ARLocationPermissionHelper;
 
 
 /** Static utility methods to simplify creating multiple demo activities. */
-public class DemoUtils {
+public class ARUtils {
   private static final String TAG = "SceneformDemoUtils";
   /**
    * Creates and shows a Toast containing an error message. If there was an exception passed in it
