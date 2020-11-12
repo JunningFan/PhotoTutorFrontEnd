@@ -131,7 +131,7 @@ public class ARFragment extends Fragment implements OrientationHelperOwner, Navi
                             // before calling get().
 
                             if (throwable != null) {
-                                DemoUtils.displayError(getContext(), "Unable to load renderables", throwable);
+                                ARUtils.displayError(getContext(), "Unable to load renderables", throwable);
                                 return null;
                             }
 
@@ -140,7 +140,7 @@ public class ARFragment extends Fragment implements OrientationHelperOwner, Navi
                                 hasFinishedLoading = true;
 
                             } catch (InterruptedException | ExecutionException ex) {
-                                DemoUtils.displayError(getContext(), "Unable to load renderables", ex);
+                                ARUtils.displayError(getContext(), "Unable to load renderables", ex);
                             }
 
                             return null;
@@ -170,9 +170,9 @@ public class ARFragment extends Fragment implements OrientationHelperOwner, Navi
                                         latitude,
                                         getPhotoView());
                                 photoLocationMarker.setHeight(-3f);
-                                photoLocationMarker.setGradualScalingMaxScale(0.6f);
-                                photoLocationMarker.setGradualScalingMinScale(0.6f);
-                                photoLocationMarker.setScaleModifier(0.8F);
+                                photoLocationMarker.setGradualScalingMaxScale(1f);
+                                photoLocationMarker.setGradualScalingMinScale(1f);
+                                photoLocationMarker.setScaleModifier(1F);
                                 photoLocationMarker.setRenderEvent(new LocationNodeRender() {
                                     @Override
                                     public void render(LocationNode node) {
@@ -336,7 +336,7 @@ public class ARFragment extends Fragment implements OrientationHelperOwner, Navi
             // If the session wasn't created yet, don't resume rendering.
             // This can happen if ARCore needs to be updated or permissions are not granted yet.
             try {
-                Session session = DemoUtils.createArSession(getActivity(), installRequested);
+                Session session = ARUtils.createArSession(getActivity(), installRequested);
                 if (session == null) {
                     installRequested = ARLocationPermissionHelper.hasPermission(getActivity());
                     return;
@@ -344,14 +344,14 @@ public class ARFragment extends Fragment implements OrientationHelperOwner, Navi
                     arSceneView.setupSession(session);
                 }
             } catch (UnavailableException e) {
-                DemoUtils.handleSessionException(getActivity(), e);
+                ARUtils.handleSessionException(getActivity(), e);
             }
         }
 
         try {
             arSceneView.resume();
         } catch (CameraNotAvailableException ex) {
-            DemoUtils.displayError(getContext(), "Unable to get camera", ex);
+            ARUtils.displayError(getContext(), "Unable to get camera", ex);
             getActivity().finish();
             return;
         }
