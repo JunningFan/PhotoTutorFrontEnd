@@ -3,6 +3,7 @@ package com.example.phototutor.ui.cloudphoto;
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -34,6 +35,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.phototutor.Photo.CloudPhoto;
@@ -385,11 +387,27 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(photoLL, 18.5f));
 
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-            }
-        });
+//        mMap.setOnMapClickListener(latLng -> {
+//            Log.w("map click","here");
+//            (new MaterialAlertDialogBuilder(requireContext())).setMessage("Do you want to navigate photo?")
+//                    .setNegativeButton("No",null)
+//                    .setPositiveButton("Yes", new DialogInterface.OnClickListener(){
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//                            Intent intent = new Intent(requireContext(),NavigationActivity.class);
+//                            Bundle args = new Bundle();
+//                            args.putString("photoPath", photo.thumbnailURI.toString());
+//                            args.putDouble("elevation",photo.elevation);
+//                            args.putDouble("orientation",photo.orientation);
+//                            args.putDouble("latitude",photo.getLatitude());
+//                            args.putDouble("longtitue",photo.getLongitude());
+//                            intent.putExtras(args);
+//                            startActivity(intent);
+//
+//                        }
+//                    }).show();
+//
+//        });
         mMap.setOnMapLoadedCallback(this);
 
 
@@ -400,7 +418,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     public void onMapLoaded() {
         // Add a marker in Sydney and move the camera
 
-        mMap.getUiSettings().setAllGesturesEnabled(true);
+//        mMap.getUiSettings().setAllGesturesEnabled(true);
     }
 
     private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color) {
