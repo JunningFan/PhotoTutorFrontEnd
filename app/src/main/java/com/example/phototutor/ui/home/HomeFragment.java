@@ -237,7 +237,7 @@ public class HomeFragment extends Fragment {
                         distances);
         distanceExposedMenu = (AutoCompleteTextView)topAppBar.getMenu().findItem(R.id.range).getActionView().findViewById(R.id.distance_filled_exposed_dropdown);
         distanceExposedMenu.setAdapter(menuAdapter);
-        distanceExposedMenu.setText(distances[1]);
+        distanceExposedMenu.setText(distances[2]);
         distanceExposedMenu.setInputType(InputType.TYPE_NULL);
         menuAdapter.getFilter().filter(null);
         distanceExposedMenu.clearFocus();
