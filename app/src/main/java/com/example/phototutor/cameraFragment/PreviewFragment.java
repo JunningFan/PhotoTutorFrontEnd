@@ -187,7 +187,7 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
             return;
         }
         mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
         mMap.getUiSettings().setAllGesturesEnabled(false);  // disable touching to the map before the animation is rendered
 
