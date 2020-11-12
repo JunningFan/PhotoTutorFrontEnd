@@ -136,7 +136,6 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
                             .text("Saving")
                             .fadeColor(Color.DKGRAY).build();
                     loadingDialog.show();
-                    ((CameraActivity)getActivity()).setImageCaptured(true);
                     new Thread(
                             () -> {
                                 PhotoDatabase db = Room.databaseBuilder(requireActivity(),
@@ -144,8 +143,8 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
                                 currphoto.saveImage(requireActivity().getFilesDir());
                                 db.photoDAO().insertPhotos(currphoto);
                                 loadingDialog.cancel();
+                                ((CameraActivity)getActivity()).setImageCaptured(true);
                                 startActivity(new Intent(getActivity(), LocalAlbumActivity.class));
-
                             }
                     ).start();
                 }

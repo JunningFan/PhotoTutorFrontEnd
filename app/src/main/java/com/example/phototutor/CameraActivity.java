@@ -42,6 +42,9 @@ public class CameraActivity extends MyAppCompatActivity {
                                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION );
             }
         },500L);
+        if(imageCaptured) {
+            onBackPressed();
+        }
     }
 
     public void setImageCaptured(boolean imageCaptured) {
@@ -53,6 +56,7 @@ public class CameraActivity extends MyAppCompatActivity {
         setResult(Activity.RESULT_CANCELED);
         if(imageCaptured) {
             setResult(Activity.RESULT_OK);
+            finish();
         }
         super.onBackPressed();
     }
