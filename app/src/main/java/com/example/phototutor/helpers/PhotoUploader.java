@@ -124,7 +124,7 @@ public class PhotoUploader extends ServerClient {
 
     }
 
-    public void uploadPhotoInfo(Photo photo, int id, String title, String[] tags, PhotoInfoUploaderCallback callback){
+    public void uploadPhotoInfo(Photo photo, int id, String title, String[] tags, String weather, PhotoInfoUploaderCallback callback){
         File photoFile = new File(photo.imageURI.getPath());
 
         JSONObject info = new JSONObject();
@@ -140,6 +140,7 @@ public class PhotoUploader extends ServerClient {
             info.put("Orientation", photo.getOrientation());
             info.put("Elevation", photo.getElevation());
             info.put("Timestamp", photo.timestamp/1000); // convert millisecs to unix standard
+            info.put("Weather", weather);
             JSONArray tagsJsonArr = new JSONArray();
             for(String tag: tags) {
                 tagsJsonArr.put(tag);

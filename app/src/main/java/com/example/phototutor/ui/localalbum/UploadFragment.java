@@ -152,7 +152,7 @@ public class UploadFragment extends DialogFragment {
         String[] tags = mTagGroup.getTags();
         Log.w(TAG,weatherExposedMenu.getText().toString());
 
-        photoUploader.uploadPhotoInfo(photo, imgId, title, tags,
+        photoUploader.uploadPhotoInfo(photo, imgId, title, tags, weatherExposedMenu.getText().toString(),
                 new PhotoUploader.PhotoInfoUploaderCallback() {
                     @Override
                     public void onFailResponse(String message, int code) {
