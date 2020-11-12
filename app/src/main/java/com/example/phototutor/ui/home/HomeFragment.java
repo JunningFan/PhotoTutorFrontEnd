@@ -190,9 +190,18 @@ public class HomeFragment extends Fragment {
                 try {
                     Log.d(this.getClass().getSimpleName(), "coordination" + coordinate.getValue()[0].toString() + " " + coordinate.getValue()[1].toString());
                     Geocoder geocoder = new Geocoder(requireContext());
-                    String po = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getPostalCode();
-                    String adminArea = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getAdminArea();
-                    String locality = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getLocality();
+                    String po;
+                    String adminArea;
+                    String locality;
+                    try {
+                         po = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getPostalCode();
+                         adminArea = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getAdminArea();
+                         locality = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getLocality();
+                    } catch (IndexOutOfBoundsException e) {
+                        // not in area with valid po. admin and locality
+                        locality = po = "Unknown";
+
+                    }
                     topAppBar.setTitle(locality  + " " + po);
                 } catch (IOException e) {
                     topAppBar.setTitle("Disconnected");
