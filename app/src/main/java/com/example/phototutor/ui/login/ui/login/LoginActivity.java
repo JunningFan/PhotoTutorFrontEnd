@@ -236,6 +236,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public static void userLogout() {
-        saveToSharedPreferences(null, null, null, null, null,null);
+        if(sharedPreferences != null) {
+            saveToSharedPreferences(null, null, null, null, null,null);
+        }
     }
 }
