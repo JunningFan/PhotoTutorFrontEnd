@@ -200,6 +200,9 @@ public class HomeFragment extends Fragment {
                     } catch (IndexOutOfBoundsException e) {
                         // not in area with valid po. admin and locality
                         locality = po = "Unknown";
+                    } catch (IllegalArgumentException e) {
+                        // wierd latlng readling
+                        locality = po = "Unknown";
 
                     }
                     topAppBar.setTitle(locality  + " " + po);
