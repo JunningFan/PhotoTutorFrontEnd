@@ -54,6 +54,7 @@ public class LoginActivity extends AppCompatActivity {
     public static final String AccessToken = "accessToken";
     public static final String RefreshToken = "refreshToken";
     public static final String Nickname = "nickname";
+    public static final String UserID = "userID";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -128,20 +129,20 @@ public class LoginActivity extends AppCompatActivity {
                             JSONObject json = new JSONObject(response.body().string());
                             if(json.has("error")) {
                                 openDialog();
-//                                showLoginFailed(json.getString("error"));
                             } else {
                                 JSONObject user = json.getJSONObject("user");
                                 String accessToken = json.getString("access");
                                 String refreshToken = json.getString("refresh");
                                 String username = user.getString("Username");
                                 String nickname = user.getString("Nickname");
+                                Integer userID = Integer.valueOf(user.getString("ID"));
 
                                 if (loginResult == null) {
                                     return;
                                 }
 
                                 if (loginResult.getSuccess() != null) {
-                                    saveToSharedPreferences(username, passwordEditText.getText().toString(), accessToken, refreshToken, nickname);
+                                    saveToSharedPreferences(username, passwordEditText.getText().toString(), accessToken, refreshToken, nickname, userID);
                                     updateUiWithUser(nickname);
                                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                     startActivity(intent);
@@ -217,19 +218,17 @@ public class LoginActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
     }
 
-    private void showLoginFailed(String errorMessage) {
-        Looper.prepare();
-        Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_LONG).show();
-    }
-
-    private static void saveToSharedPreferences(String username, String password, String accessToken, String refreshToken, String nickname) {
+    private static void saveToSharedPreferences(String username, String password, String accessToken, String refreshToken, String nickname, Integer userID) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(Username, username);
         editor.putString(Password, password);
         editor.putString(AccessToken, accessToken);
         editor.putString(RefreshToken, refreshToken);
         editor.putString(Nickname, nickname);
+        editor.putInt(UserID, userID);
         editor.commit();
+
+//        Log.d("save shared preference", sharedPreferences.getAll().toString());
     }
     public void openDialog() {
         LoginFailedDialog loginFailedDialog = new LoginFailedDialog();
@@ -237,6 +236,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public static void userLogout() {
-        saveToSharedPreferences(null, null, null, null, null);
+        saveToSharedPreferences(null, null, null, null, null,null);
     }
 }
