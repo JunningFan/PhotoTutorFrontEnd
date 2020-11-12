@@ -5,6 +5,7 @@ import android.app.ActionBar;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -116,6 +117,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
 
     private CloudPhotoDetailViewModel mViewModel;
     private PhotoDetailPagerAdapter adapter;
+    private int primaryUserId;
 
     //    @Override
 //    public void onStop() {
@@ -211,7 +213,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         tag_group = (TagGroup)view.findViewById(R.id.tag_group);
         textView_location =(TextView)requireView().findViewById(R.id.textView_location);
         avatarView = view.findViewById(R.id.avatar);
-
+        primaryUserId = ((MyAppCompatActivity)requireActivity()).getPrimaryUserId();
 
         nlikeTv = view.findViewById((R.id.nlikeTv));
         nDislikeTv = view.findViewById(R.id.ndislikeTV);
@@ -489,22 +491,9 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
             public void onSuccessResponse(CloudPhoto photo) {
                 dislike_button.setEnabled(true);
                 like_button.setEnabled(true);
-                switch (photo.checkLiked(((MyAppCompatActivity) requireActivity()).getPrimaryUserId())) {
-                    case CloudPhoto.DISLIKE:
-                        dislike_button.setChecked(true);
-                        break;
-                    case CloudPhoto.LIKE:
-                        like_button.setChecked(true);
-                        break;
-                    case CloudPhoto.NEUTRAL:
-                        dislike_button.setChecked(false);
-                        like_button.setChecked(false);
-                        break;
-                }
+                updateVoteInfo(photo.id);
             }
         });
-        nlikeTv.setText(""+photo.getnLike());
-        nDislikeTv.setText(""+photo.getnDislike());
         mapFragment.getMapAsync(this);
     }
 
@@ -590,8 +579,8 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
 
     }
 
-    public void updateVoteInfo(int id){
-        photoDownloader.getPhotoInfoById(id, new PhotoDownloader.OnDownloadPhotoById() {
+    public void updateVoteInfo(int photoId){
+        photoDownloader.getPhotoInfoById(photoId, new PhotoDownloader.OnDownloadPhotoById() {
             @Override
             public void onFailResponse(String message, int code) { }
 
@@ -602,9 +591,34 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
             public void onSuccessResponse(CloudPhoto photo) {
                 nlikeTv.setText(""+photo.getnLike());
                 nDislikeTv.setText(""+photo.getnDislike());
+                like_button.setChecked(false);
+                dislike_button.setChecked(false);
+                switch (photo.checkLiked(primaryUserId)) {
+                    case CloudPhoto.DISLIKE:
+                        dislike_button.setChecked(true);
+                        break;
+                    case CloudPhoto.LIKE:
+                        like_button.setChecked(true);
+                        break;
+                    case CloudPhoto.NEUTRAL:
+                        dislike_button.setChecked(false);
+                        like_button.setChecked(false);
+                        break;
+                }
             }
         });
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        mViewModel.getDataset().removeObservers(this);
+        mViewModel.getCurrIdx().removeObservers(this);
+    }
 
+    @Override
+    public void onResume() {
+        updateVoteInfo(primaryUserId);
+        super.onResume();
+    }
 }
