@@ -32,7 +32,7 @@ import retrofit2.Response;
 
 public class PhotoUploader extends ServerClient {
 
-    public static abstract  class PhotoInfoUploader implements Callback<ResponseBody>{
+    public static abstract  class PhotoInfoUploaderCallback implements Callback<ResponseBody>{
 
         abstract public void onFailResponse(String message,int code );
 
@@ -72,7 +72,8 @@ public class PhotoUploader extends ServerClient {
             }
             else{
                 try {
-                    onSuccessResponse(new JSONObject(response.body().string()).getInt("img"));
+                    String responseBodyString = response.body().string();
+                        onSuccessResponse(new JSONObject(responseBodyString).getInt("img"));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -123,7 +124,7 @@ public class PhotoUploader extends ServerClient {
 
     }
 
-    public void uploadPhotoInfo(Photo photo, int id, String title, String[] tags, PhotoUploaderCallback callback){
+    public void uploadPhotoInfo(Photo photo, int id, String title, String[] tags, PhotoInfoUploaderCallback callback){
         File photoFile = new File(photo.imageURI.getPath());
 
         JSONObject info = new JSONObject();

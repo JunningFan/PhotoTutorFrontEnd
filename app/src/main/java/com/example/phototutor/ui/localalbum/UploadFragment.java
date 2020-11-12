@@ -119,7 +119,7 @@ public class UploadFragment extends DialogFragment {
         String[] tags = mTagGroup.getTags();
 
         photoUploader.uploadPhotoInfo(photo, imgId, title, tags,
-                new PhotoUploader.PhotoUploaderCallback() {
+                new PhotoUploader.PhotoInfoUploaderCallback() {
                     @Override
                     public void onFailResponse(String message, int code) {
                         Toast.makeText(getContext(), "Server error, please try again later or contact technical support", Toast.LENGTH_SHORT).show();
@@ -137,10 +137,11 @@ public class UploadFragment extends DialogFragment {
                     }
 
                     @Override
-                    public void onSuccessResponse(int imgId) {
+                    public void onSuccessResponse() {
                         Toast.makeText(getContext(), "Upload Complete", Toast.LENGTH_SHORT).show();
                         getActivity().onBackPressed();
                     }
+
                 }
 
         );
