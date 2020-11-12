@@ -9,7 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 
-public class CameraActivity extends AppCompatActivity {
+public class CameraActivity extends MyAppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

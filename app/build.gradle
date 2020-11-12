@@ -123,4 +123,8 @@ dependencies {
     implementation 'com.github.medyo:fancybuttons:1.9.1'
 
     implementation 'cc.cloudist.acplibrary:library:1.2.1'
+
+    implementation 'com.libizo:customedittext:1.0.6'
+
+    implementation 'com.github.vipulasri:timelineview:1.1.5'
 }

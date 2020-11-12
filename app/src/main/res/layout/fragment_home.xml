@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
+    android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -26,12 +27,10 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         app:layout_constraintTop_toBottomOf="@+id/appbarlayout"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/margin_xsmall"
         android:layout_width="match_parent">
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -51,4 +50,4 @@
 
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
