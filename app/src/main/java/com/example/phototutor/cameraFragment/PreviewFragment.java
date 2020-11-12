@@ -27,6 +27,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.phototutor.CameraActivity;
 import com.example.phototutor.EditProfileActivity;
 import com.example.phototutor.LocalAlbumActivity;
 import com.example.phototutor.Photo.Photo;
@@ -135,6 +136,7 @@ public class PreviewFragment extends Fragment implements OnMapReadyCallback, Goo
                             .text("Saving")
                             .fadeColor(Color.DKGRAY).build();
                     loadingDialog.show();
+                    ((CameraActivity)getActivity()).setImageCaptured(true);
                     new Thread(
                             () -> {
                                 PhotoDatabase db = Room.databaseBuilder(requireActivity(),

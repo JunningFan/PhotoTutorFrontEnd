@@ -1,5 +1,6 @@
 package com.example.phototutor;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -32,6 +33,8 @@ public class NavigationActivity extends MyAppCompatActivity {
     double longitude;
     double orientation;
     double elevation;
+
+    public final static int CAMERA_REQUEST_CODE = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -111,5 +114,12 @@ public class NavigationActivity extends MyAppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         finish();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode == RESULT_OK)
+            onBackPressed();
     }
 }

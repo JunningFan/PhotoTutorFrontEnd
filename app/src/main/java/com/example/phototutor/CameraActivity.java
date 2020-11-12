@@ -4,12 +4,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 
 public class CameraActivity extends MyAppCompatActivity {
+
+    private boolean imageCaptured = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +44,16 @@ public class CameraActivity extends MyAppCompatActivity {
         },500L);
     }
 
+    public void setImageCaptured(boolean imageCaptured) {
+        this.imageCaptured = imageCaptured;
+    }
 
-
+    @Override
+    public void onBackPressed() {
+        setResult(Activity.RESULT_CANCELED);
+        if(imageCaptured) {
+            setResult(Activity.RESULT_OK);
+        }
+        super.onBackPressed();
+    }
 }

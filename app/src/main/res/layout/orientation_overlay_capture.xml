@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/orientation_overlay_capture"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/imageViewUp"
+        android:layout_width="150dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="96dp"
+        android:tint="@color/orientation_arrow"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_baseline_arrow_upward_24" />
+
+    <ImageView
+        android:id="@+id/imageViewDown"
+        android:layout_width="150dp"
+        android:layout_height="120dp"
+        android:layout_marginBottom="100dp"
+        android:tint="@color/orientation_arrow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/ic_baseline_arrow_downward_24" />
+
+    <ImageView
+        android:id="@+id/imageViewLeft"
+        android:layout_width="120dp"
+        android:layout_height="150dp"
+        android:tint="@color/orientation_arrow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_baseline_arrow_back_24" />
+
+    <ImageView
+        android:id="@+id/imageViewRight"
+        android:layout_width="120dp"
+        android:layout_height="150dp"
+        android:tint="@color/orientation_arrow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_baseline_arrow_forward_24" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/cameraActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginEnd="26dp"
+        android:layout_marginBottom="134dp"
+        android:clickable="true"
+        android:padding="8dp"
+        app:fabCustomSize="72dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/imageViewDown"
+        app:layout_constraintTop_toBottomOf="@+id/imageViewRight"
+        app:layout_constraintVertical_bias="0.0"
+        app:maxImageSize="48dp"
+        app:srcCompat="@drawable/ic_baseline_camera_alt_32" />
+</androidx.constraintlayout.widget.ConstraintLayout>

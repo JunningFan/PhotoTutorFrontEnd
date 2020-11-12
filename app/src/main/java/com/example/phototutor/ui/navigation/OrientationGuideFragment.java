@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
@@ -39,10 +40,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.phototutor.CameraActivity;
 import com.example.phototutor.NavigationActivity;
 import com.example.phototutor.OrientationModule.OrientationHelper;
 import com.example.phototutor.OrientationModule.OrientationHelperOwner;
 import com.example.phototutor.R;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -479,13 +482,18 @@ public class OrientationGuideFragment extends Fragment implements OrientationHel
             matrix.postRotate(180, centerX, centerY);
         }
 
-        ConstraintLayout camera_ui_container = getView().findViewById(R.id.orientation_overlay);
+        ConstraintLayout camera_ui_container = getView().findViewById(R.id.orientation_overlay_capture);
         if(camera_ui_container != null)
             ((ConstraintLayout)getView()).removeView(camera_ui_container);
         orientationDegLiveData.removeObservers(getViewLifecycleOwner());
         // Inflate a new view containing all UI for controlling the camera
         View overlay  = View.inflate(requireContext(),
-                R.layout.orientation_overlay, (ConstraintLayout) getView());
+                R.layout.orientation_overlay_capture, (ConstraintLayout) getView());
+        FloatingActionButton cameraButton = (FloatingActionButton)overlay.findViewById(R.id.cameraActionButton);
+        cameraButton.setOnClickListener(toCamera -> {
+            Intent cameraIntent = new Intent(getContext(), CameraActivity.class);
+            getActivity().startActivityForResult(cameraIntent, NavigationActivity.CAMERA_REQUEST_CODE);
+        });
         orientationDegLiveData.observe(getViewLifecycleOwner(), listener ->{
             double pitch = photoElevation;
             double azi = photoOrientation;
