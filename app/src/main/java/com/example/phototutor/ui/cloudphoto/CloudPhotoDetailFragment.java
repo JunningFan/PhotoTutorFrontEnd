@@ -110,6 +110,8 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     private CircleImageView avatarView;
     ToggleButton dislike_button;
     ToggleButton like_button;
+    private TextView nlikeTv;
+    private TextView nDislikeTv;
 
     private CloudPhotoDetailViewModel mViewModel;
     private PhotoDetailPagerAdapter adapter;
@@ -207,8 +209,11 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         photo_author = (TextView)view.findViewById(R.id.photo_author);
         tag_group = (TagGroup)view.findViewById(R.id.tag_group);
         textView_location =(TextView)requireView().findViewById(R.id.textView_location);
-
         avatarView = view.findViewById(R.id.avatar);
+
+
+        nlikeTv = view.findViewById((R.id.nlikeTv));
+        nDislikeTv = view.findViewById(R.id.ndislikeTV);
         mapFragment = (SupportMapFragment)getChildFragmentManager()
                 .findFragmentById(R.id.map);
 
@@ -311,9 +316,12 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                 }
         );
 
+        like_button.setEnabled(false);
+        dislike_button.setEnabled(false);
         like_button.setOnClickListener(view1 -> {
+            Log.w(TAG,"in dislike "+like_button.isChecked());
             CloudPhoto photo = adapter.photos.get(index);
-            if(like_button.isChecked()){
+            if(!like_button.isChecked()){
                 likeHelper.removeLikePhoto(photo.id, new PhotoLikeHelper.LikeRequestSuccessCallback() {
                     @Override
                     public void onFailResponse(String message, int code) {
@@ -328,6 +336,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                     @Override
                     public void onSuccessResponse(String message) {
                         like_button.setChecked(false);
+                        updateVoteInfo(photo.id);
                     }
                 });
             }
@@ -349,6 +358,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                     public void onSuccessResponse(String message) {
                         like_button.setChecked(true);
                         dislike_button.setChecked(false);
+                        updateVoteInfo(photo.id);
                     }
                 });
             }
@@ -357,7 +367,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
 
         dislike_button.setOnClickListener(view1->{
             CloudPhoto photo = adapter.photos.get(index);
-            if(dislike_button.isChecked()){
+            if(!dislike_button.isChecked()){
                 likeHelper.removeDislikePhoto(photo.id, new PhotoLikeHelper.LikeRequestSuccessCallback() {
                     @Override
                     public void onFailResponse(String message, int code) {
@@ -372,6 +382,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                     @Override
                     public void onSuccessResponse(String message) {
                         dislike_button.setChecked(false);
+                        updateVoteInfo(photo.id);
                     }
                 });
             }else{
@@ -390,6 +401,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                     public void onSuccessResponse(String message) {
                         dislike_button.setChecked(true);
                         like_button.setChecked(false);
+                        updateVoteInfo(photo.id);
                     }
                 });
             }
@@ -476,7 +488,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
             public void onSuccessResponse(CloudPhoto photo) {
                 dislike_button.setEnabled(true);
                 like_button.setEnabled(true);
-
+                Log.w(TAG,"onSuccessResponse like " + photo.checkLiked(((MyAppCompatActivity) requireActivity()).getPrimaryUserId()));
                 switch (photo.checkLiked(((MyAppCompatActivity) requireActivity()).getPrimaryUserId())) {
                     case CloudPhoto.DISLIKE:
                         dislike_button.setChecked(true);
@@ -487,11 +499,12 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                     case CloudPhoto.NEUTRAL:
                         dislike_button.setChecked(false);
                         like_button.setChecked(false);
+                        break;
                 }
             }
         });
-
-
+        nlikeTv.setText(""+photo.getnLike());
+        nDislikeTv.setText(""+photo.getnDislike());
         mapFragment.getMapAsync(this);
     }
 
@@ -576,4 +589,22 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         }
 
     }
+
+    public void updateVoteInfo(int id){
+        photoDownloader.getPhotoInfoById(id, new PhotoDownloader.OnDownloadPhotoById() {
+            @Override
+            public void onFailResponse(String message, int code) { }
+
+            @Override
+            public void onFailRequest(Call<ResponseBody> call, Throwable t) { }
+
+            @Override
+            public void onSuccessResponse(CloudPhoto photo) {
+                nlikeTv.setText(""+photo.getnLike());
+                nDislikeTv.setText(""+photo.getnDislike());
+            }
+        });
+    }
+
+
 }

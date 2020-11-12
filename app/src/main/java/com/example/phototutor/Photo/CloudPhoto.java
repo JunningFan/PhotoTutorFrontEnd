@@ -106,4 +106,8 @@ public class CloudPhoto extends Photo {
         else if (this.dislikeUserIds.contains(userId)) return DISLIKE;
         else return NEUTRAL;
     }
+
+    public int getnDislike() {
+        return nDislike;
+    }
 }

@@ -154,7 +154,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:src="@drawable/ic_comment" />
                         <TextView
-                            android:id="@+id/nlikeTv"
+
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"/>
                     </LinearLayout>
@@ -198,6 +198,7 @@
                         android:textOff=""
                         android:textOn=""/>
                         <TextView
+                            android:id="@+id/nlikeTv"
                             android:textAlignment="center"
                             android:textColor="@android:color/white"
                             android:layout_width="match_parent"
