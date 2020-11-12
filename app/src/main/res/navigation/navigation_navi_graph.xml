@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_navi_graph"
+    app:startDestination="@id/navigation_nav_map">
+
+    <fragment
+        android:id="@+id/navigation_nav_ar"
+        android:label="@string/title_bar_ar"
+        android:name="com.example.phototutor.ui.navigation.ARFragment"
+        tools:layout="@layout/fragment_sceneform"
+        >
+        <action
+            android:id="@+id/action_navigation_nav_ar_to_navigation_nav_map"
+            app:destination="@id/navigation_nav_map" />
+        <action
+            android:id="@+id/action_navigation_nav_ar_self"
+            app:destination="@id/navigation_nav_ar" />
+        <action
+            android:id="@+id/action_navigation_nav_ar_to_navigation_nav_map2"
+            app:destination="@id/navigation_nav_map" />
+        <action
+            android:id="@+id/action_navigation_nav_ar_to_navigation_nav_orientation"
+            app:destination="@id/navigation_nav_orientation" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_nav_map"
+        android:label="@string/title_bar_map"
+        android:name="com.example.phototutor.ui.navigation.MapFragment"
+        tools:layout="@layout/fragment_map"
+        >
+        <action
+            android:id="@+id/action_navigation_nav_map_to_navigation_nav_ar"
+            app:destination="@id/navigation_nav_ar" />
+        <action
+            android:id="@+id/action_navigation_nav_map_self"
+            app:destination="@id/navigation_nav_map" />
+        <action
+            android:id="@+id/action_navigation_nav_map_to_navigation_nav_orientation"
+            app:destination="@id/navigation_nav_orientation" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_nav_orientation"
+        android:label="@string/title_bar_orientation"
+        android:name="com.example.phototutor.ui.navigation.OrientationGuideFragment"
+        tools:layout="@layout/orientation_guide_layout"
+        >
+        <action
+            android:id="@+id/action_navigation_nav_orientation_to_navigation_nav_ar"
+            app:destination="@id/navigation_nav_ar" />
+        <action
+            android:id="@+id/action_navigation_nav_orientation_to_navigation_nav_map"
+            app:destination="@id/navigation_nav_map" />
+        <action
+            android:id="@+id/action_navigation_nav_orientation_self"
+            app:destination="@id/navigation_nav_orientation" />
+    </fragment>
+
+
+</navigation>

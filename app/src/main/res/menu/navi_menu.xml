@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_map"
+        android:icon="@drawable/ic_baseline_map_24"
+        android:title="@string/title_bar_map" />
+
+    <item
+        android:id="@+id/navigation_ar"
+        android:icon="@drawable/ic_baseline_image_ar_24"
+        android:title="@string/title_bar_ar" />
+
+    <item
+        android:id="@+id/navigation_orientation"
+        android:icon="@drawable/ic_baseline_camera_24"
+        android:title="@string/title_bar_orientation" />
+
+</menu>

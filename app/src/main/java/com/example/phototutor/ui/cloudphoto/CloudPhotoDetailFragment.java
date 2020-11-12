@@ -38,6 +38,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.phototutor.NavigationActivity;
 import com.example.phototutor.Photo.CloudPhoto;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
@@ -387,27 +388,27 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(photoLL, 18.5f));
 
-//        mMap.setOnMapClickListener(latLng -> {
-//            Log.w("map click","here");
-//            (new MaterialAlertDialogBuilder(requireContext())).setMessage("Do you want to navigate photo?")
-//                    .setNegativeButton("No",null)
-//                    .setPositiveButton("Yes", new DialogInterface.OnClickListener(){
-//                        @Override
-//                        public void onClick(DialogInterface dialogInterface, int i) {
-//                            Intent intent = new Intent(requireContext(),NavigationActivity.class);
-//                            Bundle args = new Bundle();
-//                            args.putString("photoPath", photo.thumbnailURI.toString());
-//                            args.putDouble("elevation",photo.elevation);
-//                            args.putDouble("orientation",photo.orientation);
-//                            args.putDouble("latitude",photo.getLatitude());
-//                            args.putDouble("longtitue",photo.getLongitude());
-//                            intent.putExtras(args);
-//                            startActivity(intent);
-//
-//                        }
-//                    }).show();
-//
-//        });
+        mMap.setOnMapClickListener(latLng -> {
+            Log.w("map click","here");
+            (new MaterialAlertDialogBuilder(requireContext())).setMessage("Do you want to navigate photo?")
+                    .setNegativeButton("No",null)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener(){
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Intent intent = new Intent(requireContext(), NavigationActivity.class);
+                            Bundle args = new Bundle();
+                            args.putString("photoPath", photo.thumbnailURI.toString());
+                            args.putDouble("elevation",photo.elevation);
+                            args.putDouble("orientation",photo.orientation);
+                            args.putDouble("latitude",photo.getLatitude());
+                            args.putDouble("longitude",photo.getLongitude());
+                            intent.putExtras(args);
+                            startActivity(intent);
+
+                        }
+                    }).show();
+
+        });
         mMap.setOnMapLoadedCallback(this);
 
 

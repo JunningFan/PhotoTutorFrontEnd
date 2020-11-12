@@ -105,4 +105,9 @@
         "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
         "when a user tries to pick up one of cards.\n\n"
     </string>
+    <string name="plane_finding">Searching for surfaces&#8230;</string>
+    <string name="title_bar_orientation">Orientation Guide</string>
+    <string name="title_bar_ar">AR Guide</string>
+    <string name="title_bar_map">Map Guide</string>
+    <string name="navigation_activity_title">Navigation</string>
 </resources>

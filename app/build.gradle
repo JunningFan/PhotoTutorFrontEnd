@@ -127,4 +127,12 @@ dependencies {
     implementation 'com.libizo:customedittext:1.0.6'
 
     implementation 'com.github.vipulasri:timelineview:1.1.5'
+
+    //ARcore/location
+    implementation "com.google.ar.sceneform:core:1.17.1"
+    implementation "com.google.ar.sceneform.ux:sceneform-ux:1.17.1"
+    //implementation 'uk.co.appoly.arcorelocation:arcore-location-debug@aar'
+    implementation 'com.github.appoly:ARCore-Location:1.2'
+    //decode polyline
+    implementation 'com.google.maps.android:android-maps-utils:0.4+'
 }

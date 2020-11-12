@@ -1,6 +1,5 @@
 package com.example.phototutor.OrientationModule;
 
-import android.Manifest;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -10,8 +9,6 @@ import android.os.Build;
 import android.util.Log;
 import android.view.Surface;
 import android.view.WindowManager;
-
-import java.util.Queue;
 
 import static java.lang.Math.PI;
 
