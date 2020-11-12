@@ -2,6 +2,7 @@ package com.example.phototutor.ui.comment;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -34,9 +35,11 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -56,20 +59,20 @@ public class CommentFragment extends BottomSheetDialogFragment {
     private Toolbar top_tool_bar;
 
     private int photoId;
+    private int primaryUserId;
 
     private class CommentListAdapter extends RecyclerView.Adapter<CommentFragment.CommentListAdapter.MyViewHolder>{
         private List<Comment> comments = new ArrayList<>();
         private Context context;
         private String TAG = "CommentListAdapter";
-
         public CommentListAdapter(Context context){
             this.context = context;
         }
 
         public void addComments(List<Comment> comments){
             int origPos = getItemCount();
-            this.comments.addAll(comments);
-            notifyItemRangeInserted(origPos,comments.size());
+            this.comments.addAll(0,comments);
+            notifyDataSetChanged();
         }
 
         public void setComment(List<Comment> comments){
@@ -95,6 +98,9 @@ public class CommentFragment extends BottomSheetDialogFragment {
             return new CommentFragment.CommentListAdapter.MyViewHolder(itemView);
         }
 
+        private void sortItem(){
+
+        }
         @Override
         public void onBindViewHolder(@NonNull CommentFragment.CommentListAdapter.MyViewHolder holder, int position) {
             Comment comment = comments.get(position);
@@ -104,6 +110,7 @@ public class CommentFragment extends BottomSheetDialogFragment {
                             comment.getCreatedTime().getTime()));
 
             holder.message_place.setText(comment.getComment());
+            if(comment.getUserId() != primaryUserId) holder.deleteBtn.setVisibility(View.GONE);
 
             downloader.getUserDetail(comment.getUserId(), new UserInfoDownloader.UserDetailRequestCallback() {
                 @Override
@@ -111,9 +118,29 @@ public class CommentFragment extends BottomSheetDialogFragment {
                     Glide.with(CommentFragment.this.getContext())
                             .load(user.getAvatarUrl())
                             .into(holder.avatar);
-
                     holder.user_name.setText(user.getNickName());
                     holder.replyBtn.setOnClickListener(view -> editTextAddAt(user.getNickName()));
+                    holder.deleteBtn.setOnClickListener(view-> {
+                        helper.deleteComment(adapter.comments.get(position).getCommentId(),
+                                new CommentHelper.CommentDeletedCallback() {
+                            @Override
+                            public void onFailResponse(String message, int code) {
+
+                            }
+
+                            @Override
+                            public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+
+                            }
+
+                            @Override
+                            public void onSuccessResponse() {
+                                adapter.comments.remove(position);
+                                adapter.notifyItemRemoved(position);
+                                top_tool_bar.setTitle(""+ (adapter.getItemCount())+" comments");
+                            }
+                        });
+                    });
 
                 }
 
@@ -144,6 +171,7 @@ public class CommentFragment extends BottomSheetDialogFragment {
             public TextView createTime;
             public TextView replyBtn;
             public TextView message_place;
+            public TextView deleteBtn;
             public MyViewHolder(View itemView) {
                 super(itemView);
                 user_name = itemView.findViewById(R.id.comment_user_name);
@@ -151,6 +179,7 @@ public class CommentFragment extends BottomSheetDialogFragment {
                 createTime =  itemView.findViewById(R.id.comment_time);
                 replyBtn = itemView.findViewById(R.id.reply_btn);
                 message_place = itemView.findViewById(R.id.comment_message);
+                deleteBtn = itemView.findViewById(R.id.delete_btn);
             }
         }
 
@@ -174,13 +203,14 @@ public class CommentFragment extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        primaryUserId = ((MyAppCompatActivity)requireActivity()).getPrimaryUserId();
         helper = new CommentHelper(requireContext());
         downloader = new UserInfoDownloader((requireContext()));
         adapter = new CommentListAdapter(requireContext());
         etComment = view.findViewById(R.id.etComment);
         rvComments = view.findViewById(R.id.rvComments);
 
-        rvComments.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvComments.setLayoutManager(new LinearLayoutManager(requireContext(),LinearLayoutManager.VERTICAL,true));
         rvComments.setAdapter(adapter);
         comment_swipe_refresh_layout =  view.findViewById(R.id.comment_swipe_refresh_layout);
         comment_swipe_refresh_layout.setOnRefreshListener(()->refreshComment());
@@ -211,8 +241,8 @@ public class CommentFragment extends BottomSheetDialogFragment {
                             ArrayList<Comment> newComments = new ArrayList<>();
                             newComments.add(comment);
 //                        CommentFragment.this.refreshComment();
-                            top_tool_bar.setTitle(""+ adapter.getItemCount()+" comments");
                             adapter.addComments(newComments);
+                            top_tool_bar.setTitle(""+ adapter.getItemCount()+" comments");
                             etComment.setText("");
                         }
                     });
@@ -262,6 +292,7 @@ public class CommentFragment extends BottomSheetDialogFragment {
                 .show();
     }
 
+
     public void refreshComment(){
         adapter.cleanComment();
         downloadComments();
@@ -281,6 +312,7 @@ public class CommentFragment extends BottomSheetDialogFragment {
         BottomSheetDialog  dialog = (BottomSheetDialog)super.onCreateDialog(savedInstanceState);
         BottomSheetBehavior behavior = dialog.getBehavior();
         behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        behavior.setSkipCollapsed(true);
 //        behavior.setBottomSheetCallback();
         return dialog;
     }

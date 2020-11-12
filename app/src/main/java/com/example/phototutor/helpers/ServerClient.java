@@ -171,7 +171,8 @@ public class ServerClient{
         @DELETE("/picture/{id}/like")
         Call<ResponseBody> cancelLikePhoto(@Header("Authorization") String authKey,@Path("id") int id);
 
-
+        @DELETE("/picture/{id}/comment")
+        Call<ResponseBody> deleteComment(@Header("Authorization") String authKey, @Path("id") int commentId);
     }
 
     public String getAuthorizationToken(Context context){
