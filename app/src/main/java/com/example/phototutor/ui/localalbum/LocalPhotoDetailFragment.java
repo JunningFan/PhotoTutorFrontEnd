@@ -87,8 +87,7 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
     private GoogleMap mMap;
     private boolean isMapReady = false;
     private Marker photoMarker;
-    private TextView textView_basic_meta;
-    private TextView textView_other_meta;
+
     private TextView textView_timestamp;
     private TextView textView_weather;
 
@@ -148,8 +147,7 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        textView_basic_meta = (TextView) view.findViewById(R.id.textView_basic_metadata);
-        textView_other_meta = (TextView) view.findViewById(R.id.textView_other_metadata);
+
         textView_timestamp = (TextView) view.findViewById(R.id.textView_timestamp);
         textView_weather = (TextView) view.findViewById(R.id.textView_weather);
 
@@ -289,24 +287,6 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
 
     private void updatePhotoData(Photo photo) {
 
-        if (textView_basic_meta == null) {
-            Log.e(this.getClass().getSimpleName(), "text view not found");
-        }
-
-
-        StringBuilder sbuf_expo = new StringBuilder();
-        Formatter fmt_expo = new Formatter(sbuf_expo);
-        if (photo.shutter_speed > 0) {
-            fmt_expo.format("f/%.1f  1/%ds  ISO:%d", photo.aperture, (int) photo.shutter_speed, photo.iso);
-        } else {
-            fmt_expo.format("f/%.1f  %.1fs  ISO:%d", photo.aperture, Math.abs(photo.shutter_speed), photo.iso);
-        }
-        textView_basic_meta.setText(sbuf_expo.toString());
-
-        StringBuilder sbuf_other = new StringBuilder();
-        Formatter fmt_other = new Formatter(sbuf_other);
-        fmt_other.format("%dmm", photo.focal_length);
-        textView_other_meta.setText(fmt_other.toString());
         Calendar calendar = Calendar.getInstance();
         TimeZone tz = TimeZone.getDefault();
         calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));
