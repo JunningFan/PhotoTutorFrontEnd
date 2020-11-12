@@ -489,7 +489,6 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
             public void onSuccessResponse(CloudPhoto photo) {
                 dislike_button.setEnabled(true);
                 like_button.setEnabled(true);
-                Log.w(TAG,"onSuccessResponse like " + photo.checkLiked(((MyAppCompatActivity) requireActivity()).getPrimaryUserId()));
                 switch (photo.checkLiked(((MyAppCompatActivity) requireActivity()).getPrimaryUserId())) {
                     case CloudPhoto.DISLIKE:
                         dislike_button.setChecked(true);
