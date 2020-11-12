@@ -276,7 +276,7 @@ public class HomeFragment extends Fragment {
                 swipeRefreshLayout.setRefreshing(false);
                 Toast.makeText(requireContext(),
                         "Network Failed. Please check the network",Toast.LENGTH_LONG);
-                Snackbar.make(requireView(),
+                Snackbar.make(getView(),
                             "Network Failed. Please check the network",
                             Snackbar.LENGTH_INDEFINITE)
 

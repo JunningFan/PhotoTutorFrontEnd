@@ -32,6 +32,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -39,6 +40,7 @@ import com.example.phototutor.Photo.CloudPhoto;
 import com.example.phototutor.Photo.Photo;
 import com.example.phototutor.R;
 import com.example.phototutor.helpers.UserInfoDownloader;
+import com.example.phototutor.ui.comment.CommentFragment;
 import com.example.phototutor.ui.home.HomeViewModel;
 import com.example.phototutor.ui.localalbum.LocalPhotoDetailFragment;
 import com.example.phototutor.ui.localalbum.UnitLocalPhotoDetailFragment;
@@ -55,6 +57,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.dialog.MaterialDialogs;
 import com.trafi.anchorbottomsheetbehavior.AnchorBottomSheetBehavior;
@@ -277,6 +281,18 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
 //        new MaterialAlertDialogBuilder(requireContext()).setTitle("map").setView(
 //                new MapView(requireContext())
 //        ).show();
+
+        ((ImageButton)view.findViewById(R.id.button_comment)).setOnClickListener(
+                view1 -> {
+                    CommentFragment dialog = new CommentFragment();
+                    Bundle args = new Bundle();
+                    args.putInt("photoId", adapter.photos.get(photoViewPager.getCurrentItem()).id);
+                    dialog.setArguments(args);
+                    dialog.show(requireActivity().getSupportFragmentManager(),"comment button sheet");
+
+                }
+        );
+
     }
 
 

@@ -143,6 +143,14 @@ public class ServerClient{
         @Headers("Content-type: application/json")
         @DELETE("/user/follow/{id}")
         Call<ResponseBody> removeFollower(@Header("Authorization") String authKey,@Path("id") int id);
+
+        @Headers("Content-type: application/json")
+        @POST("/els/comment/_search")
+        Call<ResponseBody> getComments(@Header("Authorization") String authKey, @Body JsonObject body);
+
+        @Headers("Content-type: application/json")
+        @POST("/picture/{id}/comment")
+        Call<ResponseBody> commentPhoto(@Header("Authorization") String authKey,@Path("id") int id, @Body JsonObject body);
     }
 
     public String getAuthorizationToken(Context context){

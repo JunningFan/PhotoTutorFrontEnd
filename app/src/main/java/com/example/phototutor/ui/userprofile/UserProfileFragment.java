@@ -379,6 +379,7 @@ public class UserProfileFragment extends Fragment {
 
             @Override
             public void onFailResponse(String message, int code) {
+                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
                 following_swipe_fresh_layout.setRefreshing(false);
                 setErrorSnackBar(message,following_swipe_fresh_layout,view->refreshUserFollowings());
             }
@@ -432,6 +433,7 @@ public class UserProfileFragment extends Fragment {
         downloader.downloadPhotoByUserId(userId,0, cloudAlbumAdapter.getItemCount(), new PhotoDownloader.OnPhotoDownloadedbyUser(){
             @Override
             public void onFailResponse(String message, int code) {
+                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
                 photo_swipe_fresh_layout.setRefreshing(false);
                 setErrorSnackBar(message,following_swipe_fresh_layout,view->refreshUserPhoto());
             }
@@ -489,12 +491,11 @@ public class UserProfileFragment extends Fragment {
         helper.addFollow(id, new UserFollowHelper.UserFollowActionCallback() {
             @Override
             public void onFailResponse(String message, int code) {
-
+                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
             }
 
             @Override
             public void onFailRequest(Call<ResponseBody> call, Throwable t) {
-
             }
 
             @Override
@@ -512,7 +513,7 @@ public class UserProfileFragment extends Fragment {
         helper.removeFollow(id, new UserFollowHelper.UserFollowActionCallback() {
             @Override
             public void onFailResponse(String message, int code) {
-
+                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();
             }
 
             @Override
