@@ -463,7 +463,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     public void onMapReady(GoogleMap googleMap) {
         CloudPhoto photo = adapter.photos.get(index);
         mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
         mMap.getUiSettings().setAllGesturesEnabled(false);  // disable touching to the map before the animation is rendered
 
