@@ -8,5 +8,13 @@
         app:showAsAction="always"
          />
 
+    <item
+        android:id="@+id/weather"
+        android:title="Distance"
+        app:actionLayout="@layout/weather_filter_dropdown_item"
+        app:showAsAction="always"
+        />
+
+
 
 </menu>

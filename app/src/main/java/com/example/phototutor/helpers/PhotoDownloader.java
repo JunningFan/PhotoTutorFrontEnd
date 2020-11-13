@@ -6,6 +6,7 @@ import android.webkit.MimeTypeMap;
 
 import com.example.phototutor.Photo.CloudPhoto;
 import com.example.phototutor.Photo.Photo;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
@@ -194,6 +195,53 @@ public class PhotoDownloader extends ServerClient {
         getService().getPhotosByEls(jsonObj).enqueue(onPhotoDownloaded);
 
 
+    }
+
+    public void downloadPhotosByGeoWeather(double lat, double lon, int from, int size, double radius, String weather, OnPhotoDownloaded onPhotoDownloaded){
+
+        JsonObject jsonObj = new JsonObject();
+        jsonObj.addProperty("from",from);
+        jsonObj.addProperty("size",size);
+        JsonObject query = new JsonObject();
+        JsonObject geo_bounding_box = new JsonObject();
+        JsonObject geoHash = new JsonObject();
+        JsonObject bottom_right = new JsonObject();
+        JsonObject top_left = new JsonObject();
+        JsonObject bool = new JsonObject();
+        JsonArray must = new JsonArray();
+        JsonObject match = new JsonObject();
+        JsonObject weatherJson = new JsonObject();
+        JsonArray filter = new JsonArray();
+        JsonObject geo_bounding_box_json = new JsonObject();
+
+        double rad = radius / 6371.01; //6371.01 is the earth radius
+        double minLat = lat / 180 * Math.PI - rad;
+        double maxLat = lat / 180 * Math.PI + rad;
+        double deltaLon = Math.asin(Math.sin(rad) / Math.cos(lat/180*Math.PI));
+        double minLon = lon / 180 * Math.PI - deltaLon;
+        double maxLon = lon / 180 * Math.PI + deltaLon;
+
+        top_left.addProperty("lat",maxLat / Math.PI * 180);
+        top_left.addProperty("lon",minLon / Math.PI * 180);
+        bottom_right.addProperty("lat",minLat / Math.PI * 180);
+        bottom_right.addProperty("lon",maxLon / Math.PI * 180);
+
+        geoHash.add("top_left",top_left);
+        geoHash.add("bottom_right",bottom_right);
+        geo_bounding_box.add("GeoHash",geoHash);
+        //query.add("geo_bounding_box",geo_bounding_box);
+        geo_bounding_box_json.add("geo_bounding_box", geo_bounding_box);
+        filter.add(geo_bounding_box_json);
+        weatherJson.addProperty("Weather", weather);
+        match.add("match", weatherJson);
+        must.add(match);
+        bool.add("must", must);
+        bool.add("filter", filter);
+
+        query.add("bool", bool);
+
+        jsonObj.add("query",query);
+        getService().getPhotosByEls(jsonObj).enqueue(onPhotoDownloaded);
     }
 
     public void downloadAllPhotos(OnPhotoDownloaded onPhotoDownloaded){

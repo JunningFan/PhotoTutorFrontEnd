@@ -44,6 +44,7 @@ public abstract class AlbumAdapter<T> extends RecyclerView.Adapter<AlbumAdapter.
     public boolean skipMemoryCache = false;
     private ImageGridOnClickCallBack imageGridOnClickCallBack;
     private String TAG = "AlbumAdapter";
+    
 
     public interface ImageGridOnClickCallBack {
         void run(int pos);

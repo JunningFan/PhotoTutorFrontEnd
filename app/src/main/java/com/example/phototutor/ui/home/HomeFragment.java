@@ -77,6 +77,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -108,9 +109,17 @@ public class HomeFragment extends Fragment {
     private final float[] DISTANCE_FACTORS = new float[]{0.25f, 0.5f, 1f, 2f, 4f, 8f, 16f};
     private final String[] DISTANCE_STRINGS = new String[]{"250M", "500M", "1KM", "2KM", "4KM", "8KM", "16KM"};
 
-    AutoCompleteTextView distanceExposedMenu;
-    ArrayAdapter<String> menuAdapter;
+    //define weathers
+    private final static String SELECT_ALL_WEATHER = "all";
+    private final String[] WEATHER_LABEL = new String[]{SELECT_ALL_WEATHER, Photo.CLEAR, Photo.PARTLY_CLOUDY, Photo.MOSTLY_CLOUDY, Photo.OVERCAST, Photo.RAIN, Photo.SNOW, Photo.MISTY} ;
+    private final String[] WEATHER_STRINGS = new String[]{"All          ", "Clear        ", "Partly Cloudy", "Mostly Cloudy", "Overcast     ", "Rain         ", "Snow        ", "Misty       "};
 
+    AutoCompleteTextView distanceExposedMenu;
+    ArrayAdapter<String> distanceMenuAdapter;
+
+    AutoCompleteTextView weatherExposedMenu;
+    ArrayAdapter<String> weatherMenuAdapter;
+    
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -231,51 +240,14 @@ public class HomeFragment extends Fragment {
 
 
         });
-        Log.d("home_frag", Boolean.toString(topAppBar.getMenu().findItem(R.id.range).getActionView().findViewById(R.id.distance_filled_exposed_dropdown) == null));
 
-        String[] distances = DISTANCE_STRINGS.clone();
-        menuAdapter =
-                new ArrayAdapter<>(
-                        this.getContext(),
-                        R.layout.weather_dropdown_item,
-                        distances);
-        distanceExposedMenu = (AutoCompleteTextView)topAppBar.getMenu().findItem(R.id.range).getActionView().findViewById(R.id.distance_filled_exposed_dropdown);
-        distanceExposedMenu.setAdapter(menuAdapter);
-        distanceExposedMenu.setText(distances[2]);
-        distanceExposedMenu.setInputType(InputType.TYPE_NULL);
-        menuAdapter.getFilter().filter(null);
-        distanceExposedMenu.clearFocus();
-        //distanceExposedMenu.showDropDown();
-        distanceExposedMenu.dismissDropDown();
 
-        distanceExposedMenu.setOnTouchListener(
-                new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        if (!distanceExposedMenu.getText().toString().equals(""))
-                            menuAdapter.getFilter().filter(null);
-                        distanceExposedMenu.showDropDown();
-                        return false;
-                    }
-                }
-        );
+        setRangeFilter();
 
-        distanceExposedMenu.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        setWeatherFilter();
 
-            }
 
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                refreshPhotos();
-            }
 
-            @Override
-            public void afterTextChanged(Editable editable) {
-
-            }
-        });
         cloud_photo_gallery = view.findViewById(R.id.cloud_photo_gallery);
         adapter = new CloudAlbumAdapter(requireContext());
         adapter.setPhotos(new ArrayList<>());
@@ -316,6 +288,103 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    private void setRangeFilter() {
+        // setup location selector
+        //Log.d("home_frag", Boolean.toString(topAppBar.getMenu().findItem(R.id.range).getActionView().findViewById(R.id.distance_filled_exposed_dropdown) == null));
+        String[] distances = DISTANCE_STRINGS.clone();
+        distanceMenuAdapter =
+                new ArrayAdapter<>(
+                        this.getContext(),
+                        R.layout.weather_dropdown_item,
+                        distances);
+        distanceExposedMenu = (AutoCompleteTextView)topAppBar.getMenu().findItem(R.id.range).getActionView().findViewById(R.id.distance_filled_exposed_dropdown);
+        distanceExposedMenu.setAdapter(distanceMenuAdapter);
+        distanceExposedMenu.setText(distances[2]);
+        distanceExposedMenu.setInputType(InputType.TYPE_NULL);
+        distanceMenuAdapter.getFilter().filter(null);
+        distanceExposedMenu.clearFocus();
+        //distanceExposedMenu.showDropDown();
+        distanceExposedMenu.dismissDropDown();
+
+        distanceExposedMenu.setOnTouchListener(
+                new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (!distanceExposedMenu.getText().toString().equals(""))
+                            distanceMenuAdapter.getFilter().filter(null);
+                        distanceExposedMenu.showDropDown();
+                        return false;
+                    }
+                }
+        );
+
+        distanceExposedMenu.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                refreshPhotos();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+    }
+
+    private void setWeatherFilter() {
+        // setup location selector
+        //Log.d("home_frag", Boolean.toString(topAppBar.getMenu().findItem(R.id.weather).getActionView().findViewById(R.id.weather_filter_filled_exposed_dropdown) == null));
+        String[] weathers = WEATHER_STRINGS.clone();
+        weatherMenuAdapter =
+                new ArrayAdapter<>(
+                        this.getContext(),
+                        R.layout.weather_dropdown_item,
+                        weathers);
+        weatherExposedMenu = (AutoCompleteTextView)topAppBar.getMenu().findItem(R.id.weather).getActionView().findViewById(R.id.weather_filter_filled_exposed_dropdown);
+        weatherExposedMenu.setAdapter(weatherMenuAdapter);
+        weatherExposedMenu.setText(weathers[2]);
+        weatherExposedMenu.setInputType(InputType.TYPE_NULL);
+        weatherMenuAdapter.getFilter().filter(null);
+        weatherExposedMenu.clearFocus();
+        //weatherExposedMenu.showDropDown();
+        weatherExposedMenu.dismissDropDown();
+
+        weatherExposedMenu.setOnTouchListener(
+                new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (!weatherExposedMenu.getText().toString().equals(""))
+                            weatherMenuAdapter.getFilter().filter(null);
+                        weatherExposedMenu.showDropDown();
+                        return false;
+                    }
+                }
+        );
+
+        weatherExposedMenu.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                refreshPhotos();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+    }
+    
+
     private void refreshPhotos(){
         adapter.setPhotos(new ArrayList<>());
         downloadPhotos();
@@ -343,10 +412,8 @@ public class HomeFragment extends Fragment {
     }
 
     private void downloadPhotosWithValidGeo() {
-        PhotoDownloader downloader = new PhotoDownloader(requireContext());
-        downloader.downloadPhotosByGeo( coordinate.getValue()[0], coordinate.getValue()[1],adapter.getItemCount(),30,
-                DISTANCE_FACTORS[java.util.Arrays.asList(DISTANCE_STRINGS).indexOf(distanceExposedMenu.getText().toString())],
-                new PhotoDownloader.OnPhotoDownloadedByGeo(){
+
+        PhotoDownloader.OnPhotoDownloadedByGeo onPhotoDownloadedByGeo =  new PhotoDownloader.OnPhotoDownloadedByGeo(){
             @Override
             public void onFailResponse(String message, int code) {
                 swipeRefreshLayout.setRefreshing(false);
@@ -383,15 +450,6 @@ public class HomeFragment extends Fragment {
             @Override
             public void onSuccessResponse(PhotoDownloader.PhotoDownloadResult result) {
                 List<CloudPhoto> photoList = result.getImageArray();
-                //filter goes here
-                String selectedWeather = "all";
-                boolean sortByUpvote = false;
-                if(selectedWeather != "all") {
-                    //photoList = photoList.stream().filter(photo -> photo.weather == selectedWeather).collect(Collectors.toList());
-                }
-                if(sortByUpvote) {
-                    //photoList = photoList.stream().sorted(photo -> photo.getnLike() -)
-                }
 
                 adapter.addPhotos(photoList);
                 Log.w(this.getClass().getName(), "" + adapter.getItemCount());
@@ -407,7 +465,18 @@ public class HomeFragment extends Fragment {
 
                 swipeRefreshLayout.setRefreshing(false);
             }
-        });
+        };
+
+        PhotoDownloader downloader = new PhotoDownloader(requireContext());
+        String selectedWeather = WEATHER_LABEL[java.util.Arrays.asList(WEATHER_STRINGS).indexOf(weatherExposedMenu.getText().toString())];
+        if(selectedWeather == SELECT_ALL_WEATHER) {
+            downloader.downloadPhotosByGeo(coordinate.getValue()[0], coordinate.getValue()[1], adapter.getItemCount(), 30,
+                    DISTANCE_FACTORS[java.util.Arrays.asList(DISTANCE_STRINGS).indexOf(distanceExposedMenu.getText().toString())],onPhotoDownloadedByGeo
+                    );
+        } else {
+            downloader.downloadPhotosByGeoWeather(coordinate.getValue()[0], coordinate.getValue()[1], adapter.getItemCount(), 30,
+                    DISTANCE_FACTORS[java.util.Arrays.asList(DISTANCE_STRINGS).indexOf(distanceExposedMenu.getText().toString())], selectedWeather ,onPhotoDownloadedByGeo);
+        }
     }
 
     @Override
@@ -417,7 +486,12 @@ public class HomeFragment extends Fragment {
         if(distanceExposedMenu != null) {
             distanceExposedMenu.clearFocus();
             distanceExposedMenu.dismissDropDown();
-            menuAdapter.getFilter().filter(null);
+            distanceMenuAdapter.getFilter().filter(null);
+        }
+        if(distanceExposedMenu != null) {
+            distanceExposedMenu.clearFocus();
+            distanceExposedMenu.dismissDropDown();
+            distanceMenuAdapter.getFilter().filter(null);
         }
 
     }
