@@ -485,10 +485,10 @@ public class HomeFragment extends Fragment {
             distanceExposedMenu.dismissDropDown();
             distanceMenuAdapter.getFilter().filter(null);
         }
-        if(distanceExposedMenu != null) {
-            distanceExposedMenu.clearFocus();
-            distanceExposedMenu.dismissDropDown();
-            distanceMenuAdapter.getFilter().filter(null);
+        if(weatherExposedMenu != null) {
+            weatherExposedMenu.clearFocus();
+            weatherExposedMenu.dismissDropDown();
+            weatherMenuAdapter.getFilter().filter(null);
         }
 
     }
