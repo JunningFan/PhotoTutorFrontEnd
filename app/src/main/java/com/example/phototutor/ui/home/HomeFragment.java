@@ -299,7 +299,7 @@ public class HomeFragment extends Fragment {
                         distances);
         distanceExposedMenu = (AutoCompleteTextView)topAppBar.getMenu().findItem(R.id.range).getActionView().findViewById(R.id.distance_filled_exposed_dropdown);
         distanceExposedMenu.setAdapter(distanceMenuAdapter);
-        distanceExposedMenu.setText(distances[2]);
+        distanceExposedMenu.setText(distances[1]);
         distanceExposedMenu.setInputType(InputType.TYPE_NULL);
         distanceMenuAdapter.getFilter().filter(null);
         distanceExposedMenu.clearFocus();
@@ -347,7 +347,7 @@ public class HomeFragment extends Fragment {
                         weathers);
         weatherExposedMenu = (AutoCompleteTextView)topAppBar.getMenu().findItem(R.id.weather).getActionView().findViewById(R.id.weather_filter_filled_exposed_dropdown);
         weatherExposedMenu.setAdapter(weatherMenuAdapter);
-        weatherExposedMenu.setText(weathers[2]);
+        weatherExposedMenu.setText(weathers[0]);
         weatherExposedMenu.setInputType(InputType.TYPE_NULL);
         weatherMenuAdapter.getFilter().filter(null);
         weatherExposedMenu.clearFocus();

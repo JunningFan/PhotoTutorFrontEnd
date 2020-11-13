@@ -61,6 +61,7 @@ public class UploadFragment extends Fragment {
 
     PhotoUploader photoUploader;
     EditText titleEditText;
+    EditText descriptionEditText;
     // tags
     TagGroup mTagGroup;
     // weather
@@ -94,6 +95,7 @@ public class UploadFragment extends Fragment {
         });
 
         titleEditText = ((TextInputLayout)view.findViewById(R.id.title_edit_container)).getEditText();
+        descriptionEditText = ((TextInputLayout)view.findViewById(R.id.description_edit_container)).getEditText();
         photoUploader = new PhotoUploader(getContext());
 
         uploadImage();
@@ -147,13 +149,17 @@ public class UploadFragment extends Fragment {
     private void uploadInfo() {
        photoUploader = new PhotoUploader(getContext());
         String title = titleEditText.getText().toString();
+        String description = descriptionEditText.getText().toString();
         if(title.isEmpty()) {
             title = "Untitled";
+        }
+        if(description.isEmpty()) {
+            description = " ";
         }
         String[] tags = mTagGroup.getTags();
         Log.w(TAG,weatherExposedMenu.getText().toString());
 
-        photoUploader.uploadPhotoInfo(photo, imgId, title, tags, weatherExposedMenu.getText().toString(),
+        photoUploader.uploadPhotoInfo(photo, imgId, title, description, tags, weatherExposedMenu.getText().toString(),
                 new PhotoUploader.PhotoInfoUploaderCallback() {
                     @Override
                     public void onFailResponse(String message, int code) {

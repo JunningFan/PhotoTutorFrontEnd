@@ -194,9 +194,9 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
                 }
         );
 
-
-
-
+        view.findViewById(R.id.back_button).setOnClickListener( back -> {
+            getActivity().onBackPressed();
+        });
 
         view.findViewById(R.id.share_button).setOnClickListener(
                 view1 -> {

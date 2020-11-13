@@ -149,7 +149,7 @@ public class Photo {
 
     public void setBitmap(Bitmap bitmap) {
         this.bitmap = bitmap;
-        this.thumbnail = ThumbnailUtils.extractThumbnail(bitmap,64,64);
+        this.thumbnail = ThumbnailUtils.extractThumbnail(bitmap,128,128);
         this.width = bitmap.getWidth();
         this.height = bitmap.getHeight();
     }
