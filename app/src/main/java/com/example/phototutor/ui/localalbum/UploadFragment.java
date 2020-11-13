@@ -81,6 +81,7 @@ public class UploadFragment extends Fragment {
         int pos = getArguments().getInt("pos");
         mViewModel = ViewModelProviders.of(requireActivity()).get(LocalAlbumViewModel.class);
         mViewModel.getAllPhotos().observe(requireActivity(), photos ->{
+            if(pos >= photos.size()){return;}
             photo = photos.get(pos);
             ImageView imageView = view.findViewById(R.id.image_view);
             Glide.with(view)
@@ -89,7 +90,6 @@ public class UploadFragment extends Fragment {
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .skipMemoryCache(true)
                     .into(imageView);
-
 
         });
 
@@ -228,8 +228,8 @@ public class UploadFragment extends Fragment {
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onPause() {
+        super.onPause();
         mViewModel.getSelected().removeObservers(this);
         mViewModel.getAllPhotos().removeObservers(this);
     }
