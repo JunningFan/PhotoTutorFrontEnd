@@ -36,6 +36,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -115,38 +116,10 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     ToggleButton like_button;
     private TextView nlikeTv;
     private TextView nDislikeTv;
-
+    private ImageView weather_label;
     private CloudPhotoDetailViewModel mViewModel;
     private PhotoDetailPagerAdapter adapter;
     private int primaryUserId;
-
-    //    @Override
-//    public void onStop() {
-//        super.onStop();
-//        getActivity().findViewById(R.id.appbarlayout).setVisibility(View.VISIBLE);
-//
-//        getActivity().findViewById(R.id.nav_view).setVisibility(View.VISIBLE);
-//        getActivity().findViewById(R.id.nav_host_fragment).setLayoutParams(new ConstraintLayout.LayoutParams(
-//                ConstraintLayout.LayoutParams.MATCH_PARENT,0));
-//        getActivity().findViewById(R.id.nav_host_fragment).refreshDrawableState();
-//        mViewModel.getCurrIdx().removeObservers(this);
-//    }
-//
-//    @Override
-//    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-//        super.onActivityCreated(savedInstanceState);
-//        getActivity().findViewById(R.id.appbarlayout).setVisibility(View.GONE);
-//        getActivity().findViewById(R.id.nav_host_fragment).setLayoutParams(new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT));
-//        getActivity().findViewById(R.id.nav_view).setVisibility(View.GONE);
-//        getView()
-//                .setSystemUiVisibility(
-//                        View.SYSTEM_UI_FLAG_LOW_PROFILE |
-//                                View.SYSTEM_UI_FLAG_FULLSCREEN  |
-//                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-//                                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
-//
-//                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION );
-//    }
 
     public class PhotoDetailPagerAdapter extends FragmentStateAdapter {
         private List<CloudPhoto> photos = new ArrayList<>();
@@ -221,7 +194,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         mapFragment = (SupportMapFragment)getChildFragmentManager()
                 .findFragmentById(R.id.map);
 
-
+        weather_label = view.findViewById(R.id.weather_label);
 
         ViewPager2 photoViewPager = view.findViewById(R.id.photo_view_pager);
 
@@ -284,16 +257,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         mViewModel.getCurrIdx().observe(requireActivity(), idx -> {
             index = idx;
         });
-//        photoViewPager.setOnClickListener(view12 -> {
-//            Log.w(TAG,"photoViewPager clicked");
-//            View buttonSheetDetail = view12.findViewById(R.id.button_sheet_container);
-//            if (buttonSheetDetail.getVisibility() == View.VISIBLE)
-//                buttonSheetDetail.setVisibility(View.GONE);
-//            else{
-//                buttonSheetDetail.setVisibility(View.VISIBLE);
-//            }
-//
-//        });
+
         photoViewPager.registerOnPageChangeCallback(
                 new ViewPager2.OnPageChangeCallback(){
                     @Override
@@ -304,10 +268,6 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                     }
                 }
         );
-
-//        new MaterialAlertDialogBuilder(requireContext()).setTitle("map").setView(
-//                new MapView(requireContext())
-//        ).show();
 
         ((ImageButton)view.findViewById(R.id.button_comment)).setOnClickListener(
                 view1 -> {
@@ -493,6 +453,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                 dislike_button.setEnabled(true);
                 like_button.setEnabled(true);
                 updateVoteInfo(photo.id);
+                loadWeatherImage(photo.getWeather(),weather_label);
             }
         });
         mapFragment.getMapAsync(this);
@@ -621,5 +582,23 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     public void onResume() {
         updateVoteInfo(primaryUserId);
         super.onResume();
+    }
+
+    private void loadWeatherImage(String weather, ImageView view){
+        if(isAdded()){
+            String path = "";
+            Drawable myIcon;
+            switch (weather){
+                case Photo.CLEAR:  myIcon = getResources().getDrawable(R.drawable.sunny); break;
+                case Photo.MISTY: myIcon = getResources().getDrawable(R.drawable.fog);break;
+                case Photo.MOSTLY_CLOUDY:myIcon = getResources().getDrawable(R.drawable.most_cloudy);break;
+                case Photo.OVERCAST:myIcon = getResources().getDrawable(R.drawable.overcast);break;
+                case Photo.PARTLY_CLOUDY:myIcon = getResources().getDrawable(R.drawable.cloudy);break;
+                case Photo.RAIN:myIcon = getResources().getDrawable(R.drawable.rain);break;
+                case Photo.SNOW:myIcon = getResources().getDrawable(R.drawable.snowflake);break;
+                default:myIcon = getResources().getDrawable(R.drawable.unknown);break;
+            }
+            view.setImageDrawable(myIcon);
+        }
     }
 }

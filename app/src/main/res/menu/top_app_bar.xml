@@ -2,10 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/navigation_logout"
-        android:icon="@drawable/ic_camera"
-        android:title="Log Out" />
-    <item
         android:id="@+id/range"
         android:title="Distance"
         app:actionLayout="@layout/distance_dropdown_item"
