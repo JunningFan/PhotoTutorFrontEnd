@@ -104,8 +104,6 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     PhotoLikeHelper likeHelper;
     PhotoDownloader photoDownloader;
 
-    private TextView textView_basic_meta;
-    private TextView textView_other_meta;
     private TextView textView_timestamp;
     private TextView photo_title;
     private TextView photo_author;
@@ -116,6 +114,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     ToggleButton like_button;
     private TextView nlikeTv;
     private TextView nDislikeTv;
+    private TextView descriptionTv;
     private ImageView weather_label;
     private CloudPhotoDetailViewModel mViewModel;
     private PhotoDetailPagerAdapter adapter;
@@ -179,13 +178,13 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         likeHelper = new PhotoLikeHelper(requireContext());
         dislike_button = view.findViewById(R.id.dislike_button);
         like_button = view.findViewById(R.id.like_button);
-        textView_basic_meta = (TextView) view.findViewById(R.id.textView_basic_metadata);
-        textView_other_meta = (TextView) view.findViewById(R.id.textView_other_metadata);
         textView_timestamp = (TextView) view.findViewById(R.id.textView_timestamp);
         photo_title = (TextView)view.findViewById(R.id.photo_title);
         photo_author = (TextView)view.findViewById(R.id.photo_author);
         tag_group = (TagGroup)view.findViewById(R.id.tag_group);
         textView_location =(TextView)requireView().findViewById(R.id.textView_location);
+
+        descriptionTv = (TextView)requireView().findViewById(R.id.descriptionTv);
         avatarView = view.findViewById(R.id.avatar);
         primaryUserId = ((MyAppCompatActivity)requireActivity()).getPrimaryUserId();
 
@@ -406,25 +405,12 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         photo_title.setText(photo.getTitle());
         tag_group.setTags(photo.getTags());
         Log.w(TAG,"coordinate "+photo.getLatitude() + ','+photo.getLongitude());
-        textView_location.setText(""+photo.getLatitude() + ' '+ photo.getLongitude());
-        if (textView_basic_meta == null) {
-            Log.e(this.getClass().getSimpleName(), "text view not found");
-        }
+        textView_location.setText("Lat: "+
+                String.format(java.util.Locale.US,"%.6f",photo.getLatitude())
+                + '\n'+ "Log:"+String.format(java.util.Locale.US,"%.6f",photo.getLongitude()));
 
+        descriptionTv.setText(photo.getDescription());
 
-        StringBuilder sbuf_expo = new StringBuilder();
-        Formatter fmt_expo = new Formatter(sbuf_expo);
-        if (photo.shutter_speed > 0) {
-            fmt_expo.format("f/%.1f  1/%ds  ISO:%d", photo.aperture, (int) photo.shutter_speed, photo.iso);
-        } else {
-            fmt_expo.format("f/%.1f  %.1fs  ISO:%d", photo.aperture, Math.abs(photo.shutter_speed), photo.iso);
-        }
-        textView_basic_meta.setText(sbuf_expo.toString());
-
-        StringBuilder sbuf_other = new StringBuilder();
-        Formatter fmt_other = new Formatter(sbuf_other);
-        fmt_other.format("%dmm", photo.focal_length);
-        textView_other_meta.setText(fmt_other.toString());
         Calendar calendar = Calendar.getInstance();
         TimeZone tz = TimeZone.getDefault();
         calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));

@@ -30,7 +30,7 @@ public class CloudPhoto extends Photo {
     private String title;
     private int nLike;
     private int nDislike;
-    private String disc;
+    private String description;
     private List<String> tags;
     private List<Integer> likedUserIds = new ArrayList<>();
     private List<Integer> dislikeUserIds = new ArrayList<>();
@@ -40,7 +40,7 @@ public class CloudPhoto extends Photo {
         CloudPhoto photo = new CloudPhoto();
         photo.id = json.getInt("ID");
         photo.title = json.getString("Title");
-        photo.disc = "";
+        photo.description = "";
 
         photo.userId = json.getInt("UserID");
         double longitude = json.getDouble("Lng");
@@ -79,6 +79,7 @@ public class CloudPhoto extends Photo {
                     photo.dislikeUserIds.add(votesObject.getInt("UID"));
             }
         }
+        photo.description = json.getString("Body");
         return photo;
     }
 
@@ -115,5 +116,9 @@ public class CloudPhoto extends Photo {
 
     public String getWeather() {
         return weather;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
