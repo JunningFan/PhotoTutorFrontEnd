@@ -1,45 +1,16 @@
 package com.example.phototutor;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.FragmentTransaction;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.location.Geocoder;
-import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.PopupMenu;
-import android.widget.Toast;
 
-import com.example.phototutor.ui.login.ui.login.LoginActivity;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
-import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-
-import org.json.JSONObject;
-
-import java.io.IOException;
 
 public class MainActivity extends MyAppCompatActivity {
 
@@ -62,10 +33,8 @@ public class MainActivity extends MyAppCompatActivity {
 //        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         configNavigationItemSelectedListener(navView);
 
+
     }
-
-
-
 
     private void configNavigationItemSelectedListener(BottomNavigationView navView ){
         navView.setOnNavigationItemSelectedListener(item -> {

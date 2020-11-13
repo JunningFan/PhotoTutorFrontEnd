@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:id="@+id/notification_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/cardview_light_background">
+
+    <RelativeLayout
+        android:layout_marginHorizontal="@dimen/margin_xsmall"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+        <com.github.vipulasri.timelineview.TimelineView
+            android:id="@+id/timeline"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            app:marker="@android:color/transparent"
+            app:endLineColor="#F5F5F5"
+            app:startLineColor="#F5F5F5"
+            app:lineWidth="3dp"
+            app:markerSize="20dp"
+
+            />
+
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/userAvatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerVertical="true"
+            app:civ_circle_background_color="@android:color/white"
+            app:civ_border_color="#c9c9c9"
+            app:civ_border_width="1dp"
+            android:src="@drawable/cloudy"
+            tools:srcCompat="@tools:sample/avatars" />
+    </RelativeLayout>
+
+<!--    <ImageView-->
+<!--        android:id="@+id/line"-->
+<!--        android:layout_width="1dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_marginStart="32dp"-->
+<!--        android:layout_marginLeft="32dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:srcCompat="@color/gray_line_colour" />-->
+    <com.google.android.material.card.MaterialCardView
+        app:cardBackgroundColor="#F5F5F5"
+        android:layout_marginVertical="@dimen/margin_xsmall"
+        android:layout_marginEnd="@dimen/margin_xsmall"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:padding="@dimen/margin_xsmall"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_marginBottom="@dimen/margin_xsmall"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/post_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="22:10"
+                    android:fontFamily="@font/lato_bold" />
+
+                <TextView
+                    android:layout_marginLeft="@dimen/margin_xsmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="From "
+                    android:fontFamily="@font/lato_bold" />
+
+                <TextView
+                    android:id="@+id/post_user_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/lato_bold" />
+
+
+            </LinearLayout>
+            <TextView
+                android:id="@+id/notification_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:lineSpacingExtra="8sp"
+                android:text="@string/short_text"
+                android:textAlignment="viewStart"
+              />
+
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

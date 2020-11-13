@@ -5,4 +5,5 @@
     <color name="colorAccent">#03DAC5</color>
     <color name="orientation_arrow">#FF33AEFF</color>
     <color name="themeBlue">#3F5AA6</color>
+    <color name="gray_line_colour">#E7E7E7</color>
 </resources>

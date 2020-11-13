@@ -110,8 +110,8 @@ public class EditProfileActivity extends MyAppCompatActivity {
 
         String initSignature = getIntent().getStringExtra("signature");
         String initNickname = getIntent().getStringExtra("nickname");
-        name.setText(initSignature);
-        bio.setText(initNickname);
+        name.setText(initNickname);
+        bio.setText(initSignature);
 
         Uri initAvatarUrl = Uri.parse(getIntent().getStringExtra("avatarUrl"));
         Glide

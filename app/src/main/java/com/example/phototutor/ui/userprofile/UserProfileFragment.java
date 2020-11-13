@@ -32,7 +32,9 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.target.Target;
 import com.example.phototutor.EditProfileActivity;
+import com.example.phototutor.MainActivity;
 import com.example.phototutor.MyAppCompatActivity;
+import com.example.phototutor.NotificationActivity;
 import com.example.phototutor.Photo.CloudPhoto;
 import com.example.phototutor.R;
 import com.example.phototutor.adapters.AlbumAdapter;
@@ -203,17 +205,22 @@ public class UserProfileFragment extends Fragment {
         user_action_btn = requireView().findViewById(R.id.user_action_btn);
         MaterialToolbar topAppBar = view.findViewById(R.id.topAppBar);
         topAppBar.setOnMenuItemClickListener(item -> {
-            new MaterialAlertDialogBuilder(requireContext()).setTitle("Do you want to sign out?")
-                    .setNeutralButton("Back",null)
-                    .setPositiveButton("Sign out", (dialogInterface, i) -> {
-                        switch (item.getItemId()){
-                            case R.id.navigation_logout:
+            switch (item.getItemId()){
+                case R.id.navigation_logout:
+                    new MaterialAlertDialogBuilder(requireContext()).setTitle("Do you want to sign out?")
+                            .setNeutralButton("Back",null)
+                            .setPositiveButton("Sign out", (dialogInterface, i) -> {
                                 LoginActivity.userLogout();
                                 Intent intent = new Intent(requireContext(), LoginActivity.class);
                                 startActivity(intent);
-                                break;
-                        }
-                    }).show();
+                            }).show();
+                    break;
+                case R.id.navigation_notification:
+                    Intent intent2 = new Intent(requireContext(), NotificationActivity.class);
+                    startActivity(intent2);
+                    break;
+
+            }
 
             return true;
         });

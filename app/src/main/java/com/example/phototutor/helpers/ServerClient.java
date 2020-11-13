@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 
 import com.example.phototutor.Photo.Photo;
+import com.example.phototutor.notification.Notification;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.itkacher.okhttpprofiler.OkHttpProfilerInterceptor;
@@ -14,6 +15,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
@@ -152,7 +154,7 @@ public class ServerClient{
         @POST("/picture/{id}/comment")
         Call<ResponseBody> commentPhoto(@Header("Authorization") String authKey,@Path("id") int id, @Body JsonObject body);
 
-        @GET("/picture")
+        @GET("/message")
         Call<ResponseBody> getUserNotifications(@Header("Authorization") String authKey);
 
         @Headers("Content-type: application/json")

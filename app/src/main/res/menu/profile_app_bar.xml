@@ -6,4 +6,11 @@
         android:icon="@drawable/ic_baseline_exit_to_app_24"
         android:title="Log Out"
         app:showAsAction="ifRoom"/>
+
+
+    <item
+        android:id="@+id/navigation_notification"
+        android:icon="@drawable/ic_notifications_black_24dp"
+        android:title="Notification"
+        app:showAsAction="ifRoom"/>
 </menu>

@@ -417,8 +417,6 @@ public class HomeFragment extends Fragment {
             @Override
             public void onFailResponse(String message, int code) {
                 swipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(requireContext(),
-                        "Network Failed. Please check the network",Toast.LENGTH_LONG);
                 Snackbar.make(requireView(),
                         message,
                         Snackbar.LENGTH_INDEFINITE)
@@ -426,6 +424,7 @@ public class HomeFragment extends Fragment {
                             swipeRefreshLayout.setRefreshing(true);
                             refreshPhotos();
                         })
+                        .setAnchorView(requireActivity().findViewById(R.id.nav_view))
 
                         .show();
             }
@@ -433,10 +432,8 @@ public class HomeFragment extends Fragment {
             @Override
             public void onFailRequest(Call<ResponseBody> call, Throwable t) {
                 swipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(requireContext(),
-                        "Network Failed. Please check the network",Toast.LENGTH_LONG);
                 Snackbar.make(getView(),
-                        "Network Failed. Please check the network",
+                        "Network Failed. Please try again",
                         Snackbar.LENGTH_INDEFINITE)
 
                         .setAction("Retry", view -> {
