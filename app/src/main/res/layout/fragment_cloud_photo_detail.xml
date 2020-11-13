@@ -265,39 +265,7 @@
                         android:fontFamily="@font/lato"
                         android:text="Lorem ipsum dolor sit amet,consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim."
                         />
-
-                    <TextView
-                        android:id="@+id/textView_basic_metadata"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:alpha="255"
-                        android:drawableLeft="@drawable/ic_baseline_exposure_24"
-                        android:drawablePadding="5dp"
-                        android:drawableTint="@android:color/white"
-                        android:gravity="center"
-                        android:text="FC220"
-                        android:textColor="#FFFFFF"
-                        android:textColorHighlight="#FFFFFF"
-                        android:textColorLink="#FFFFFF"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:id="@+id/textView_other_metadata"
-                        android:drawableTint="@android:color/white"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginVertical="@dimen/margin_xsmall"
-                        android:alpha="255"
-                        android:drawableLeft="@drawable/ic_outline_camera_24"
-                        android:drawablePadding="5dp"
-                        android:gravity="center"
-                        android:text="Placeholder"
-                        android:textColor="#FFFFFF"
-                        android:textColorHighlight="#FFFFFF"
-                        android:textColorLink="#FFFFFF"
-                        android:textSize="18sp" />
+                    
 
                     <TextView
                         android:id="@+id/textView_timestamp"
