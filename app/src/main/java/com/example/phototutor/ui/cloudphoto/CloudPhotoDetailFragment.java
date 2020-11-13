@@ -105,7 +105,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     UserInfoDownloader downloader;
     PhotoLikeHelper likeHelper;
     PhotoDownloader photoDownloader;
-
+    Geocoder geocoder;
     private TextView photo_address;
     private TextView textView_timestamp;
     private TextView photo_title;
@@ -190,7 +190,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
 
         photo_address = view.findViewById(R.id.photo_address);
 
-
+        geocoder = new Geocoder(requireContext());
         descriptionTv = (TextView)requireView().findViewById(R.id.descriptionTv);
         avatarView = view.findViewById(R.id.avatar);
         primaryUserId = ((MyAppCompatActivity)requireActivity()).getPrimaryUserId();
@@ -417,7 +417,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                 + '\n'+ "Log:"+String.format(java.util.Locale.US,"%.6f",photo.getLongitude()));
 
         descriptionTv.setText(photo.getDescription());
-        Geocoder geocoder = new Geocoder(requireContext());
+
         try {
             String locality = (geocoder.getFromLocation(photo.getLatitude(), photo.getLongitude(),1)).get(0).getLocality();
             photo_address.setText(locality);
