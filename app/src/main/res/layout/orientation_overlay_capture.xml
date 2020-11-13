@@ -10,10 +10,10 @@
         android:id="@+id/imageViewUp"
         android:layout_width="150dp"
         android:layout_height="120dp"
-        android:layout_marginTop="96dp"
+        android:layout_marginTop="48dp"
         android:tint="@color/orientation_arrow"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.499"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_baseline_arrow_upward_24" />
@@ -22,11 +22,11 @@
         android:id="@+id/imageViewDown"
         android:layout_width="150dp"
         android:layout_height="120dp"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="48dp"
         android:tint="@color/orientation_arrow"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintHorizontal_bias="0.499"
         app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@drawable/ic_baseline_arrow_downward_24" />
 
@@ -44,10 +44,12 @@
         android:id="@+id/imageViewRight"
         android:layout_width="120dp"
         android:layout_height="150dp"
+        android:layout_marginEnd="44dp"
         android:tint="@color/orientation_arrow"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.501"
         app:srcCompat="@drawable/ic_baseline_arrow_forward_24" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -63,10 +65,10 @@
         app:fabCustomSize="72dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.736"
         app:layout_constraintStart_toEndOf="@+id/imageViewDown"
         app:layout_constraintTop_toBottomOf="@+id/imageViewRight"
-        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintVertical_bias="0.568"
         app:maxImageSize="48dp"
         app:srcCompat="@drawable/ic_baseline_camera_alt_32" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -55,45 +55,33 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-public class OrientationGuideFragment extends Fragment implements OrientationHelperOwner,  NavigationActivity.RequestPhotoData{
+public class OrientationGuideFragment extends Fragment implements OrientationHelperOwner, NavigationActivity.RequestPhotoData {
 
     private static final int MAX_PREVIEW_WIDTH = 3840;
     private static final int MAX_PREVIEW_HEIGHT = 2160;
-
-    private final TextureView.SurfaceTextureListener mSurfaceTextureListener
-            = new TextureView.SurfaceTextureListener() {
-
-        @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
-            openCamera(width, height);
-        }
-
-        @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture texture, int width, int height) {
-            configureTransform(width, height);
-        }
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture texture) {
-            return true;
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture texture) {
-        }
-
-    };
-
+    private static final int REQUEST_CAMERA_PERMISSION = 1;
+    //device orientation
+    OrientationHelper orientationHelper;
+    float[] orientationRad = {0, 0, 0};
+    float[] orientationDeg = {0, 0, 0};
+    MutableLiveData<float[]> orientationDegLiveData = new MutableLiveData<>();
+    // implement RequestPhotoData
+    Bitmap bitmap;
+    double photoLatitude;
+    double photoLongitude;
+    double photoOrientation;
+    double photoElevation;
     private String mCameraId;
-
     private TextureView mTextureView;
-
     private CameraCaptureSession mCaptureSession;
-
     private CameraDevice mCameraDevice;
-
     private Size mPreviewSize;
-
+    private HandlerThread mBackgroundThread;
+    private Handler mBackgroundHandler;
+    private ImageReader mImageReader;
+    private CaptureRequest.Builder mPreviewRequestBuilder;
+    private CaptureRequest mPreviewRequest;
+    private final Semaphore mCameraOpenCloseLock = new Semaphore(1);
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
         @Override
@@ -120,27 +108,67 @@ public class OrientationGuideFragment extends Fragment implements OrientationHel
         }
 
     };
+    private final TextureView.SurfaceTextureListener mSurfaceTextureListener
+            = new TextureView.SurfaceTextureListener() {
 
-    private HandlerThread mBackgroundThread;
-    private Handler mBackgroundHandler;
-    private ImageReader mImageReader;
-    private CaptureRequest.Builder mPreviewRequestBuilder;
-    private CaptureRequest mPreviewRequest;
-    private Semaphore mCameraOpenCloseLock = new Semaphore(1);
-    private static final int REQUEST_CAMERA_PERMISSION = 1;
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
+            openCamera(width, height);
+        }
 
-    //device orientation
-    OrientationHelper orientationHelper;
-    float[] orientationRad = {0,0,0};
-    float[] orientationDeg = {0,0,0};
-    MutableLiveData<float[]> orientationDegLiveData = new MutableLiveData<>();
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture texture, int width, int height) {
+            configureTransform(width, height);
+        }
 
-    // implement RequestPhotoData
-    Bitmap bitmap;
-    double photoLatitude;
-    double photoLongitude;
-    double photoOrientation;
-    double photoElevation;
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture texture) {
+            return true;
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture texture) {
+        }
+
+    };
+
+    private static Size chooseOptimalSize(Size[] choices, int textureViewWidth,
+                                          int textureViewHeight, int maxWidth, int maxHeight, Size aspectRatio) {
+
+        // Collect the supported resolutions that are at least as big as the preview Surface
+        List<Size> bigEnough = new ArrayList<>();
+        // Collect the supported resolutions that are smaller than the preview Surface
+        List<Size> notBigEnough = new ArrayList<>();
+        int w = aspectRatio.getWidth();
+        int h = aspectRatio.getHeight();
+        if (h > w) {
+            h = w / 9 * 16;
+        } else {
+            w = h / 9 * 16;
+        }
+        for (Size option : choices) {
+            if (option.getWidth() <= maxWidth && option.getHeight() <= maxHeight &&
+                    option.getHeight() == option.getWidth() * h / w) {
+                if (option.getWidth() >= textureViewWidth &&
+                        option.getHeight() >= textureViewHeight) {
+                    bigEnough.add(option);
+                } else {
+                    notBigEnough.add(option);
+                }
+            }
+        }
+
+        // Pick the smallest of those big enough. If there is no one big enough, pick the
+        // largest of those not big enough.
+        if (bigEnough.size() > 0) {
+            return Collections.min(bigEnough, new CompareSizesByArea());
+        } else if (notBigEnough.size() > 0) {
+            return Collections.max(notBigEnough, new CompareSizesByArea());
+        } else {
+            Log.e("Camera2", "Couldn't find any suitable preview size");
+            return choices[0];
+        }
+    }
 
     @Override
     public void receivePhotoBitMap(Bitmap bitmap) {
@@ -159,7 +187,6 @@ public class OrientationGuideFragment extends Fragment implements OrientationHel
         this.photoElevation = elevation;
     }
 
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -175,12 +202,10 @@ public class OrientationGuideFragment extends Fragment implements OrientationHel
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ((NavigationActivity)getActivity()).requestPhotoData(this);
+        ((NavigationActivity) getActivity()).requestPhotoData(this);
         mTextureView = view.findViewById(R.id.viewfinderextureView);
         orientationHelper = new OrientationHelper(getContext(), this);
     }
-
-
 
     @Override
     public void onResume() {
@@ -191,12 +216,14 @@ public class OrientationGuideFragment extends Fragment implements OrientationHel
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
         // the SurfaceTextureListener).
+        drawDirectionArrows();
         if (mTextureView.isAvailable()) {
-                openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+            openCamera(mTextureView.getWidth(), mTextureView.getHeight());
         } else {
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
     }
+
     @Override
     public void onPause() {
         closeCamera();
@@ -224,6 +251,7 @@ public class OrientationGuideFragment extends Fragment implements OrientationHel
             throw new RuntimeException("Interrupted while trying to lock camera opening.", e);
         }
     }
+
     private void closeCamera() {
         try {
             mCameraOpenCloseLock.acquire();
@@ -310,6 +338,7 @@ public class OrientationGuideFragment extends Fragment implements OrientationHel
             Toast.makeText(getContext(), "Camera2 API not supported on this device", Toast.LENGTH_LONG).show();
         }
     }
+
     private void createCameraPreviewSession() {
         try {
             SurfaceTexture texture = mTextureView.getSurfaceTexture();
@@ -364,6 +393,7 @@ public class OrientationGuideFragment extends Fragment implements OrientationHel
             e.printStackTrace();
         }
     }
+
     //permission
     private void requestCameraPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.CAMERA)) {
@@ -422,44 +452,6 @@ public class OrientationGuideFragment extends Fragment implements OrientationHel
         }
     }
 
-    private static Size chooseOptimalSize(Size[] choices, int textureViewWidth,
-                                          int textureViewHeight, int maxWidth, int maxHeight, Size aspectRatio) {
-
-        // Collect the supported resolutions that are at least as big as the preview Surface
-        List<Size> bigEnough = new ArrayList<>();
-        // Collect the supported resolutions that are smaller than the preview Surface
-        List<Size> notBigEnough = new ArrayList<>();
-        int w = aspectRatio.getWidth();
-        int h = aspectRatio.getHeight();
-        if(h > w) {
-            h = w/9*16;
-        } else {
-            w = h/9*16;
-        }
-        for (Size option : choices) {
-            if (option.getWidth() <= maxWidth && option.getHeight() <= maxHeight &&
-                    option.getHeight() == option.getWidth() * h / w) {
-                if (option.getWidth() >= textureViewWidth &&
-                        option.getHeight() >= textureViewHeight) {
-                    bigEnough.add(option);
-                } else {
-                    notBigEnough.add(option);
-                }
-            }
-        }
-
-        // Pick the smallest of those big enough. If there is no one big enough, pick the
-        // largest of those not big enough.
-        if (bigEnough.size() > 0) {
-            return Collections.min(bigEnough, new CompareSizesByArea());
-        } else if (notBigEnough.size() > 0) {
-            return Collections.max(notBigEnough, new CompareSizesByArea());
-        } else {
-            Log.e("Camera2", "Couldn't find any suitable preview size");
-            return choices[0];
-        }
-    }
-
     private void configureTransform(int viewWidth, int viewHeight) {
         if (null == mTextureView || null == mPreviewSize) {
             return;
@@ -481,102 +473,94 @@ public class OrientationGuideFragment extends Fragment implements OrientationHel
         } else if (Surface.ROTATION_180 == rotation) {
             matrix.postRotate(180, centerX, centerY);
         }
+        mTextureView.setTransform(matrix);
+    }
 
+    private void drawDirectionArrows(){
         ConstraintLayout camera_ui_container = getView().findViewById(R.id.orientation_overlay_capture);
-        if(camera_ui_container != null)
-            ((ConstraintLayout)getView()).removeView(camera_ui_container);
+        if (camera_ui_container != null)
+            ((ConstraintLayout) getView()).removeView(camera_ui_container);
         orientationDegLiveData.removeObservers(getViewLifecycleOwner());
         // Inflate a new view containing all UI for controlling the camera
-        View overlay  = View.inflate(requireContext(),
+        View overlay = View.inflate(requireContext(),
                 R.layout.orientation_overlay_capture, (ConstraintLayout) getView());
-        FloatingActionButton cameraButton = (FloatingActionButton)overlay.findViewById(R.id.cameraActionButton);
+        FloatingActionButton cameraButton = overlay.findViewById(R.id.cameraActionButton);
         cameraButton.setOnClickListener(toCamera -> {
             Intent cameraIntent = new Intent(getContext(), CameraActivity.class);
             getActivity().startActivityForResult(cameraIntent, NavigationActivity.CAMERA_REQUEST_CODE);
         });
-        orientationDegLiveData.observe(getViewLifecycleOwner(), listener ->{
-            double pitch = photoElevation;
-            double azi = photoOrientation;
-            // pitch marker
-            overlay.findViewById(R.id.imageViewUp).setRotation(0f);
-            overlay.findViewById(R.id.imageViewDown).setRotation(0f);
-            if (Math.abs(orientationDegLiveData.getValue()[1] - pitch) <= 5) {
-                overlay.findViewById(R.id.imageViewUp).setAlpha(1);
-                overlay.findViewById(R.id.imageViewUp).setRotation(180f);
-                overlay.findViewById(R.id.imageViewDown).setAlpha(1);
-                overlay.findViewById(R.id.imageViewDown).setRotation(180f);
-            }
-            else if (orientationDegLiveData.getValue()[1] < pitch) {
-                float opacity = (float) Math.abs(orientationDegLiveData.getValue()[1] - pitch) / 45;
-                if(opacity > 1) {
-                    opacity = 1f;
-                }
-                overlay.findViewById(R.id.imageViewUp).setAlpha(opacity);
-                overlay.findViewById(R.id.imageViewDown).setAlpha(0);
-            } else {
-                float opacity = (float) Math.abs(orientationDegLiveData.getValue()[1] - pitch) / 45;
-                if(opacity > 1) {
-                    opacity = 1f;
-                }
-                overlay.findViewById(R.id.imageViewUp).setAlpha(0);
-                overlay.findViewById(R.id.imageViewDown).setAlpha(opacity);
-            }
-            //azimuth marker
-            overlay.findViewById(R.id.imageViewLeft).setRotation(0f);
-            overlay.findViewById(R.id.imageViewRight).setRotation(0f);
-            if(Math.abs(orientationDegLiveData.getValue()[2] - azi) < 9) {
-                overlay.findViewById(R.id.imageViewLeft).setAlpha(1);
-                overlay.findViewById(R.id.imageViewLeft).setRotation(180f);
-                overlay.findViewById(R.id.imageViewRight).setAlpha(1);
-                overlay.findViewById(R.id.imageViewRight).setRotation(180f);
-            } else {
-                if (orientationDegLiveData.getValue()[2] > azi) {
-                    if (Math.abs(azi + Math.abs(360 - orientationDegLiveData.getValue()[2])) <  Math.abs(azi - orientationDegLiveData.getValue()[2])) {
-                        float opacity = (float) Math.abs(azi + Math.abs(360 - orientationDegLiveData.getValue()[2]))  / 90;
-                        if(opacity > 1) {
+        orientationDegLiveData.observe(getViewLifecycleOwner(), listener -> {
+                    double pitch = photoElevation;
+                    double azi = photoOrientation;
+                    // pitch marker
+                    overlay.findViewById(R.id.imageViewUp).setRotation(0f);
+                    overlay.findViewById(R.id.imageViewDown).setRotation(0f);
+                    if (Math.abs(orientationDegLiveData.getValue()[1] - pitch) <= 5) {
+                        overlay.findViewById(R.id.imageViewUp).setAlpha(1);
+                        overlay.findViewById(R.id.imageViewUp).setRotation(180f);
+                        overlay.findViewById(R.id.imageViewDown).setAlpha(1);
+                        overlay.findViewById(R.id.imageViewDown).setRotation(180f);
+                    } else if (orientationDegLiveData.getValue()[1] < pitch) {
+                        float opacity = (float) Math.abs(orientationDegLiveData.getValue()[1] - pitch) / 45;
+                        if (opacity > 1) {
                             opacity = 1f;
                         }
-                        overlay.findViewById(R.id.imageViewLeft).setAlpha(0);
-                        overlay.findViewById(R.id.imageViewRight).setAlpha(opacity);
+                        overlay.findViewById(R.id.imageViewUp).setAlpha(opacity);
+                        overlay.findViewById(R.id.imageViewDown).setAlpha(0);
                     } else {
-                        float opacity = (float) Math.abs(azi - orientationDegLiveData.getValue()[2])  / 90;
-                        if(opacity > 1) {
+                        float opacity = (float) Math.abs(orientationDegLiveData.getValue()[1] - pitch) / 45;
+                        if (opacity > 1) {
                             opacity = 1f;
                         }
-                        overlay.findViewById(R.id.imageViewLeft).setAlpha(opacity);
-                        overlay.findViewById(R.id.imageViewRight).setAlpha(0);
+                        overlay.findViewById(R.id.imageViewUp).setAlpha(0);
+                        overlay.findViewById(R.id.imageViewDown).setAlpha(opacity);
                     }
-                } else {
-                    if (Math.abs(azi - orientationDegLiveData.getValue()[2]) <  Math.abs(orientationDegLiveData.getValue()[2]) + (360 - azi)) {
-                        float opacity = (float) Math.abs(azi - orientationDegLiveData.getValue()[2]) / 90;
-                        if(opacity > 1) {
-                            opacity = 1f;
-                        }
-                        overlay.findViewById(R.id.imageViewLeft).setAlpha(0);
-                        overlay.findViewById(R.id.imageViewRight).setAlpha(opacity);
+                    //azimuth marker
+                    overlay.findViewById(R.id.imageViewLeft).setRotation(0f);
+                    overlay.findViewById(R.id.imageViewRight).setRotation(0f);
+                    if (Math.abs(orientationDegLiveData.getValue()[2] - azi) < 9) {
+                        overlay.findViewById(R.id.imageViewLeft).setAlpha(1);
+                        overlay.findViewById(R.id.imageViewLeft).setRotation(180f);
+                        overlay.findViewById(R.id.imageViewRight).setAlpha(1);
+                        overlay.findViewById(R.id.imageViewRight).setRotation(180f);
                     } else {
-                        float opacity = (float)(Math.abs(orientationDegLiveData.getValue()[2]) + (360 - azi)) / 90;
-                        if(opacity > 1) {
-                            opacity = 1f;
+                        if (orientationDegLiveData.getValue()[2] > azi) {
+                            if (Math.abs(azi + Math.abs(360 - orientationDegLiveData.getValue()[2])) < Math.abs(azi - orientationDegLiveData.getValue()[2])) {
+                                float opacity = (float) Math.abs(azi + Math.abs(360 - orientationDegLiveData.getValue()[2])) / 90;
+                                if (opacity > 1) {
+                                    opacity = 1f;
+                                }
+                                overlay.findViewById(R.id.imageViewLeft).setAlpha(0);
+                                overlay.findViewById(R.id.imageViewRight).setAlpha(opacity);
+                            } else {
+                                float opacity = (float) Math.abs(azi - orientationDegLiveData.getValue()[2]) / 90;
+                                if (opacity > 1) {
+                                    opacity = 1f;
+                                }
+                                overlay.findViewById(R.id.imageViewLeft).setAlpha(opacity);
+                                overlay.findViewById(R.id.imageViewRight).setAlpha(0);
+                            }
+                        } else {
+                            if (Math.abs(azi - orientationDegLiveData.getValue()[2]) < Math.abs(orientationDegLiveData.getValue()[2]) + (360 - azi)) {
+                                float opacity = (float) Math.abs(azi - orientationDegLiveData.getValue()[2]) / 90;
+                                if (opacity > 1) {
+                                    opacity = 1f;
+                                }
+                                overlay.findViewById(R.id.imageViewLeft).setAlpha(0);
+                                overlay.findViewById(R.id.imageViewRight).setAlpha(opacity);
+                            } else {
+                                float opacity = (float) (Math.abs(orientationDegLiveData.getValue()[2]) + (360 - azi)) / 90;
+                                if (opacity > 1) {
+                                    opacity = 1f;
+                                }
+                                overlay.findViewById(R.id.imageViewLeft).setAlpha(opacity);
+                                overlay.findViewById(R.id.imageViewRight).setAlpha(0);
+                            }
                         }
-                        overlay.findViewById(R.id.imageViewLeft).setAlpha(opacity);
-                        overlay.findViewById(R.id.imageViewRight).setAlpha(0);
+
                     }
                 }
-
-            }
-        });
-        mTextureView.setTransform(matrix);
-    }
-
-    static class CompareSizesByArea implements Comparator<Size> {
-
-        @Override
-        public int compare(Size lhs, Size rhs) {
-            // We cast here to ensure the multiplications won't overflow
-            return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
-                    (long) rhs.getWidth() * rhs.getHeight());
-        }
+        );
     }
 
     /**
@@ -590,9 +574,18 @@ public class OrientationGuideFragment extends Fragment implements OrientationHel
 
     @Override
     public void onOrientationUpdate(float[] orientation) {
-        ;
         OrientationHelper.getDegreesFromRadian(orientation, orientationDeg);
         orientationDegLiveData.setValue(orientationDeg);
+    }
+
+    static class CompareSizesByArea implements Comparator<Size> {
+
+        @Override
+        public int compare(Size lhs, Size rhs) {
+            // We cast here to ensure the multiplications won't overflow
+            return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
+                    (long) rhs.getWidth() * rhs.getHeight());
+        }
     }
 
 

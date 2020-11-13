@@ -78,6 +78,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -382,6 +383,16 @@ public class HomeFragment extends Fragment {
             @Override
             public void onSuccessResponse(PhotoDownloader.PhotoDownloadResult result) {
                 List<CloudPhoto> photoList = result.getImageArray();
+                //filter goes here
+                String selectedWeather = "all";
+                boolean sortByUpvote = false;
+                if(selectedWeather != "all") {
+                    //photoList = photoList.stream().filter(photo -> photo.weather == selectedWeather).collect(Collectors.toList());
+                }
+                if(sortByUpvote) {
+                    //photoList = photoList.stream().sorted(photo -> photo.getnLike() -)
+                }
+
                 adapter.addPhotos(photoList);
                 Log.w(this.getClass().getName(), "" + adapter.getItemCount());
                 adapter.setImageGridOnClickCallBack(pos -> {

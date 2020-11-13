@@ -11,6 +11,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -206,12 +207,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         LatLngBounds latLngBounds = builder.include(photoLL).include(userLL).build();
-
+        int rotation = getActivity().getWindowManager().getDefaultDisplay().getRotation();
         int height = getResources().getDisplayMetrics().heightPixels;
         int width = getResources().getDisplayMetrics().widthPixels;
-        int padding = (int)(width*.45);
+        int padding = (int)(width*.30);
+        if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
+            padding = (int)(height*.30);
+        }
 
-        //compute the boundary and zoom to fit the markers
+            //compute the boundary and zoom to fit the markers
         CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(latLngBounds, width, height, padding);
 
         coordinate.observe(this, updateUserMarker -> {

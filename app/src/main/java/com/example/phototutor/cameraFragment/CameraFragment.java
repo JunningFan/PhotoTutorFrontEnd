@@ -292,6 +292,8 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        final float imageElevation = orientationDegrees[1];
+                        final float imageOrientation = orientationDegrees[2];
                         if (imageCapture == null) return;
 
                         if (!GpsHelper.isGpsEnabled(locationManager)) {
@@ -318,7 +320,7 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
                                             public void onFailure(okhttp3.Call call, IOException e) {
                                                 Log.d("OKHTTP3", "Exception while doing request.");
                                                 mViewModel.select(
-                                                        new Photo(bitmap, System.currentTimeMillis(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), orientationDegrees[1], orientationDegrees[2], Photo.UNKNOWN)
+                                                        new Photo(bitmap, System.currentTimeMillis(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), imageElevation, imageOrientation, Photo.UNKNOWN)
                                                 );
                                                 Log.w("in camera fragment", mViewModel.getSelected().getValue().toString());
                                                 Navigation.findNavController(
@@ -367,7 +369,7 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
                                                         Log.w(this.getClass().getSimpleName(),"invalid weather response");
                                                     }
                                                     mViewModel.select(
-                                                            new Photo(bitmap, System.currentTimeMillis(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), orientationDegrees[1], orientationDegrees[2], weather)
+                                                            new Photo(bitmap, System.currentTimeMillis(),  gps_bdl.getDouble("latitude"), gps_bdl.getDouble("longitude"), imageElevation, imageOrientation, weather)
                                                     );
                                                     Navigation.findNavController(
                                                             requireActivity(), R.id.camera_nav_host_fragment
@@ -684,6 +686,7 @@ public class CameraFragment extends Fragment implements OrientationHelperOwner {
 
     public void onOrientationUpdate(float[] orientation) {
         OrientationHelper.getDegreesFromRadian(orientation, orientationDegrees);
+        //Log.w("CF", Float.toString(orientationDegrees[1]));
     }
 
     private String getWeather(double lat, double lng, Callback callback) {

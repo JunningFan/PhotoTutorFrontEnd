@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -60,41 +61,37 @@ public class NavigationActivity extends MyAppCompatActivity {
             return false;
         };
         //setup photo data
-        if(getIntent() == null) {
-            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.photo);
-            orientation = 200.4625;
-            elevation = 108.6816;
-            latitude = -33.831233;
-            longitude = 151.206351;
-        } else {
-            final Bundle fromIntent = getIntent().getExtras();
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    URL url = null;
-                    try {
-                        Log.w("navActi", (fromIntent.getString("photoPath")));
-                        url = new URL(fromIntent.getString("photoPath"));
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                        connection.setDoInput(true);
-                        connection.connect();
-                        InputStream input = connection.getInputStream();
-                        bitmap = BitmapFactory.decodeStream(input);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+
+        final Bundle fromIntent = getIntent().getExtras();
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                URL url = null;
+                try {
+                    Log.w("navActi", (fromIntent.getString("photoPath")));
+                    url = new URL(fromIntent.getString("photoPath"));
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
                 }
-            });
-            thread.start();
-            orientation = fromIntent.getDouble("orientation");
-            elevation = fromIntent.getDouble("elevation");
-            latitude = fromIntent.getDouble("latitude");
-            longitude = fromIntent.getDouble("longitude");
-        }
+                try {
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setDoInput(true);
+                    connection.connect();
+                    InputStream input = connection.getInputStream();
+                    bitmap = BitmapFactory.decodeStream(input);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+        orientation = fromIntent.getDouble("orientation");
+        elevation = fromIntent.getDouble("elevation");
+        latitude = fromIntent.getDouble("latitude");
+        longitude = fromIntent.getDouble("longitude");
+
+        Toast.makeText(this, "p: " + Double.toString(elevation), Toast.LENGTH_SHORT).show();
+
         nav.setOnNavigationItemSelectedListener(navListener);
     }
 
