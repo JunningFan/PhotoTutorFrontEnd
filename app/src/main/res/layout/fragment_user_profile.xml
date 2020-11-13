@@ -90,6 +90,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_xsmall"
                 android:ellipsize="end"
+                android:textAlignment="center"
                 android:fontFamily="@font/lato"
                 android:text="Professional Photographer"
                 android:textSize="16dp" />

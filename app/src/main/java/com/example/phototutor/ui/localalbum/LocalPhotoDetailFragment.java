@@ -340,6 +340,11 @@ public class LocalPhotoDetailFragment extends Fragment implements OnMapReadyCall
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode == READ_EXTERNAL_STORAGE_REQUEST_CODE){
+            Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(pickPhoto , 0);
+        }
     }
 
     static private String[] PERMISSIONS_REQUIRED = new String[] {Manifest.permission.READ_EXTERNAL_STORAGE};

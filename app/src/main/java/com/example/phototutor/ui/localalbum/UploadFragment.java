@@ -1,5 +1,6 @@
 package com.example.phototutor.ui.localalbum;
 
+import android.content.DialogInterface;
 import android.inputmethodservice.ExtractEditText;
 import android.os.Bundle;
 
@@ -47,7 +48,7 @@ import retrofit2.Response;
  * Use the  factory method to
  * create an instance of this fragment.
  */
-public class UploadFragment extends DialogFragment {
+public class UploadFragment extends Fragment {
 
     private LocalAlbumViewModel mViewModel;
     private Photo photo;
@@ -224,5 +225,12 @@ public class UploadFragment extends DialogFragment {
 
                 }
         );
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mViewModel.getSelected().removeObservers(this);
+        mViewModel.getAllPhotos().removeObservers(this);
     }
 }
