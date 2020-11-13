@@ -80,7 +80,6 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/lato_bold"
                 android:textAlignment="center"
-                android:text="Zofia Kowaski"
                 android:textColor="#000000"
                 android:textSize="28sp" />
 
@@ -92,7 +91,6 @@
                 android:ellipsize="end"
                 android:textAlignment="center"
                 android:fontFamily="@font/lato"
-                android:text="Professional Photographer"
                 android:textSize="16dp" />
 
 
