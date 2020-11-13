@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.location.Geocoder;
 import android.net.wifi.aware.AttachCallback;
 import android.os.Bundle;
 
@@ -78,6 +79,7 @@ import com.trafi.anchorbottomsheetbehavior.AnchorBottomSheetBehavior;
 
 import org.w3c.dom.Text;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -104,6 +106,7 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
     PhotoLikeHelper likeHelper;
     PhotoDownloader photoDownloader;
 
+    private TextView photo_address;
     private TextView textView_timestamp;
     private TextView photo_title;
     private TextView photo_author;
@@ -183,6 +186,10 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
         photo_author = (TextView)view.findViewById(R.id.photo_author);
         tag_group = (TagGroup)view.findViewById(R.id.tag_group);
         textView_location =(TextView)requireView().findViewById(R.id.textView_location);
+
+
+        photo_address = view.findViewById(R.id.photo_address);
+
 
         descriptionTv = (TextView)requireView().findViewById(R.id.descriptionTv);
         avatarView = view.findViewById(R.id.avatar);
@@ -410,7 +417,14 @@ public class CloudPhotoDetailFragment extends Fragment implements OnMapReadyCall
                 + '\n'+ "Log:"+String.format(java.util.Locale.US,"%.6f",photo.getLongitude()));
 
         descriptionTv.setText(photo.getDescription());
+        Geocoder geocoder = new Geocoder(requireContext());
+        try {
+            String locality = (geocoder.getFromLocation(photo.getLatitude(), photo.getLongitude(),1)).get(0).getLocality();
+            photo_address.setText(locality);
+        } catch (IOException e) {
 
+            photo_address.setText("Location Unavailable");
+        }
         Calendar calendar = Calendar.getInstance();
         TimeZone tz = TimeZone.getDefault();
         calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));
