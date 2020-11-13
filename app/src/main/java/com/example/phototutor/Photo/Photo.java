@@ -60,14 +60,14 @@ public class Photo {
     public double elevation;
 
     // Weather typer constants
-    public static String CLEAR = "clear";
-    public static String PARTLY_CLOUDY = "partly_cloudy";
-    public static String MOSTLY_CLOUDY = "mostly_cloudy";
-    public static String OVERCAST = "overcast";
-    public static String RAIN = "raining";
-    public static String SNOW = "snow";
-    public static String MISTY = "misty";
-    public static String UNKNOWN = "unknown";
+    public final static String CLEAR = "clear";
+    public final static String PARTLY_CLOUDY = "partly_cloudy";
+    public final static String MOSTLY_CLOUDY = "mostly_cloudy";
+    public final static String OVERCAST = "overcast";
+    public final static String RAIN = "raining";
+    public final static String SNOW = "snow";
+    public final static String MISTY = "misty";
+    public final static String UNKNOWN = "unknown";
 
     public String weather;
 

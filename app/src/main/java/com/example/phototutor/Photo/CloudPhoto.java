@@ -34,6 +34,7 @@ public class CloudPhoto extends Photo {
     private List<String> tags;
     private List<Integer> likedUserIds = new ArrayList<>();
     private List<Integer> dislikeUserIds = new ArrayList<>();
+    private String weather;
 
     static public CloudPhoto createCloudPhotoFromJSON(JSONObject json) throws JSONException, MalformedURLException, URISyntaxException {
         CloudPhoto photo = new CloudPhoto();
@@ -65,6 +66,7 @@ public class CloudPhoto extends Photo {
         photo.nDislike = json.getInt("NDislike");
         JSONArray jsonTags = json.getJSONArray("Tags");
         photo.tags = new ArrayList<>();
+        photo.weather = json.getString("Weather");
         for(int i =0;i<jsonTags.length();i++)
             photo.tags.add(jsonTags.getJSONObject(i).getString("Name"));
         if(!json.isNull("Votes")){
@@ -109,5 +111,9 @@ public class CloudPhoto extends Photo {
 
     public int getnDislike() {
         return nDislike;
+    }
+
+    public String getWeather() {
+        return weather;
     }
 }

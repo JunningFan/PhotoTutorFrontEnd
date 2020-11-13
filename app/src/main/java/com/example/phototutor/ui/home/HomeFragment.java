@@ -9,7 +9,9 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -19,6 +21,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ListAdapter;
@@ -243,6 +246,7 @@ public class HomeFragment extends Fragment {
         distanceExposedMenu.clearFocus();
         //distanceExposedMenu.showDropDown();
         distanceExposedMenu.dismissDropDown();
+
         distanceExposedMenu.setOnTouchListener(
                 new View.OnTouchListener() {
                     @Override
@@ -255,7 +259,22 @@ public class HomeFragment extends Fragment {
                 }
         );
 
+        distanceExposedMenu.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                refreshPhotos();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
         cloud_photo_gallery = view.findViewById(R.id.cloud_photo_gallery);
         adapter = new CloudAlbumAdapter(requireContext());
         adapter.setPhotos(new ArrayList<>());

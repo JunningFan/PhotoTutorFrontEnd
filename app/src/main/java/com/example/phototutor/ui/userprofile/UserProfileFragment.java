@@ -1,6 +1,7 @@
 package com.example.phototutor.ui.userprofile;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -40,10 +41,13 @@ import com.example.phototutor.helpers.PhotoDownloader;
 import com.example.phototutor.helpers.UserFollowHelper;
 import com.example.phototutor.helpers.UserInfoDownloader;
 import com.example.phototutor.ui.cloudphoto.CloudPhotoDetailViewModel;
+import com.example.phototutor.ui.login.ui.login.LoginActivity;
 import com.example.phototutor.user.User;
 import com.fivehundredpx.greedolayout.GreedoLayoutManager;
 import com.fivehundredpx.greedolayout.GreedoSpacingItemDecoration;
 import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
@@ -197,7 +201,22 @@ public class UserProfileFragment extends Fragment {
         user_signature  = view.findViewById(R.id.user_signature);
         user_avatar = view.findViewById(R.id.avatar);
         user_action_btn = requireView().findViewById(R.id.user_action_btn);
+        MaterialToolbar topAppBar = view.findViewById(R.id.topAppBar);
+        topAppBar.setOnMenuItemClickListener(item -> {
+            new MaterialAlertDialogBuilder(requireContext()).setTitle("Do you want to sign out?")
+                    .setNeutralButton("Back",null)
+                    .setPositiveButton("Sign out", (dialogInterface, i) -> {
+                        switch (item.getItemId()){
+                            case R.id.navigation_logout:
+                                LoginActivity.userLogout();
+                                Intent intent = new Intent(requireContext(), LoginActivity.class);
+                                startActivity(intent);
+                                break;
+                        }
+                    }).show();
 
+            return true;
+        });
 
         downloader = new UserInfoDownloader(requireContext());
         Glide.with(requireContext())

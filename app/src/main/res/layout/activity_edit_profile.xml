@@ -29,23 +29,19 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         >
-
-        <androidx.cardview.widget.CardView
-            android:id="@+id/myCardView"
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/userImage"
             android:layout_width="100dp"
             android:layout_height="100dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="@id/avatar_field"
-            app:cardCornerRadius="50dp">
+            android:scaleType="centerCrop"
+            app:civ_border_overlay="true"
+            android:background="@drawable/ic_camera"
+            app:layout_constraintBottom_toBottomOf="@id/avatar_field"/>
 
-            <ImageView
-                android:id="@+id/userImage"
-                android:layout_width="100dp"
-                android:layout_height="102dp"
-                android:scaleType="centerCrop" />
-        </androidx.cardview.widget.CardView>
+
 
         <Button
             android:id="@+id/changeProfilePhoto"
@@ -57,7 +53,7 @@
             android:text="Change Profile Photo"
             app:layout_constraintLeft_toLeftOf="@id/avatar_field"
             app:layout_constraintRight_toRightOf="@id/avatar_field"
-            app:layout_constraintTop_toBottomOf="@id/myCardView" />
+            app:layout_constraintTop_toBottomOf="@id/userImage" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

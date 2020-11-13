@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<LinearLayout
+    android:orientation="vertical"
+    android:isScrollContainer="false"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -8,11 +10,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:fitsSystemWindows="true"
     >
-    <RelativeLayout
+    <LinearLayout
+        android:orientation="vertical"
         android:id="@+id/container"
         android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:layout_width="match_parent"
@@ -48,7 +51,7 @@
                 </FrameLayout>
         </LinearLayout>
 
-    </RelativeLayout>
+    </LinearLayout>
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/reply_tool_bar"
         android:layout_gravity="bottom"
@@ -67,4 +70,4 @@
 
     </com.google.android.material.appbar.MaterialToolbar>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</LinearLayout>

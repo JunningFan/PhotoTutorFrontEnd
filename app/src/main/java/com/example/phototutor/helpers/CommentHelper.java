@@ -41,13 +41,26 @@ public class CommentHelper extends ServerClient {
                     JSONArray array = object.getJSONObject("hits").getJSONArray("hits");
                     int totalSize = object.getJSONObject("hits").getJSONObject("total").getInt("value");
                     for(int i =0; i< array.length();i++ ){
+                        int id = array.getJSONObject(i).getJSONObject("_source").getInt("ID");
                         int userId = array.getJSONObject(i).getJSONObject("_source").getInt("UID");
                         int photoId = array.getJSONObject(i).getJSONObject("_source").getInt("PictureID");
                         String message = array.getJSONObject(i).getJSONObject("_source").getString("Message");
                         String createDate = array.getJSONObject(i).getJSONObject("_source").getString("CreatedAt");
-                        Comment comment = new Comment(photoId,message,userId,createDate);
+                        Comment comment = new Comment(photoId,message,userId,createDate,id);
                         comments.add(comment);
                     }
+
+                    comments.sort((v1,v2)->{
+                       if(v1.getCreatedTime().before(v2.getCreatedTime())){
+                           return 1;
+                       }
+                       else if (v1.getCreatedTime().after(v2.getCreatedTime())){
+                           return -1;
+                        }
+                       else{
+                           return 0;
+                        }
+                    });
                     onSuccessResponse(comments,totalSize);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -66,6 +79,24 @@ public class CommentHelper extends ServerClient {
     }
 
 
+    public static abstract class CommentDeletedCallback implements  Callback<ResponseBody>{
+        abstract public void onFailResponse(String message,int code );
+        abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);
+        abstract public void onSuccessResponse();
+
+        @Override
+        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            if(response.isSuccessful()){
+                onSuccessResponse();
+            }else {
+                onFailResponse(response.message(),response.code());
+            }
+        }
+        @Override
+        public void onFailure(Call<ResponseBody> call, Throwable t) {
+            onFailRequest(call, t);
+        }
+    }
     public static abstract class CommentSuccessCallback implements Callback<ResponseBody>{
         abstract public void onFailResponse(String message,int code );
 
@@ -83,7 +114,7 @@ public class CommentHelper extends ServerClient {
                     String message = object.getString("Message");
                     int userId = object.getInt("UID");
                     int photoId =object.getInt("PictureID");
-                    Comment comment = new Comment(photoId,message,userId,createTime);
+                    Comment comment = new Comment(photoId,message,userId,createTime,id);
                     onSuccessResponse(comment);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -116,5 +147,9 @@ public class CommentHelper extends ServerClient {
         JsonObject object = new JsonObject();
         object.addProperty("message",message);
         getService().commentPhoto(getAuthorizationToken(context), photoId, object).enqueue(callback);
+    }
+
+    public void deleteComment(int commentId, CommentDeletedCallback callback){
+        getService().deleteComment(getAuthorizationToken(context),commentId).enqueue(callback);
     }
 }

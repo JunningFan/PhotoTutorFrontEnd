@@ -36,7 +36,7 @@ public class MyAppCompatActivity extends AppCompatActivity {
     }
 
     public int getPrimaryUserId(){
-        if(!sharedPreferences.contains("userID")) {
+        if(!sharedPreferences.contains("accessToken") || sharedPreferences.getString("accessToken",null) == null) {
             navigateToLogin();
         }
         return sharedPreferences.getInt("userID",-1);

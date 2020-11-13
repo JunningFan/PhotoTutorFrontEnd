@@ -139,4 +139,6 @@ dependencies {
     //decode polyline
     implementation 'com.google.maps.android:android-maps-utils:0.4+'
 
+    implementation 'ru.semper-viventem.backdrop:backdrop:0.1.7'
+
 }

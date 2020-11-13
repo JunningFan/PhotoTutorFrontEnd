@@ -18,6 +18,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/white"
+            app:menu="@menu/top_app_bar"
+            app:navigationIcon="@drawable/ic_camera"
             app:expandedTitleGravity="center_horizontal"
             app:expandedTitleMarginEnd="64dp"
             app:expandedTitleMarginStart="48dp"
@@ -41,8 +43,12 @@
 <!--                app:layout_scrollFlags="scroll|enterAlways">-->
 <!--            </com.google.android.material.appbar.MaterialToolbar>-->
 
-
-
+            <com.google.android.material.appbar.MaterialToolbar
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/topAppBar"
+                app:menu="@menu/profile_app_bar"
+                android:background="@android:color/transparent"/>
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
         <com.google.android.material.appbar.MaterialToolbar
