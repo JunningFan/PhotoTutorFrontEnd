@@ -100,6 +100,8 @@
 
                         <TextView
                             android:id="@+id/photo_title"
+                            android:ellipsize="middle"
+                            android:maxLength="15"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:textColor="@android:color/white"
@@ -111,6 +113,8 @@
                         <TextView
                             android:id="@+id/photo_author"
                             android:layout_width="match_parent"
+                            android:ellipsize="end"
+                            android:maxLength="15"
                             android:layout_height="match_parent"
                             android:textColor="@android:color/white"
                             android:fontFamily="@font/lato_bold"
