@@ -43,8 +43,8 @@ An AR/sensor fusion based photo sharing and recommendation service. Users can sh
 
 ### 3. Screenshots
 
-<img align="left" src="media/16075711858436/1607571501736275-2.gif" alt="AR Tutorial" width="50%" height="auto" style="display: inline"/>
-<img align="right" src="media/16075711858436/final_5fd19c646199e2004d410b80_139440.gif" alt="" width="50%" height="auto" style="display: inline;"/>
+<img align="left" src="media/16075711858436/1607571501736275-2.gif" alt="AR Tutorial" width="50%" height="auto"/>
+<img align="right" src="media/16075711858436/final_5fd19c646199e2004d410b80_139440.gif" alt="" width="50%" height="auto"/>
 
 
 
