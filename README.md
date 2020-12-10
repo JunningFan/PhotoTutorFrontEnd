@@ -24,7 +24,7 @@ An AR/sensor fusion based photo sharing and recommendation service. Users can sh
 *  Notification page
     * Get notification on who followed or liked/unliked/commented on the post. 
 
-### 2. Navigatiion    
+### 2. Navigation    
 * Map (Google Maps API, Google Distances API)
 * AR View and Navigation(ARcore, Arcore-location API)
 
@@ -43,10 +43,9 @@ An AR/sensor fusion based photo sharing and recommendation service. Users can sh
 
 ### 3. Screenshots
 
-<img align="left" src="media/16075711858436/1607571501736275-2.gif" alt="AR Tutorial" width="50%" height="auto"/>
-<img align="right" src="media/16075711858436/final_5fd19c646199e2004d410b80_139440.gif" alt="" width="50%" height="auto"/>
-
-
+Navigation        |  Recommendation
+:-------------------------:|:-------------------------:
+![](media/16075711858436/1607571501736275-2.gif)  |  ![](media/16075711858436/final_5fd19c646199e2004d410b80_139440.gif)
 
 ## Backend
 ![](media/16075711858436/16075734129931.jpg)
