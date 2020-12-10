@@ -10,8 +10,9 @@
 ## About
 An AR/sensor fusion based photo sharing and recommendation service. Users can share images on this service. When taking photos, the service will record metadata including orientation, time, location and weather. When a user is at scenic spots, photos taken at that spot, at similar hours, weather condition and orientation will be recommended for the user, which helps them to compose their photo. 
 
-## Language
-
+## Primary Language
+Frontend: Android Java
+Backend: GO
 
 ## Function
 ### 1. User Profile
