@@ -1,0 +1,809 @@
+Index: app/src/main/java/com/example/phototutor/NotificationActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.phototutor;\n\nimport androidx.appcompat.app.AppCompatActivity;\n\nimport android.os.Bundle;\nimport android.widget.Toast;\n\nimport com.example.phototutor.helpers.UserNotification;\n\nimport okhttp3.ResponseBody;\nimport retrofit2.Call;\n\npublic class NotificationActivity extends AppCompatActivity {\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.activity_notification);\n        \n    }\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/NotificationActivity.java	(revision a87dd2fb9617a23288cc9e58a4369134bd37cca4)
++++ app/src/main/java/com/example/phototutor/NotificationActivity.java	(date 1605246571000)
+@@ -1,21 +1,68 @@
+ package com.example.phototutor;
+ 
+ import androidx.appcompat.app.AppCompatActivity;
++import androidx.recyclerview.widget.LinearLayoutManager;
++import androidx.recyclerview.widget.RecyclerView;
+ 
+ import android.os.Bundle;
+-import android.widget.Toast;
+ 
++import com.example.phototutor.adapters.TimeLineAdapter;
+ import com.example.phototutor.helpers.UserNotification;
++import com.example.phototutor.notification.Notification;
++
++import java.util.List;
+ 
+ import okhttp3.ResponseBody;
+ import retrofit2.Call;
+ 
+ public class NotificationActivity extends AppCompatActivity {
++    UserNotification helper;
++    private RecyclerView timelineRv;
++    private TimeLineAdapter adapter;
++
+ 
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+         setContentView(R.layout.activity_notification);
+-        
++        helper  = new UserNotification(this);
++        timelineRv = findViewById(R.id.timeline_rv);
++        timelineRv.setLayoutManager(new LinearLayoutManager(this));
++        helper.getNotificationList(new UserNotification.NotificationOnDownloadSuccessCallback() {
++            @Override
++            public void onFailResponse(String message, int code) {
++
++            }
++
++            @Override
++            public void onFailRequest(Call<ResponseBody> call, Throwable t) {
++
++            }
++
++            @Override
++            public void onSuccessResponse(List<Notification> notifications) {
++                adapter = new TimeLineAdapter(NotificationActivity.this,notifications);
++                timelineRv.setAdapter(adapter);
++            }
++        });
++
++
++//        Call<List<Notification>> notificationList = UserNotification.getNotificationList();
++//
++//        notificationList.enqueue(new Callback<List<Notification>>() {
++//            @Override
++//            public void onResponse(Call<List<Notification>> call, Response<List<Notification>> response) {
++//                if(response.isSuccessful()) {
++//                    Log.e("success", response.body().toString());
++//                }
++//            }
++//
++//            @Override
++//            public void onFailure(Call<List<Notification>> call, Throwable t) {
++//                Log.e("failure", t.getLocalizedMessage());
++//            }
++//        });
++
+     }
++
+ }
+\ No newline at end of file
+Index: app/src/main/res/layout/activity_notification.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<androidx.constraintlayout.widget.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n    xmlns:tools=\"http://schemas.android.com/tools\"\n    android:layout_width=\"match_parent\"\n    android:layout_height=\"match_parent\"\n    tools:context=\".NotificationActivity\">\n\n    <androidx.recyclerview.widget.RecyclerView\n        android:layout_width=\"match_parent\"\n        android:layout_height=\"match_parent\"\n        tools:layout_editor_absoluteX=\"147dp\"\n        tools:layout_editor_absoluteY=\"227dp\" />\n</androidx.constraintlayout.widget.ConstraintLayout>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/activity_notification.xml	(revision a87dd2fb9617a23288cc9e58a4369134bd37cca4)
++++ app/src/main/res/layout/activity_notification.xml	(date 1605246571000)
+@@ -7,8 +7,12 @@
+     tools:context=".NotificationActivity">
+ 
+     <androidx.recyclerview.widget.RecyclerView
+-        android:layout_width="match_parent"
+-        android:layout_height="match_parent"
+-        tools:layout_editor_absoluteX="147dp"
+-        tools:layout_editor_absoluteY="227dp" />
++        android:id="@+id/timeline_rv"
++        android:layout_width="0dp"
++        android:layout_height="0dp"
++        app:layout_constraintBottom_toBottomOf="parent"
++        app:layout_constraintEnd_toEndOf="parent"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toTopOf="parent" />
++
+ </androidx.constraintlayout.widget.ConstraintLayout>
+\ No newline at end of file
+Index: app/src/main/java/com/example/phototutor/helpers/ServerClient.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.phototutor.helpers;\n\nimport android.content.Context;\nimport android.content.SharedPreferences;\nimport android.net.Uri;\n\nimport com.example.phototutor.Photo.Photo;\nimport com.google.gson.GsonBuilder;\nimport com.google.gson.JsonObject;\nimport com.itkacher.okhttpprofiler.OkHttpProfilerInterceptor;\n\nimport org.json.JSONException;\nimport org.json.JSONObject;\n\nimport java.io.File;\nimport java.util.Arrays;\nimport java.util.concurrent.TimeUnit;\n\nimport okhttp3.MediaType;\nimport okhttp3.MultipartBody;\nimport okhttp3.OkHttpClient;\nimport okhttp3.Protocol;\nimport okhttp3.RequestBody;\nimport okhttp3.ResponseBody;\nimport retrofit2.Call;\nimport retrofit2.Callback;\nimport retrofit2.Response;\nimport retrofit2.Retrofit;\nimport retrofit2.converter.gson.GsonConverterFactory;\nimport retrofit2.http.Body;\nimport retrofit2.http.DELETE;\nimport retrofit2.http.GET;\nimport retrofit2.http.HEAD;\nimport retrofit2.http.Header;\nimport retrofit2.http.Headers;\nimport retrofit2.http.Multipart;\nimport retrofit2.http.POST;\nimport retrofit2.http.PUT;\nimport retrofit2.http.Part;\nimport retrofit2.http.Path;\n\npublic class ServerClient{\n    static private String host_address = \"http://whiteboard.house:8000\";\n\n//    static private String host_address = \"https://picsum.photos\";\n//    static private String host_address = \"https://xieranmaya.github.io\";\n    static private Retrofit retrofit = initRetrofit();\n\n\n\n    static private APIServer service =  retrofit.create(APIServer.class);;\n\n    static private Retrofit initRetrofit(){\n        OkHttpClient client = new OkHttpClient.Builder()\n                .protocols(Arrays.asList(Protocol.HTTP_1_1))\n                .addInterceptor(new OkHttpProfilerInterceptor())\n                .connectTimeout(10, TimeUnit.SECONDS)\n                .readTimeout(30, TimeUnit.SECONDS).build();\n\n        retrofit = new Retrofit.Builder()\n                .baseUrl(host_address)\n                .client(client)\n                .addConverterFactory(GsonConverterFactory.create(new GsonBuilder().create()))\n                .build();\n        return retrofit;\n\n    }\n    static public String getBaseURL(){\n        return host_address;\n    }\n\n    public APIServer getService(){\n        return service;\n    }\n\n    public Retrofit getRetrofit(){\n        return retrofit;\n    }\n\n    interface APIServer {\n\n        @Multipart\n        @POST(\"/upload/\")\n        Call<ResponseBody> uploadImage(\n                @Header(\"Authorization\") String authKey,\n                @Part MultipartBody.Part photo\n        );\n\n\n        @POST(\"/picture/\")\n        Call<ResponseBody> uploadImageInfo(\n                @Header(\"Authorization\") String authKey,\n                @Body RequestBody info\n        );\n\n\n        @GET(\"/upload/{id}\")\n        Call<ResponseBody> getPhotoInfo(\n                @Path(\"id\") Integer id);\n\n\n        @Headers(\"Content-type: application/json\")\n        @POST(\"/els/picture/_search\")\n        Call<ResponseBody> getPhotosByEls(@Body JsonObject body);\n\n\n        @GET(\"/picture\")\n        Call<ResponseBody> getAllPictures();\n\n\n        @GET(\"/picture/{id}\")\n        Call<ResponseBody> getPhotoDetail(@Path(\"id\") Integer id);\n\n        @GET(\"/user\")\n        Call<ResponseBody> getUserData(@Header(\"Authorization\") String authKey);\n\n        @Headers(\"Content-type: application/json\")\n        @PUT(\"/user/\")\n        Call<ResponseBody> uploadUserData(@Header(\"Authorization\") String authKey, @Body RequestBody body);\n\n\n\n        //------------------------------------------------------\n\n\n        @GET(\"/user/detail/{id}\")\n        Call<ResponseBody> getUserDetail(@Path(\"id\") Integer id);\n\n        @GET(\"/user/follow/ers/{id}\")\n        Call<ResponseBody> getUserFollowers(@Path(\"id\") Integer id);\n\n        @GET(\"/user/follow/ing/{id}\")\n        Call<ResponseBody> getUserFollowing(@Path(\"id\") Integer id);\n\n        @GET(\"/user/follow/ami/{id}\")\n        Call<ResponseBody> getAmiFollowInfo(@Header(\"Authorization\") String authKey,@Path(\"id\") int id);\n\n        @Headers(\"Content-type: application/json\")\n        @POST(\"/user/follow/{id}\")\n        Call<ResponseBody> addFollower(@Header(\"Authorization\") String authKey,@Path(\"id\") int id);\n\n\n        @Headers(\"Content-type: application/json\")\n        @DELETE(\"/user/follow/{id}\")\n        Call<ResponseBody> removeFollower(@Header(\"Authorization\") String authKey,@Path(\"id\") int id);\n\n        @Headers(\"Content-type: application/json\")\n        @POST(\"/els/comment/_search\")\n        Call<ResponseBody> getComments(@Header(\"Authorization\") String authKey, @Body JsonObject body);\n\n        @Headers(\"Content-type: application/json\")\n        @POST(\"/picture/{id}/comment\")\n        Call<ResponseBody> commentPhoto(@Header(\"Authorization\") String authKey,@Path(\"id\") int id, @Body JsonObject body);\n\n        @GET(\"/picture\")\n        Call<ResponseBody> getUserNotifications(@Header(\"Authorization\") String authKey);\n    }\n\n    public String getAuthorizationToken(Context context){\n        SharedPreferences sharedPreferences = context.getSharedPreferences(\"login\",Context.MODE_PRIVATE);\n        return sharedPreferences.getString(\"accessToken\", \"null\");\n    }\n}\n\n\n\n\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/helpers/ServerClient.java	(revision a87dd2fb9617a23288cc9e58a4369134bd37cca4)
++++ app/src/main/java/com/example/phototutor/helpers/ServerClient.java	(date 1605246711000)
+@@ -5,6 +5,7 @@
+ import android.net.Uri;
+ 
+ import com.example.phototutor.Photo.Photo;
++import com.example.phototutor.notification.Notification;
+ import com.google.gson.GsonBuilder;
+ import com.google.gson.JsonObject;
+ import com.itkacher.okhttpprofiler.OkHttpProfilerInterceptor;
+@@ -14,6 +15,7 @@
+ 
+ import java.io.File;
+ import java.util.Arrays;
++import java.util.List;
+ import java.util.concurrent.TimeUnit;
+ 
+ import okhttp3.MediaType;
+@@ -152,8 +154,27 @@
+         @POST("/picture/{id}/comment")
+         Call<ResponseBody> commentPhoto(@Header("Authorization") String authKey,@Path("id") int id, @Body JsonObject body);
+ 
+-        @GET("/picture")
++        @GET("/message")
+         Call<ResponseBody> getUserNotifications(@Header("Authorization") String authKey);
++
++        @Headers("Content-type: application/json")
++        @POST("/picture/{id}/dislike")
++        Call<ResponseBody> dislikePhoto(@Header("Authorization") String authKey,@Path("id") int id);
++
++
++        @Headers("Content-type: application/json")
++        @POST("/picture/{id}/like")
++        Call<ResponseBody> likePhoto(@Header("Authorization") String authKey,@Path("id") int id);
++
++        @DELETE("/picture/{id}/dislike")
++        Call<ResponseBody> cancelDislikePhoto(@Header("Authorization") String authKey,@Path("id") int id);
++
++
++        @DELETE("/picture/{id}/like")
++        Call<ResponseBody> cancelLikePhoto(@Header("Authorization") String authKey,@Path("id") int id);
++
++        @DELETE("/picture/{id}/comment")
++        Call<ResponseBody> deleteComment(@Header("Authorization") String authKey, @Path("id") int commentId);
+     }
+ 
+     public String getAuthorizationToken(Context context){
+Index: app/src/main/java/com/example/phototutor/helpers/UserNotification.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.phototutor.helpers;\n\nimport android.content.Context;\n\nimport okhttp3.ResponseBody;\nimport retrofit2.Call;\nimport retrofit2.Callback;\nimport retrofit2.Response;\n\npublic class UserNotification extends ServerClient {\n    private Context context;\n\n    public UserNotification(Context context){\n        this.context = context;\n    }\n\n    static public abstract class UserNotificationCallback implements Callback<ResponseBody> {\n        abstract public void onFailResponse(String message,int code );\n\n        abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);\n\n        abstract public void onSuccessResponse();\n\n        @Override\n        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {\n            if(response.isSuccessful()){\n                onSuccessResponse();\n            }\n            else{\n                onFailResponse(response.message(),response.code());\n            }\n\n        }\n\n        @Override\n        public void onFailure(Call<ResponseBody> call, Throwable t) {\n            onFailRequest(call, t);\n        }\n    }\n\n    public void getNotificationList(int userId, UserNotification.UserNotificationCallback callback){\n        getService().getUserNotifications(getAuthorizationToken(context)).enqueue(callback);\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/helpers/UserNotification.java	(revision a87dd2fb9617a23288cc9e58a4369134bd37cca4)
++++ app/src/main/java/com/example/phototutor/helpers/UserNotification.java	(date 1605246571000)
+@@ -2,6 +2,18 @@
+ 
+ import android.content.Context;
+ 
++import com.example.phototutor.notification.Notification;
++import com.example.phototutor.user.User;
++
++import org.json.JSONArray;
++import org.json.JSONException;
++import org.json.JSONObject;
++
++import java.io.IOException;
++import java.net.MalformedURLException;
++import java.util.ArrayList;
++import java.util.List;
++
+ import okhttp3.ResponseBody;
+ import retrofit2.Call;
+ import retrofit2.Callback;
+@@ -14,31 +26,83 @@
+         this.context = context;
+     }
+ 
+-    static public abstract class UserNotificationCallback implements Callback<ResponseBody> {
++    public abstract static class NotificationOnDownloadSuccessCallback extends RequestCallback{
++
++        public abstract void onSuccessResponse(List<Notification> notifications);
++        @Override
++        public void onSuccessResponse(JSONObject object) throws JSONException {
++            JSONArray array = object.getJSONArray("data");
++
++
++        }
++
++        @Override
++        public void onSuccessResponse(JSONArray array) throws JSONException, MalformedURLException {
++            List<Notification> notifications = new ArrayList<>();
++            for(int i=0;i<array.length();i++){
++                Notification notification =  saveNotification(array.getJSONObject(i));
++                notifications.add(notification);
++                onSuccessResponse(notifications);
++            }
++        }
++    }
++
++    private static abstract class RequestCallback implements Callback<ResponseBody> {
+         abstract public void onFailResponse(String message,int code );
+ 
+         abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);
+ 
+-        abstract public void onSuccessResponse();
++        abstract public void onSuccessResponse(JSONObject object) throws JSONException, MalformedURLException;
++        abstract public void onSuccessResponse(JSONArray array) throws JSONException, MalformedURLException;
++
++        protected boolean isArray(){
++            return false;
++        }
+ 
+         @Override
+         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+-            if(response.isSuccessful()){
+-                onSuccessResponse();
+-            }
+-            else{
++            if(!response.isSuccessful()){
+                 onFailResponse(response.message(),response.code());
++                return;
+             }
++            try {
++                if(!isArray()) {
++                    onSuccessResponse(new JSONObject(response.body().string()));
++                }
++                else{
++                    onSuccessResponse(new JSONArray(response.body().string()));
++                }
++            } catch (JSONException e) {
++                e.printStackTrace();
++            } catch (IOException e) {
++                e.printStackTrace();
++            }
++
+ 
+         }
+ 
+         @Override
+         public void onFailure(Call<ResponseBody> call, Throwable t) {
+-            onFailRequest(call, t);
++            onFailRequest(call,t);
+         }
+     }
+ 
+-    public void getNotificationList(int userId, UserNotification.UserNotificationCallback callback){
++    public void getNotificationList(RequestCallback callback){
+         getService().getUserNotifications(getAuthorizationToken(context)).enqueue(callback);
++//        return getService().getUserNotifications(authKey);
++    }
++
++    private static  Notification saveNotification(JSONObject object)throws JSONException, MalformedURLException {
++        int notificationID = object.getInt("ID");
++        String dateTime = object.getString("CreatedAt");
++        String title = object.getString("Title");
++        String content = object.getString("Body");
++        int myUserID = object.getInt("UserID");
++        int myPictureID = object.getInt("PictureID");
++        int userID = object.getInt("UID");  // User that liked my photo or followed me
++
++        Notification notification = new Notification(notificationID, dateTime, title, content, myUserID, myPictureID, userID);
++
++        return notification;
+     }
+ }
+Index: app/src/main/res/layout/activity_main.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<LinearLayout\n    android:orientation=\"vertical\"\n    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n    xmlns:tools=\"http://schemas.android.com/tools\"\n    android:id=\"@+id/container\"\n    android:layout_width=\"match_parent\"\n    android:layout_height=\"match_parent\"\n    >\n\n\n\n\n    <fragment\n        android:id=\"@+id/nav_host_fragment\"\n        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n        app:defaultNavHost=\"true\"\n        app:itemIconSize = \"@dimen/round_button_large\"\n        android:gravity=\"bottom\"\n        android:layout_weight=\"1\"\n        app:navGraph=\"@navigation/mobile_navigation\"\n        android:layout_height=\"0dp\"\n        android:layout_width=\"match_parent\" />\n\n\n    <com.google.android.material.bottomnavigation.BottomNavigationView\n        android:id=\"@+id/nav_view\"\n        android:layout_width=\"match_parent\"\n        android:layout_height=\"wrap_content\"\n        app:labelVisibilityMode=\"unlabeled\"\n        android:layout_gravity=\"bottom\"\n        android:background=\"?android:attr/windowBackground\"\n        app:menu=\"@menu/bottom_nav_menu\" />\n\n</LinearLayout>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/activity_main.xml	(revision a87dd2fb9617a23288cc9e58a4369134bd37cca4)
++++ app/src/main/res/layout/activity_main.xml	(date 1605246571000)
+@@ -9,8 +9,11 @@
+     android:layout_height="match_parent"
+     >
+ 
+-
+-
++    <ImageButton
++        android:id="@+id/imageButton"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        app:srcCompat="@drawable/ic_notifications_black_24dp" />
+ 
+     <fragment
+         android:id="@+id/nav_host_fragment"
+Index: app/src/main/java/com/example/phototutor/notification/HeaderTextItem.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/notification/HeaderTextItem.java	(date 1605246571000)
++++ app/src/main/java/com/example/phototutor/notification/HeaderTextItem.java	(date 1605246571000)
+@@ -0,0 +1,18 @@
++package com.example.phototutor.notification;
++
++public class HeaderTextItem {
++
++    private String headerText;
++
++    public HeaderTextItem(String headerText){
++        this.headerText = headerText;
++    }
++
++    public String getHeaderText() {
++        return headerText;
++    }
++
++    public void setHeaderText(String headerText) {
++        this.headerText = headerText;
++    }
++}
+Index: app/src/main/res/layout/notification_header.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/notification_header.xml	(date 1605246571000)
++++ app/src/main/res/layout/notification_header.xml	(date 1605246571000)
+@@ -0,0 +1,25 @@
++<?xml version="1.0" encoding="utf-8"?>
++<androidx.constraintlayout.widget.ConstraintLayout
++    xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:orientation="vertical"
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:padding="8dp">
++
++
++    <TextView
++        android:drawablePadding="4dp"
++        android:drawableLeft="@drawable/ic_baseline_watch_later_24"
++        android:id="@+id/header_text"
++        android:layout_width="0dp"
++        android:layout_height="wrap_content"
++        android:textColor="@color/themeBlue"
++        android:layout_marginStart="4dp"
++        android:layout_marginEnd="4dp"
++        android:text="TextView"
++        app:layout_constraintEnd_toEndOf="parent"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toTopOf="parent" />
++</androidx.constraintlayout.widget.ConstraintLayout>
+\ No newline at end of file
+Index: app/src/main/java/com/example/phototutor/adapters/TimeLineAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/adapters/TimeLineAdapter.java	(date 1605246571000)
++++ app/src/main/java/com/example/phototutor/adapters/TimeLineAdapter.java	(date 1605246571000)
+@@ -0,0 +1,86 @@
++package com.example.phototutor.adapters;
++
++import android.content.Context;
++import android.text.format.DateUtils;
++import android.view.LayoutInflater;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.ImageView;
++import android.widget.TextView;
++
++import androidx.annotation.NonNull;
++import androidx.recyclerview.widget.RecyclerView;
++
++import com.example.phototutor.R;
++import com.example.phototutor.notification.Notification;
++import com.github.vipulasri.timelineview.TimelineView;
++
++import java.time.ZonedDateTime;
++import java.util.Date;
++import java.util.List;
++
++public class TimeLineAdapter extends RecyclerView.Adapter<TimeLineAdapter.TimelineViewHolder> {
++
++    private Context mContext;
++    private List<Notification> mdata;
++
++    public TimeLineAdapter(Context mContext, List<Notification> mdata) {
++        this.mContext = mContext;
++        this.mdata = mdata;
++    }
++
++    public class TimelineViewHolder extends RecyclerView.ViewHolder{
++        private TimelineView mTimelineView;
++        private TextView txtPost,txtTime;
++        private ImageView imgUser;
++        private TextView tvHeader;
++
++        public TimelineViewHolder(@NonNull View itemView, int viewType){
++            super(itemView);
++            mTimelineView =(TimelineView) itemView.findViewById(R.id.timeline_rv);
++            mTimelineView.initLine(viewType);
++            txtPost = itemView.findViewById(R.id.notification_content);
++            txtTime = itemView.findViewById(R.id.post_time);
++            imgUser = itemView.findViewById(R.id.userAvatar);
++//            tvHeader = itemView.findViewById(R.id.header_text);
++        }
++
++        void setData(Notification item) {
++//            PostTextItem post = item.getPostTextItem();
++            txtPost.setText(item.getContent());
++            Date dateTime = Date.from(ZonedDateTime.parse(item.getDate()).toInstant());
++            txtTime.setText(DateUtils.getRelativeTimeSpanString(dateTime.getTime()));
++
++//            Glide.with(itemView.getContext()).load().into(imgUser);
++//            HeaderTextItem header = item.getHeaderTextItem();
++//            tvHeader.setText(header.getHeaderText());
++        }
++    }
++
++
++    @NonNull
++    @Override
++    public TimelineViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
++        View view = LayoutInflater.from(mContext).inflate(
++                R.layout.notification_post,
++                parent,false);
++        return new TimelineViewHolder(view,viewType);
++
++    }
++
++    @Override
++    public void onBindViewHolder(@NonNull TimelineViewHolder holder, int position) {
++        holder.setData(mdata.get(position));
++    }
++
++
++
++    @Override
++    public int getItemCount() {
++        if(mdata!=null){
++            return mdata.size();
++        }else {
++            return 0;
++        }
++    }
++}
+Index: app/src/main/res/drawable/ic_baseline_watch_later_24.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/ic_baseline_watch_later_24.xml	(date 1605246571000)
++++ app/src/main/res/drawable/ic_baseline_watch_later_24.xml	(date 1605246571000)
+@@ -0,0 +1,5 @@
++<vector android:height="24dp" android:tint="#3F5AA6"
++    android:viewportHeight="24" android:viewportWidth="24"
++    android:width="24dp" xmlns:android="http://schemas.android.com/apk/res/android">
++    <path android:fillColor="@android:color/white" android:pathData="M12,2C6.5,2 2,6.5 2,12s4.5,10 10,10s10,-4.5 10,-10S17.5,2 12,2zM16.2,16.2L11,13V7h1.5v5.2l4.5,2.7L16.2,16.2z"/>
++</vector>
+Index: app/src/main/java/com/example/phototutor/notification/PostTextItem.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/notification/PostTextItem.java	(date 1605246571000)
++++ app/src/main/java/com/example/phototutor/notification/PostTextItem.java	(date 1605246571000)
+@@ -0,0 +1,38 @@
++package com.example.phototutor.notification;
++
++public class PostTextItem {
++
++    private String postText;
++    private int imgUser;
++    private String time;
++
++    public PostTextItem(String postText, int imgUser, String time){
++        this.postText = postText;
++        this.imgUser = imgUser;
++        this.time = time;
++    }
++
++    public String getPostText() {
++        return postText;
++    }
++
++    public void setPostText(String postText) {
++        this.postText = postText;
++    }
++
++    public int getImgUser() {
++        return imgUser;
++    }
++
++    public void setImgUser(int imgUser) {
++        this.imgUser = imgUser;
++    }
++
++    public String getTime() {
++        return time;
++    }
++
++    public void setTime(String time) {
++        this.time = time;
++    }
++}
+Index: app/src/main/java/com/example/phototutor/notification/Notification.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/notification/Notification.java	(date 1605246587000)
++++ app/src/main/java/com/example/phototutor/notification/Notification.java	(date 1605246587000)
+@@ -0,0 +1,75 @@
++package com.example.phototutor.notification;
++
++import java.net.URL;
++
++public class Notification {
++
++    private String Title,Content,Date;
++    private Integer notificationID, myUserID, myPictureID, userID;
++
++    public Notification(Integer notificationID, String date, String title, String content,  Integer myUserID, Integer myPictureID, Integer userID) {
++        Title = title;
++        Content = content;
++        Date = date;
++        this.notificationID = notificationID;
++        this.myUserID = myUserID;
++        this.myPictureID = myPictureID;
++        this.userID = userID;
++    }
++
++    public String getTitle() {
++        return Title;
++    }
++
++    public void setTitle(String title) {
++        Title = title;
++    }
++
++    public String getContent() {
++        return Content;
++    }
++
++    public void setContent(String content) {
++        Content = content;
++    }
++
++    public String getDate() {
++        return Date;
++    }
++
++    public void setDate(String date) {
++        Date = date;
++    }
++
++    public Integer getNotificationID() {
++        return notificationID;
++    }
++
++    public void setNotificationID(Integer notificationID) {
++        this.notificationID = notificationID;
++    }
++
++    public Integer getMyUserID() {
++        return myUserID;
++    }
++
++    public void setMyUserID(Integer myUserID) {
++        this.myUserID = myUserID;
++    }
++
++    public Integer getMyPictureID() {
++        return myPictureID;
++    }
++
++    public void setMyPictureID(Integer myPictureID) {
++        this.myPictureID = myPictureID;
++    }
++
++    public Integer getUserID() {
++        return userID;
++    }
++
++    public void setUserID(Integer userID) {
++        this.userID = userID;
++    }
++}
+Index: app/src/main/res/layout/notification_post.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/notification_post.xml	(date 1605246587000)
++++ app/src/main/res/layout/notification_post.xml	(date 1605246587000)
+@@ -0,0 +1,62 @@
++<?xml version="1.0" encoding="utf-8"?>
++<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:id="@+id/notification_container"
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:paddingLeft="8dp"
++    android:paddingTop="8dp"
++    android:paddingRight="8dp"
++    android:paddingBottom="8dp"
++    android:background="@color/cardview_light_background">
++
++    <ImageView
++        android:id="@+id/line"
++        android:layout_width="1dp"
++        android:layout_height="0dp"
++        android:layout_marginStart="32dp"
++        android:layout_marginLeft="32dp"
++        app:layout_constraintBottom_toBottomOf="parent"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toTopOf="parent"
++        app:srcCompat="@color/gray_line_colour" />
++
++    <TextView
++        android:id="@+id/post_time"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="22:10"
++        app:layout_constraintEnd_toEndOf="@+id/line"
++        app:layout_constraintHorizontal_bias="0.438"
++        app:layout_constraintStart_toStartOf="@+id/line"
++        app:layout_constraintTop_toTopOf="@+id/line" />
++
++    <ImageView
++        android:id="@+id/userAvatar"
++        android:layout_width="40dp"
++        android:layout_height="40dp"
++        android:layout_marginVertical="@dimen/margin_xsmall"
++        app:layout_constraintEnd_toEndOf="@+id/line"
++        app:layout_constraintStart_toStartOf="@+id/line"
++        app:layout_constraintTop_toBottomOf="@+id/post_time"
++        tools:srcCompat="@tools:sample/avatars" />
++
++    <TextView
++        android:id="@+id/notification_content"
++        android:layout_width="0dp"
++        android:layout_height="wrap_content"
++        android:layout_marginStart="@dimen/margin_xsmall"
++        android:layout_marginTop="@dimen/margin_xsmall"
++        android:layout_marginEnd="@dimen/margin_xsmall"
++        android:layout_marginBottom="@dimen/margin_xsmall"
++        android:background="@color/cardview_light_background"
++        android:lineSpacingExtra="8sp"
++        android:text="@string/short_text"
++        android:textAlignment="viewStart"
++        app:layout_constraintBottom_toBottomOf="parent"
++        app:layout_constraintEnd_toEndOf="parent"
++        app:layout_constraintHorizontal_bias="0.0"
++        app:layout_constraintStart_toEndOf="@+id/userAvatar"
++        app:layout_constraintTop_toTopOf="parent" />
++</androidx.constraintlayout.widget.ConstraintLayout>
+\ No newline at end of file
+Index: app/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>apply plugin: 'com.android.application'\nandroid {\n    compileSdkVersion 30\n    buildToolsVersion \"30.0.2\"\n\n    defaultConfig {\n        applicationId \"com.example.phototutor\"\n        minSdkVersion 28\n        targetSdkVersion 30\n        versionCode 1\n        versionName \"1.0\"\n\n        testInstrumentationRunner \"androidx.test.runner.AndroidJUnitRunner\"\n\n        // Read the API key from ./secure.properties into R.string.maps_api_key\n        def secureProps = new Properties()\n        if (file(\"../secure.properties\").exists()) {\n            file(\"../secure.properties\")?.withInputStream { secureProps.load(it) }\n        }\n        resValue \"string\", \"maps_api_key\", (secureProps.getProperty(\"MAPS_API_KEY\") ?: \"\")\n    }\n    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_1_8\n        targetCompatibility JavaVersion.VERSION_1_8\n    }\n\n\n    buildTypes {\n        release {\n            minifyEnabled false\n            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'\n        }\n    }\n\n\n}\n\ndependencies {\n    implementation fileTree(dir: \"libs\", include: [\"*.jar\"])\n    implementation 'androidx.appcompat:appcompat:1.1.0'\n    implementation 'com.google.android.material:material:1.0.0'\n    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'\n    implementation 'androidx.navigation:navigation-fragment:2.3.0'\n    implementation 'androidx.navigation:navigation-ui:2.3.0'\n    implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'\n    implementation 'androidx.legacy:legacy-support-v4:1.0.0'\n    implementation \"androidx.fragment:fragment:1.2.0\"\n    implementation 'androidx.viewpager:viewpager:1.0.0'\n    implementation 'androidx.viewpager2:viewpager2:1.0.0'\n\n    implementation \"com.squareup.okhttp3:okhttp:3.11.0\"\n    implementation 'com.google.android.gms:play-services-location:17.1.0'\n    // CameraX core library\n    def camerax_version = '1.0.0-beta10'\n    implementation \"androidx.camera:camera-core:$camerax_version\"\n\n    // CameraX Camera2 extensions\n    implementation \"androidx.camera:camera-camera2:$camerax_version\"\n\n    // CameraX Lifecycle library\n    implementation \"androidx.camera:camera-lifecycle:$camerax_version\"\n\n    // CameraX View class\n    implementation 'androidx.camera:camera-view:1.0.0-alpha17'\n\n    // CameraX Extensions library\n    // implementation \"androidx.camera:camera-extensions:1.0.0-alpha09\"\n\n    testImplementation 'junit:junit:4.12'\n    androidTestImplementation 'androidx.test.ext:junit:1.1.1'\n    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'\n\n    //Room\n\n    def room_version = \"2.2.5\"\n\n    implementation \"androidx.room:room-runtime:$room_version\"\n    annotationProcessor \"androidx.room:room-compiler:$room_version\"\n\n    def glide_version = \"4.11.0\"\n    implementation \"com.github.bumptech.glide:glide:$glide_version\"\n    annotationProcessor \"com.github.bumptech.glide:compiler:$glide_version\"\n\n    implementation \"androidx.coordinatorlayout:coordinatorlayout:1.1.0\"\n    implementation 'com.google.android.material:material:1.1.0'\n\n    //maps\n    implementation 'com.google.android.gms:play-services-maps:17.0.0'\n\n    //PhotoView\n\n    implementation 'com.github.chrisbanes:PhotoView:2.0.0'\n\n    //Retrofit2\n    implementation 'com.squareup.retrofit2:retrofit:2.3.0'\n    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'\n\n    implementation 'com.itkacher.okhttpprofiler:okhttpprofiler:1.0.7'\n\n    //AndroidTagGroup\n    implementation 'me.gujun.android.taggroup:library:1.4@aar'\n\n    implementation 'com.google.android:flexbox:2.0.1'\n    implementation 'jp.wasabeef:glide-transformations:4.2.0'\n\n    implementation 'com.fivehundredpx:greedo-layout:1.5.1'\n\n    implementation(\"com.thefuntasty.hauler:core:3.1.0\")\n\n    implementation 'com.github.yuanyang1991:DragDismissLayout:1.0.3'\n\n    implementation 'de.hdodenhof:circleimageview:3.1.0'\n\n\n    //AndroidTagGroup\n    implementation 'me.gujun.android.taggroup:library:1.4@aar'\n\n\n    implementation 'com.trafi:anchor-bottom-sheet-behavior:0.13-alpha'\n\n    implementation 'com.github.jd-alexander:LikeButton:0.2.3'\n\n    implementation 'com.github.medyo:fancybuttons:1.9.1'\n\n    implementation 'cc.cloudist.acplibrary:library:1.2.1'\n\n    //noinspection GradleCompatible\n    implementation 'com.android.support:design:24.1.1\\''\n\n    implementation 'com.libizo:customedittext:1.0.6'\n\n    implementation 'com.github.vipulasri:timelineview:1.1.5'\n\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/build.gradle	(revision a87dd2fb9617a23288cc9e58a4369134bd37cca4)
++++ app/build.gradle	(date 1605246587000)
+@@ -131,4 +131,15 @@
+ 
+     implementation 'com.github.vipulasri:timelineview:1.1.5'
+ 
++    //ARcore/location
++    implementation "com.google.ar.sceneform:core:1.17.1"
++    implementation "com.google.ar.sceneform.ux:sceneform-ux:1.17.1"
++    //implementation 'uk.co.appoly.arcorelocation:arcore-location-debug@aar'
++    implementation 'com.github.appoly:ARCore-Location:1.2'
++    //decode polyline
++    implementation 'com.google.maps.android:android-maps-utils:0.4+'
++
++    implementation 'ru.semper-viventem.backdrop:backdrop:0.1.7'
++
++    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+ }
+\ No newline at end of file
+Index: app/src/main/res/values/strings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><resources>\n    <string name=\"app_name\">Photo Tutor</string>\n    <string name=\"title_home\">Home</string>\n    <string name=\"title_dashboard\">Dashboard</string>\n    <string name=\"title_notifications\">Notifications</string>\n    <string name=\"local_localalbum\">My Album</string>\n    <!-- TODO: Remove or change this placeholder text -->\n    <string name=\"hello_blank_fragment\">Hello blank fragment</string>\n    <string name=\"title_activity_login\">LoginActivity</string>\n    <string name=\"prompt_email\">Username</string>\n    <string name=\"prompt_password\">Password</string>\n    <string name=\"action_sign_in\">Sign in or register</string>\n    <string name=\"action_sign_in_short\">Sign in</string>\n    <string name=\"welcome\">\"Welcome !\"</string>\n    <string name=\"invalid_username\">Not a valid username</string>\n    <string name=\"invalid_password\">Password must be >5 characters</string>\n    <string name=\"login_failed\">\"Login failed\"</string>\n    <string name=\"title_activity_hello\">MainActivity</string>\n    <string name=\"large_text\">\n        \"Material is the metaphor.\\n\\n\"\n\n        \"A material metaphor is the unifying theory of a rationalized space and a system of motion.\"\n        \"The material is grounded in tactile reality, inspired by the study of paper and ink, yet \"\n        \"technologically advanced and open to imagination and magic.\\n\"\n        \"Surfaces and edges of the material provide visual cues that are grounded in reality. The \"\n        \"use of familiar tactile attributes helps users quickly understand affordances. Yet the \"\n        \"flexibility of the material creates new affordances that supercede those in the physical \"\n        \"world, without breaking the rules of physics.\\n\"\n        \"The fundamentals of light, surface, and movement are key to conveying how objects move, \"\n        \"interact, and exist in space and in relation to each other. Realistic lighting shows \"\n        \"seams, divides space, and indicates moving parts.\\n\\n\"\n\n        \"Bold, graphic, intentional.\\n\\n\"\n\n        \"The foundational elements of print based design typography, grids, space, scale, color, \"\n        \"and use of imagery guide visual treatments. These elements do far more than please the \"\n        \"eye. They create hierarchy, meaning, and focus. Deliberate color choices, edge to edge \"\n        \"imagery, large scale typography, and intentional white space create a bold and graphic \"\n        \"interface that immerse the user in the experience.\\n\"\n        \"An emphasis on user actions makes core functionality immediately apparent and provides \"\n        \"waypoints for the user.\\n\\n\"\n\n        \"Motion provides meaning.\\n\\n\"\n\n        \"Motion respects and reinforces the user as the prime mover. Primary user actions are \"\n        \"inflection points that initiate motion, transforming the whole design.\\n\"\n        \"All action takes place in a single environment. Objects are presented to the user without \"\n        \"breaking the continuity of experience even as they transform and reorganize.\\n\"\n        \"Motion is meaningful and appropriate, serving to focus attention and maintain continuity. \"\n        \"Feedback is subtle yet clear. Transitions are efﬁcient yet coherent.\\n\\n\"\n\n        \"3D world.\\n\\n\"\n\n        \"The material environment is a 3D space, which means all objects have x, y, and z \"\n        \"dimensions. The z-axis is perpendicularly aligned to the plane of the display, with the \"\n        \"positive z-axis extending towards the viewer. Every sheet of material occupies a single \"\n        \"position along the z-axis and has a standard 1dp thickness.\\n\"\n        \"On the web, the z-axis is used for layering and not for perspective. The 3D world is \"\n        \"emulated by manipulating the y-axis.\\n\\n\"\n\n        \"Light and shadow.\\n\\n\"\n\n        \"Within the material environment, virtual lights illuminate the scene. Key lights create \"\n        \"directional shadows, while ambient light creates soft shadows from all angles.\\n\"\n        \"Shadows in the material environment are cast by these two light sources. In Android \"\n        \"development, shadows occur when light sources are blocked by sheets of material at \"\n        \"various positions along the z-axis. On the web, shadows are depicted by manipulating the \"\n        \"y-axis only. The following example shows the card with a height of 6dp.\\n\\n\"\n\n        \"Resting elevation.\\n\\n\"\n\n        \"All material objects, regardless of size, have a resting elevation, or default elevation \"\n        \"that does not change. If an object changes elevation, it should return to its resting \"\n        \"elevation as soon as possible.\\n\\n\"\n\n        \"Component elevations.\\n\\n\"\n\n        \"The resting elevation for a component type is consistent across apps (e.g., FAB elevation \"\n        \"does not vary from 6dp in one app to 16dp in another app).\\n\"\n        \"Components may have different resting elevations across platforms, depending on the depth \"\n        \"of the environment (e.g., TV has a greater depth than mobile or desktop).\\n\\n\"\n\n        \"Responsive elevation and dynamic elevation offsets.\\n\\n\"\n\n        \"Some component types have responsive elevation, meaning they change elevation in response \"\n        \"to user input (e.g., normal, focused, and pressed) or system events. These elevation \"\n        \"changes are consistently implemented using dynamic elevation offsets.\\n\"\n        \"Dynamic elevation offsets are the goal elevation that a component moves towards, relative \"\n        \"to the component’s resting state. They ensure that elevation changes are consistent \"\n        \"across actions and component types. For example, all components that lift on press have \"\n        \"the same elevation change relative to their resting elevation.\\n\"\n        \"Once the input event is completed or cancelled, the component will return to its resting \"\n        \"elevation.\\n\\n\"\n\n        \"Avoiding elevation interference.\\n\\n\"\n\n        \"Components with responsive elevations may encounter other components as they move between \"\n        \"their resting elevations and dynamic elevation offsets. Because material cannot pass \"\n        \"through other material, components avoid interfering with one another any number of ways, \"\n        \"whether on a per component basis or using the entire app layout.\\n\"\n        \"On a component level, components can move or be removed before they cause interference. \"\n        \"For example, a floating action button (FAB) can disappear or move off screen before a \"\n        \"user picks up a card, or it can move if a snackbar appears.\\n\"\n        \"On the layout level, design your app layout to minimize opportunities for interference. \"\n        \"For example, position the FAB to one side of stream of a cards so the FAB won’t interfere \"\n        \"when a user tries to pick up one of cards.\\n\\n\"\n    </string>\n</resources>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/strings.xml	(revision a87dd2fb9617a23288cc9e58a4369134bd37cca4)
++++ app/src/main/res/values/strings.xml	(date 1605246587000)
+@@ -16,6 +16,8 @@
+     <string name="invalid_password">Password must be >5 characters</string>
+     <string name="login_failed">"Login failed"</string>
+     <string name="title_activity_hello">MainActivity</string>
++    <string name="short_text">
++        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</string>
+     <string name="large_text">
+         "Material is the metaphor.\n\n"
+ 
+Index: app/src/main/res/values/colors.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n    <color name=\"colorPrimary\">#3F5AA6</color>\n    <color name=\"colorPrimaryDark\">#3700B3</color>\n    <color name=\"colorAccent\">#03DAC5</color>\n    <color name=\"themeBlue\">#3F5AA6</color>\n</resources>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/colors.xml	(revision a87dd2fb9617a23288cc9e58a4369134bd37cca4)
++++ app/src/main/res/values/colors.xml	(date 1605246711000)
+@@ -4,4 +4,5 @@
+     <color name="colorPrimaryDark">#3700B3</color>
+     <color name="colorAccent">#03DAC5</color>
+     <color name="themeBlue">#3F5AA6</color>
++    <color name="gray_line_colour">#E7E7E7</color>
+ </resources>
+\ No newline at end of file
+Index: app/src/main/java/com/example/phototutor/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.phototutor;\n\nimport android.Manifest;\nimport android.annotation.SuppressLint;\nimport android.app.FragmentTransaction;\nimport android.content.Context;\nimport android.content.Intent;\nimport android.content.SharedPreferences;\nimport android.content.pm.PackageManager;\nimport android.location.Geocoder;\nimport android.location.Location;\nimport android.os.Bundle;\nimport android.util.Log;\nimport android.view.MenuItem;\nimport android.view.View;\nimport android.widget.Button;\nimport android.widget.PopupMenu;\nimport android.widget.Toast;\n\nimport com.example.phototutor.ui.login.ui.login.LoginActivity;\nimport com.google.android.gms.location.FusedLocationProviderClient;\nimport com.google.android.gms.location.LocationCallback;\nimport com.google.android.gms.location.LocationRequest;\nimport com.google.android.gms.location.LocationResult;\nimport com.google.android.gms.location.LocationServices;\nimport com.google.android.gms.tasks.OnSuccessListener;\nimport com.google.android.material.appbar.MaterialToolbar;\nimport com.google.android.material.bottomnavigation.BottomNavigationView;\nimport com.google.android.material.bottomsheet.BottomSheetDialog;\n\nimport androidx.annotation.NonNull;\nimport androidx.appcompat.app.AppCompatActivity;\nimport androidx.lifecycle.MutableLiveData;\nimport androidx.lifecycle.Observer;\nimport androidx.navigation.NavController;\nimport androidx.navigation.Navigation;\nimport androidx.navigation.ui.AppBarConfiguration;\nimport androidx.navigation.ui.NavigationUI;\n\nimport org.json.JSONObject;\n\nimport java.io.IOException;\n\npublic class MainActivity extends MyAppCompatActivity {\n\n    private static SharedPreferences sharedPreferences;\n    public static final String fileName = \"login\";\n    public static final String Username = \"username\";\n\n\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.activity_main);\n        BottomNavigationView navView = findViewById(R.id.nav_view);\n        // Passing each menu ID as a set of Ids because each\n        // menu should be considered as top level destinations.\n        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(\n                R.id.navigation_home, R.id.navigation_user_profile)\n                .build();\n//        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);\n        configNavigationItemSelectedListener(navView);\n\n    }\n\n\n\n\n    private void configNavigationItemSelectedListener(BottomNavigationView navView ){\n        navView.setOnNavigationItemSelectedListener(item -> {\n            if(item.getItemId() == R.id.dialog_selection){\n                PopupMenu popup = new PopupMenu(this,findViewById(R.id.dialog_selection));\n                popup.getMenuInflater().inflate(R.menu.camera_local_album_selection_menu, popup.getMenu());\n                popup.setOnMenuItemClickListener(menuItem -> {\n                    Intent intent = null;\n                    switch (menuItem.getItemId()){\n                        case R.id.navigation_camera:\n                            intent = new Intent(this, CameraActivity.class);\n                            break;\n                        case R.id.navigation_local_album:\n                            intent = new Intent(this, LocalAlbumActivity.class);\n                            break;\n\n\n                    }\n                    startActivity(intent);\n                    return true;\n                });\n                popup.setOnDismissListener(popupMenu -> {\n                    navView.setSelectedItemId(R.id.navigation_home);\n\n                });\n                popup.show();\n            }\n            else if (item.getItemId() == R.id.navigation_user_profile){\n                Bundle bundle = new Bundle();\n                bundle.putInt(\"userId\",1); //TODO add primary user id\n                bundle.putBoolean(\"primaryUser\",true);\n                Navigation.findNavController(this,R.id.nav_host_fragment)\n                        .navigate(R.id.navigation_user_profile,bundle);\n            }\n            else if (item.getItemId() == R.id.navigation_home){\n                Navigation.findNavController(this,R.id.nav_host_fragment)\n                        .navigate(R.id.navigation_home);\n            }\n            return true;\n        });\n    }\n\n//    @Override\n//    public void onBackPressed() {\n//        sharedPreferences = getSharedPreferences(fileName, Context.MODE_PRIVATE);\n//        if(sharedPreferences.contains(Username)) {\n//            finishAffinity();\n//            finish();\n//        }\n//\n//    }\n\n\n\n\n    //for fused location listenr\n\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/MainActivity.java	(revision a87dd2fb9617a23288cc9e58a4369134bd37cca4)
++++ app/src/main/java/com/example/phototutor/MainActivity.java	(date 1605246571000)
+@@ -1,45 +1,16 @@
+ package com.example.phototutor;
+ 
+-import android.Manifest;
+-import android.annotation.SuppressLint;
+-import android.app.FragmentTransaction;
+-import android.content.Context;
+ import android.content.Intent;
+ import android.content.SharedPreferences;
+-import android.content.pm.PackageManager;
+-import android.location.Geocoder;
+-import android.location.Location;
+ import android.os.Bundle;
+-import android.util.Log;
+-import android.view.MenuItem;
+ import android.view.View;
+-import android.widget.Button;
++import android.widget.ImageButton;
+ import android.widget.PopupMenu;
+-import android.widget.Toast;
+ 
+-import com.example.phototutor.ui.login.ui.login.LoginActivity;
+-import com.google.android.gms.location.FusedLocationProviderClient;
+-import com.google.android.gms.location.LocationCallback;
+-import com.google.android.gms.location.LocationRequest;
+-import com.google.android.gms.location.LocationResult;
+-import com.google.android.gms.location.LocationServices;
+-import com.google.android.gms.tasks.OnSuccessListener;
+-import com.google.android.material.appbar.MaterialToolbar;
+ import com.google.android.material.bottomnavigation.BottomNavigationView;
+-import com.google.android.material.bottomsheet.BottomSheetDialog;
+ 
+-import androidx.annotation.NonNull;
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.lifecycle.MutableLiveData;
+-import androidx.lifecycle.Observer;
+-import androidx.navigation.NavController;
+ import androidx.navigation.Navigation;
+ import androidx.navigation.ui.AppBarConfiguration;
+-import androidx.navigation.ui.NavigationUI;
+-
+-import org.json.JSONObject;
+-
+-import java.io.IOException;
+ 
+ public class MainActivity extends MyAppCompatActivity {
+ 
+@@ -62,10 +33,18 @@
+ //        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+         configNavigationItemSelectedListener(navView);
+ 
+-    }
+-
+ 
++        // Button to navigate to notification screen
++        ImageButton imageButton = findViewById(R.id.imageButton);
+ 
++        imageButton.setOnClickListener(new View.OnClickListener() {
++            @Override
++            public void onClick(View v) {
++                Intent intent = new Intent(MainActivity.this, NotificationActivity.class);
++                startActivity(intent);
++            }
++        });
++    }
+ 
+     private void configNavigationItemSelectedListener(BottomNavigationView navView ){
+         navView.setOnNavigationItemSelectedListener(item -> {

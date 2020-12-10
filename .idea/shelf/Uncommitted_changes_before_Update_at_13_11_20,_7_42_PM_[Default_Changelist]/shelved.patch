@@ -1,0 +1,1028 @@
+Index: app/src/main/java/com/example/phototutor/helpers/UserNotification.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.phototutor.helpers;\n\nimport android.content.Context;\n\nimport okhttp3.ResponseBody;\nimport retrofit2.Call;\nimport retrofit2.Callback;\nimport retrofit2.Response;\n\npublic class UserNotification extends ServerClient {\n    private Context context;\n\n    public UserNotification(Context context){\n        this.context = context;\n    }\n\n    static public abstract class UserNotificationCallback implements Callback<ResponseBody> {\n        abstract public void onFailResponse(String message,int code );\n\n        abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);\n\n        abstract public void onSuccessResponse();\n\n        @Override\n        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {\n            if(response.isSuccessful()){\n                onSuccessResponse();\n            }\n            else{\n                onFailResponse(response.message(),response.code());\n            }\n\n        }\n\n        @Override\n        public void onFailure(Call<ResponseBody> call, Throwable t) {\n            onFailRequest(call, t);\n        }\n    }\n\n    public void getNotificationList(int userId, UserNotification.UserNotificationCallback callback){\n        getService().getUserNotifications(getAuthorizationToken(context)).enqueue(callback);\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/helpers/UserNotification.java	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/java/com/example/phototutor/helpers/UserNotification.java	(date 1605254360000)
+@@ -1,6 +1,20 @@
+ package com.example.phototutor.helpers;
+ 
+ import android.content.Context;
++import android.util.Log;
++
++import com.example.phototutor.notification.Notification;
++import com.example.phototutor.user.User;
++
++import org.json.JSONArray;
++import org.json.JSONException;
++import org.json.JSONObject;
++
++import java.io.IOException;
++import java.net.MalformedURLException;
++import java.net.URL;
++import java.util.ArrayList;
++import java.util.List;
+ 
+ import okhttp3.ResponseBody;
+ import retrofit2.Call;
+@@ -14,31 +28,85 @@
+         this.context = context;
+     }
+ 
+-    static public abstract class UserNotificationCallback implements Callback<ResponseBody> {
++    public abstract static class NotificationOnDownloadSuccessCallback extends RequestCallback{
++
++        public abstract void onSuccessResponse(List<Notification> notifications);
++        @Override
++        public void onSuccessResponse(JSONObject object) throws JSONException, MalformedURLException {
++            JSONArray array = object.getJSONArray("data");
++            onSuccessResponse(array);
++
++        }
++
++        @Override
++        public void onSuccessResponse(JSONArray array) throws JSONException, MalformedURLException {
++            List<Notification> notifications = new ArrayList<>();
++            for(int i=0;i<array.length();i++){
++                Notification notification =  saveNotification(array.getJSONObject(i));
++                notifications.add(notification);
++                onSuccessResponse(notifications);
++            }
++        }
++    }
++
++    private static abstract class RequestCallback implements Callback<ResponseBody> {
+         abstract public void onFailResponse(String message,int code );
+ 
+         abstract public void onFailRequest(Call<ResponseBody> call, Throwable t);
+ 
+-        abstract public void onSuccessResponse();
++        abstract public void onSuccessResponse(JSONObject object) throws JSONException, MalformedURLException;
++        abstract public void onSuccessResponse(JSONArray array) throws JSONException, MalformedURLException;
++
++        protected boolean isArray(){
++            return false;
++        }
+ 
+         @Override
+         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+-            if(response.isSuccessful()){
+-                onSuccessResponse();
+-            }
+-            else{
++            if(!response.isSuccessful()){
+                 onFailResponse(response.message(),response.code());
++                return;
+             }
++            try {
++                if(!isArray()) {
++                    onSuccessResponse(new JSONObject(response.body().string()));
++                }
++                else{
++                    onSuccessResponse(new JSONArray(response.body().string()));
++                }
++            } catch (JSONException e) {
++                e.printStackTrace();
++            } catch (IOException e) {
++                e.printStackTrace();
++            }
++
+ 
+         }
+ 
+         @Override
+         public void onFailure(Call<ResponseBody> call, Throwable t) {
+-            onFailRequest(call, t);
++            onFailRequest(call,t);
+         }
+     }
+ 
+-    public void getNotificationList(int userId, UserNotification.UserNotificationCallback callback){
++    public void getNotificationList(RequestCallback callback){
+         getService().getUserNotifications(getAuthorizationToken(context)).enqueue(callback);
++//        return getService().getUserNotifications(authKey);
++    }
++
++    private static  Notification saveNotification(JSONObject object)throws JSONException, MalformedURLException {
++        int notificationID = object.getInt("ID");
++        int userID = object.getInt("UID");
++        int actor = object.getInt("Actor");
++        String type = object.getString("Type");
++        String message = object.getString("Message");
++        String datetime = object.getString("CreatedAt");
++//        URL avatarURL = new URL(object.getString("Avatar"));
++
++        Log.e("Notification object", object.toString());
++
++        Notification notification = new Notification(notificationID,userID,actor,type,message,datetime);
++
++        return notification;
+     }
+ }
+Index: app/src/main/java/com/example/phototutor/NotificationActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.phototutor;\n\nimport androidx.appcompat.app.AppCompatActivity;\n\nimport android.os.Bundle;\nimport android.widget.Toast;\n\nimport com.example.phototutor.helpers.UserNotification;\n\nimport okhttp3.ResponseBody;\nimport retrofit2.Call;\n\npublic class NotificationActivity extends AppCompatActivity {\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.activity_notification);\n        \n    }\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/NotificationActivity.java	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/java/com/example/phototutor/NotificationActivity.java	(date 1605256703000)
+@@ -1,21 +1,97 @@
+ package com.example.phototutor;
+ 
+ import androidx.appcompat.app.AppCompatActivity;
++import androidx.recyclerview.widget.LinearLayoutManager;
++import androidx.recyclerview.widget.RecyclerView;
++import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+ 
+ import android.os.Bundle;
+-import android.widget.Toast;
++import android.util.Log;
++import android.view.View;
+ 
++import com.example.phototutor.adapters.TimeLineAdapter;
+ import com.example.phototutor.helpers.UserNotification;
++import com.example.phototutor.notification.Notification;
++import com.google.android.material.appbar.MaterialToolbar;
++import com.google.android.material.snackbar.Snackbar;
++
++import java.util.List;
+ 
+ import okhttp3.ResponseBody;
+ import retrofit2.Call;
+ 
+-public class NotificationActivity extends AppCompatActivity {
+-
++public class NotificationActivity extends MyAppCompatActivity {
++    UserNotification helper;
++    private RecyclerView timelineRv;
++    private TimeLineAdapter adapter;
++    private SwipeRefreshLayout notification_swipe_fresh_layout;
++    private MaterialToolbar tool_bar;
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+         setContentView(R.layout.activity_notification);
+-        
++        helper  = new UserNotification(this);
++        timelineRv = findViewById(R.id.timeline_rv);
++        timelineRv.setLayoutManager(new LinearLayoutManager(this));
++        notification_swipe_fresh_layout = findViewById(R.id.notification_swipe_fresh_layout);
++        notification_swipe_fresh_layout.setOnRefreshListener(() -> {
++            refreshNotifications();
++        });
++        refreshNotifications();
++        tool_bar = findViewById(R.id.tool_bar);
++        tool_bar.setNavigationOnClickListener(view->{onBackPressed();});
++
++
++//        Call<List<Notification>> notificationList = UserNotification.getNotificationList();
++//
++//        notificationList.enqueue(new Callback<List<Notification>>() {
++//            @Override
++//            public void onResponse(Call<List<Notification>> call, Response<List<Notification>> response) {
++//                if(response.isSuccessful()) {
++//                    Log.e("success", response.body().toString());
++//                }
++//            }
++//
++//            @Override
++//            public void onFailure(Call<List<Notification>> call, Throwable t) {
++//                Log.e("failure", t.getLocalizedMessage());
++//            }
++//        });
++
++
++
+     }
++    private void setErrorSnackBar(String message, View.OnClickListener listener ){
++        Snackbar.make(findViewById(R.id.container),
++                message,
++                Snackbar.LENGTH_INDEFINITE)
++                .setAction("Retry",listener)
++                .show();
++    }
++    public void refreshNotifications(){
++        notification_swipe_fresh_layout.setRefreshing(true);
++        helper.getNotificationList(new UserNotification.NotificationOnDownloadSuccessCallback() {
++            @Override
++            public void onFailResponse(String message, int code) {
++                if (code == 401) navigateToLogin();
++                setErrorSnackBar(message,view->{refreshNotifications();});
++            }
++
++            @Override
++            public void onFailRequest(Call<ResponseBody> call, Throwable t) {
++                setErrorSnackBar("Network Failed. Please check the network.",view->{refreshNotifications();});
++            }
++
++            @Override
++            public void onSuccessResponse(List<Notification> notifications) {
++                adapter = new TimeLineAdapter(NotificationActivity.this,notifications);
++                Log.w("NotificationActivity",""+adapter.getItemCount());
++                timelineRv.setAdapter(adapter);
++                tool_bar.setTitle(""+notifications.size() +" Notifications");
++                notification_swipe_fresh_layout.setRefreshing(false);
++            }
++        });
++
++    }
++
+ }
+\ No newline at end of file
+Index: app/src/main/res/layout/activity_notification.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<androidx.constraintlayout.widget.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n    xmlns:tools=\"http://schemas.android.com/tools\"\n    android:layout_width=\"match_parent\"\n    android:layout_height=\"match_parent\"\n    tools:context=\".NotificationActivity\">\n\n    <androidx.recyclerview.widget.RecyclerView\n        android:layout_width=\"match_parent\"\n        android:layout_height=\"match_parent\"\n        tools:layout_editor_absoluteX=\"147dp\"\n        tools:layout_editor_absoluteY=\"227dp\" />\n</androidx.constraintlayout.widget.ConstraintLayout>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/activity_notification.xml	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/res/layout/activity_notification.xml	(date 1605256555000)
+@@ -1,14 +1,38 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
++<androidx.coordinatorlayout.widget.CoordinatorLayout
++    xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:app="http://schemas.android.com/apk/res-auto"
+     xmlns:tools="http://schemas.android.com/tools"
++    android:id="@+id/container"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     tools:context=".NotificationActivity">
++    <com.google.android.material.appbar.AppBarLayout
++        android:layout_width="match_parent"
++        android:background="#ffffff"
++        android:layout_height="wrap_content">
++
++        <com.google.android.material.appbar.MaterialToolbar
++            android:id="@+id/tool_bar"
++            app:navigationIcon="@drawable/ic_baseline_close_24"
++            app:title="Notifications"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"/>
+ 
++    </com.google.android.material.appbar.AppBarLayout>
++
++    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
++        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
++        android:id="@+id/notification_swipe_fresh_layout"
++        android:layout_width="match_parent"
++        android:layout_height="match_parent">
+     <androidx.recyclerview.widget.RecyclerView
++        android:id="@+id/timeline_rv"
+         android:layout_width="match_parent"
+-        android:layout_height="match_parent"
+-        tools:layout_editor_absoluteX="147dp"
+-        tools:layout_editor_absoluteY="227dp" />
+-</androidx.constraintlayout.widget.ConstraintLayout>
+\ No newline at end of file
++        android:layout_height="wrap_content"
++        android:layout_marginHorizontal="@dimen/margin_xsmall"
++        />
++
++    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
++
++</androidx.coordinatorlayout.widget.CoordinatorLayout>
+\ No newline at end of file
+Index: app/src/main/java/com/example/phototutor/ui/home/HomeFragment.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.phototutor.ui.home;\n\nimport android.Manifest;\nimport android.annotation.SuppressLint;\nimport android.content.Intent;\nimport android.content.pm.PackageManager;\nimport android.database.DataSetObserver;\nimport android.location.Geocoder;\nimport android.location.Location;\nimport android.net.Uri;\nimport android.os.Bundle;\nimport android.text.Editable;\nimport android.text.InputType;\nimport android.text.TextWatcher;\nimport android.util.Log;\nimport android.util.TypedValue;\nimport android.view.LayoutInflater;\nimport android.view.Menu;\nimport android.view.MenuInflater;\nimport android.view.MotionEvent;\nimport android.view.View;\nimport android.view.ViewGroup;\nimport android.widget.Adapter;\nimport android.widget.AdapterView;\nimport android.widget.ArrayAdapter;\nimport android.widget.AutoCompleteTextView;\nimport android.widget.ListAdapter;\nimport android.widget.TextView;\nimport android.widget.Toast;\n\nimport androidx.annotation.NonNull;\nimport androidx.annotation.Nullable;\nimport androidx.fragment.app.Fragment;\nimport androidx.lifecycle.MutableLiveData;\nimport androidx.lifecycle.Observer;\nimport androidx.lifecycle.ViewModelProviders;\nimport androidx.navigation.Navigation;\nimport androidx.recyclerview.widget.RecyclerView;\nimport androidx.recyclerview.widget.StaggeredGridLayoutManager;\nimport androidx.swiperefreshlayout.widget.SwipeRefreshLayout;\nimport androidx.viewpager2.widget.ViewPager2;\n\n\nimport com.example.phototutor.MainActivity;\nimport com.example.phototutor.Photo.CloudPhoto;\nimport com.example.phototutor.Photo.Photo;\nimport com.example.phototutor.R;\nimport com.example.phototutor.adapters.AlbumAdapter;\nimport com.example.phototutor.adapters.CloudAlbumAdapter;\nimport com.example.phototutor.helpers.PhotoDownloader;\nimport com.example.phototutor.ui.cloudphoto.CloudPhotoDetailViewModel;\nimport com.example.phototutor.ui.login.ui.login.LoginActivity;\nimport com.fivehundredpx.greedolayout.GreedoLayoutManager;\nimport com.fivehundredpx.greedolayout.GreedoSpacingItemDecoration;\nimport com.google.android.flexbox.AlignItems;\nimport com.google.android.flexbox.FlexDirection;\nimport com.google.android.flexbox.FlexWrap;\nimport com.google.android.flexbox.FlexboxLayoutManager;\nimport com.google.android.flexbox.JustifyContent;\nimport com.google.android.gms.location.FusedLocationProviderClient;\nimport com.google.android.gms.location.LocationCallback;\nimport com.google.android.gms.location.LocationRequest;\nimport com.google.android.gms.location.LocationResult;\nimport com.google.android.gms.location.LocationServices;\nimport com.google.android.gms.tasks.OnSuccessListener;\nimport com.google.android.material.appbar.MaterialToolbar;\nimport com.google.android.material.snackbar.Snackbar;\nimport com.google.android.material.textfield.TextInputEditText;\n\nimport org.json.JSONArray;\nimport org.json.JSONException;\nimport org.json.JSONObject;\n\nimport java.io.IOException;\nimport java.lang.reflect.Array;\nimport java.net.MalformedURLException;\nimport java.net.URI;\nimport java.net.URISyntaxException;\nimport java.util.ArrayList;\nimport java.util.List;\n\nimport okhttp3.ResponseBody;\nimport retrofit2.Call;\nimport retrofit2.Response;\n\npublic class HomeFragment extends Fragment {\n\n    private HomeViewModel homeViewModel;\n    private CloudPhotoDetailViewModel cloudPhotoDetailViewModel;\n        private String TAG =\"HomeFragment\";\n    private CloudAlbumAdapter adapter;\n    private RecyclerView cloud_photo_gallery;\n    private SwipeRefreshLayout swipeRefreshLayout;\n    private boolean isScrolling = false;\n\n    private LocationRequest locationRequest;\n    private LocationCallback locationCallback;\n    private FusedLocationProviderClient mFusedLocationProviderClient;\n\n\n    MutableLiveData<Double[]> coordinate = new MutableLiveData<Double[]>(new Double[]{Double.valueOf(720), Double.valueOf(720)});\n    private final int FUSED_LOCATION_REQUEST_CODE = 0;\n\n    MaterialToolbar topAppBar;\n\n    //define distances\n    private final float[] DISTANCE_FACTORS = new float[]{0.25f, 0.5f, 1f, 2f, 4f, 8f, 16f};\n    private final String[] DISTANCE_STRINGS = new String[]{\"250M\", \"500M\", \"1KM\", \"2KM\", \"4KM\", \"8KM\", \"16KM\"};\n\n    AutoCompleteTextView distanceExposedMenu;\n    ArrayAdapter<String> menuAdapter;\n\n    @Override\n    public View onCreateView(@NonNull LayoutInflater inflater,\n                             ViewGroup container, Bundle savedInstanceState) {\n        homeViewModel =\n                ViewModelProviders.of(this).get(HomeViewModel.class);\n        cloudPhotoDetailViewModel = ViewModelProviders.of(requireActivity()).get(CloudPhotoDetailViewModel.class);\n\n        View root = inflater.inflate(R.layout.fragment_home, container, false);\n        return root;\n\n    }\n\n    @SuppressLint(\"MissingPermission\")\n    private void listenLocationChange() {\n        locationRequest = LocationRequest.create();\n        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);\n        locationRequest.setInterval(100);\n        locationCallback = new LocationCallback(){\n            @Override\n            public void onLocationResult(LocationResult locationResult) {\n                if (locationResult == null) {\n                    return;\n                }\n                for (Location location: locationResult.getLocations()) {\n                    if(location != null) {\n                        Log.d(this.getClass().getSimpleName(), \"change\" + coordinate.getValue()[0].toString() +\" \" +  coordinate.getValue()[1].toString());\n                        coordinate.setValue(new Double[]{location.getLatitude(), location.getLongitude()});\n                    }\n                }\n            }\n        };\n        mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(requireActivity(), new OnSuccessListener<Location>() {\n            @Override\n            public void onSuccess(Location location) {\n                if(location != null) {\n                    Log.d(this.getClass().getSimpleName(), \"change\" + coordinate.getValue()[0].toString() +\" \" +  coordinate.getValue()[1].toString());\n                    coordinate.setValue(new Double[]{location.getLatitude(), location.getLongitude()});\n\n                }\n            }\n        });\n        mFusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);\n    }\n\n    private void configTopAppBarItemSelectedListener(MaterialToolbar topAppBar ){\n        topAppBar.setOnMenuItemClickListener(item -> {\n            switch (item.getItemId()){\n                case R.id.navigation_logout:\n                    LoginActivity.userLogout();\n                    Intent intent = new Intent(requireContext(), LoginActivity.class);\n                    startActivity(intent);\n                    break;\n                default:return false;\n            }\n\n            return true;\n        });\n    }\n\n    @Override\n    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {\n        super.onRequestPermissionsResult(requestCode, permissions, grantResults);\n        switch (requestCode) {\n            case FUSED_LOCATION_REQUEST_CODE:\n                if(grantResults.length == 2 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {\n                    listenLocationChange();\n                } else {\n                    Toast.makeText(requireContext(), \"location information is necessary for the photo recommendation service\", Toast.LENGTH_SHORT);\n                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, FUSED_LOCATION_REQUEST_CODE);\n                }\n                break;\n            default:\n        }\n    }\n\n    @Override\n    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {\n\n        super.onViewCreated(view, savedInstanceState);\n\n        configTopAppBarItemSelectedListener(view.findViewById(R.id.topAppBar));\n        topAppBar = (MaterialToolbar)view.findViewById(R.id.topAppBar);\n        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext());\n\n        if(requireActivity().checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED\n                && requireActivity().checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {\n            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, FUSED_LOCATION_REQUEST_CODE);\n        } else {\n            listenLocationChange();\n        }\n\n        coordinate.observe(getViewLifecycleOwner(), observer -> {\n            if(coordinate.getValue()[0] != 720) {\n                try {\n                    Log.d(this.getClass().getSimpleName(), \"coordination\" + coordinate.getValue()[0].toString() + \" \" + coordinate.getValue()[1].toString());\n                    Geocoder geocoder = new Geocoder(requireContext());\n                    String po;\n                    String adminArea;\n                    String locality;\n                    try {\n                         po = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getPostalCode();\n                         adminArea = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getAdminArea();\n                         locality = (geocoder.getFromLocation(coordinate.getValue()[0], coordinate.getValue()[1], 1)).get(0).getLocality();\n                    } catch (IndexOutOfBoundsException e) {\n                        // not in area with valid po. admin and locality\n                        locality = po = \"Unknown\";\n                    } catch (IllegalArgumentException e) {\n                        // wierd latlng readling\n                        locality = po = \"Unknown\";\n\n                    }\n                    topAppBar.setTitle(locality );// + \" \" + po);\n                } catch (IOException e) {\n                    topAppBar.setTitle(\"Disconnected\");\n                }\n            }\n\n\n\n        });\n        Log.d(\"home_frag\", Boolean.toString(topAppBar.getMenu().findItem(R.id.range).getActionView().findViewById(R.id.distance_filled_exposed_dropdown) == null));\n\n        String[] distances = DISTANCE_STRINGS.clone();\n        menuAdapter =\n                new ArrayAdapter<>(\n                        this.getContext(),\n                        R.layout.weather_dropdown_item,\n                        distances);\n        distanceExposedMenu = (AutoCompleteTextView)topAppBar.getMenu().findItem(R.id.range).getActionView().findViewById(R.id.distance_filled_exposed_dropdown);\n        distanceExposedMenu.setAdapter(menuAdapter);\n        distanceExposedMenu.setText(distances[2]);\n        distanceExposedMenu.setInputType(InputType.TYPE_NULL);\n        menuAdapter.getFilter().filter(null);\n        distanceExposedMenu.clearFocus();\n        //distanceExposedMenu.showDropDown();\n        distanceExposedMenu.dismissDropDown();\n\n        distanceExposedMenu.setOnTouchListener(\n                new View.OnTouchListener() {\n                    @Override\n                    public boolean onTouch(View v, MotionEvent event) {\n                        if (!distanceExposedMenu.getText().toString().equals(\"\"))\n                            menuAdapter.getFilter().filter(null);\n                        distanceExposedMenu.showDropDown();\n                        return false;\n                    }\n                }\n        );\n\n        distanceExposedMenu.addTextChangedListener(new TextWatcher() {\n            @Override\n            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {\n\n            }\n\n            @Override\n            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {\n                refreshPhotos();\n            }\n\n            @Override\n            public void afterTextChanged(Editable editable) {\n\n            }\n        });\n        cloud_photo_gallery = view.findViewById(R.id.cloud_photo_gallery);\n        adapter = new CloudAlbumAdapter(requireContext());\n        adapter.setPhotos(new ArrayList<>());\n        GreedoLayoutManager layoutManager = new GreedoLayoutManager(adapter);\n\n        cloud_photo_gallery.setLayoutManager(layoutManager);\n        int spacing =  (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4,\n                requireContext().getResources().getDisplayMetrics());\n        cloud_photo_gallery.addItemDecoration(new GreedoSpacingItemDecoration(spacing));\n\n        cloud_photo_gallery.setAdapter(adapter);\n        swipeRefreshLayout = view.findViewById(R.id.swap_fresh_layout);\n        swipeRefreshLayout.setOnRefreshListener(() -> refreshPhotos());\n\n        swipeRefreshLayout.setRefreshing(true);\n        cloud_photo_gallery.addOnScrollListener(new RecyclerView.OnScrollListener() {\n            @Override\n            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {\n                super.onScrolled(recyclerView, dx, dy);\n                int currentItem = layoutManager.getChildCount();\n                int totalItems = layoutManager.getItemCount();\n                int scrollOutItems = layoutManager.findFirstVisibleItemPosition();\n                if (isScrolling && currentItem + scrollOutItems == totalItems){\n                    swipeRefreshLayout.setRefreshing(true);\n                    isScrolling = false;\n                    downloadPhotos();\n\n                }\n            }\n\n            @Override\n            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {\n                super.onScrollStateChanged(recyclerView, newState);\n                if(newState ==RecyclerView.SCROLL_STATE_DRAGGING) {\n                    isScrolling = true;\n                }\n            }\n        });\n    }\n\n    private void refreshPhotos(){\n        adapter.setPhotos(new ArrayList<>());\n        downloadPhotos();\n    }\n\n\n\n\n    private void downloadPhotos(){\n\n        if (coordinate.getValue()[0] == 720) {\n            Observer<Double[]> observerValidLocation = new Observer<Double[]>() {\n                @Override\n                public void onChanged(Double[] doubles) {\n                    if(coordinate.getValue()[0] != 720) {\n                        coordinate.removeObserver(this);\n                        downloadPhotosWithValidGeo();\n                    }\n                }\n            };\n            coordinate.observe(getViewLifecycleOwner(), observerValidLocation);\n        } else {\n            downloadPhotosWithValidGeo();\n        }\n    }\n\n    private void downloadPhotosWithValidGeo() {\n        PhotoDownloader downloader = new PhotoDownloader(requireContext());\n        downloader.downloadPhotosByGeo( coordinate.getValue()[0], coordinate.getValue()[1],adapter.getItemCount(),30,\n                DISTANCE_FACTORS[java.util.Arrays.asList(DISTANCE_STRINGS).indexOf(distanceExposedMenu.getText().toString())],\n                new PhotoDownloader.OnPhotoDownloadedByGeo(){\n            @Override\n            public void onFailResponse(String message, int code) {\n                swipeRefreshLayout.setRefreshing(false);\n                Toast.makeText(requireContext(),\n                        \"Network Failed. Please check the network\",Toast.LENGTH_LONG);\n                Snackbar.make(requireView(),\n                        message,\n                        Snackbar.LENGTH_INDEFINITE)\n                        .setAction(\"Retry\", view -> {\n                            swipeRefreshLayout.setRefreshing(true);\n                            refreshPhotos();\n                        })\n\n                        .show();\n            }\n\n            @Override\n            public void onFailRequest(Call<ResponseBody> call, Throwable t) {\n                swipeRefreshLayout.setRefreshing(false);\n                Toast.makeText(requireContext(),\n                        \"Network Failed. Please check the network\",Toast.LENGTH_LONG);\n                Snackbar.make(getView(),\n                        \"Network Failed. Please check the network\",\n                        Snackbar.LENGTH_INDEFINITE)\n\n                        .setAction(\"Retry\", view -> {\n                            swipeRefreshLayout.setRefreshing(true);\n                            refreshPhotos();\n                        })\n                        .setAnchorView(requireView().findViewById(R.id.nav_view))\n                        .show();\n            }\n\n            @Override\n            public void onSuccessResponse(PhotoDownloader.PhotoDownloadResult result) {\n                List<CloudPhoto> photoList = result.getImageArray();\n                adapter.addPhotos(photoList);\n                Log.w(this.getClass().getName(), \"\" + adapter.getItemCount());\n                adapter.setImageGridOnClickCallBack(pos -> {\n\n                    Bundle args = new Bundle();\n                    args.putInt(\"pos\",pos);\n                    cloudPhotoDetailViewModel.setDataset(adapter.getPhotoList());\n                    Log.w(TAG,cloudPhotoDetailViewModel.getDataset().toString());\n                    Navigation.findNavController(requireActivity(),R.id.nav_host_fragment)\n                            .navigate(R.id.action_navigation_home_to_navigation_cloud_photo_detail,args);\n                });\n\n                swipeRefreshLayout.setRefreshing(false);\n            }\n        });\n    }\n\n    @Override\n    public void onResume() {\n        super.onResume();\n        refreshPhotos();\n        if(distanceExposedMenu != null) {\n            distanceExposedMenu.clearFocus();\n            distanceExposedMenu.dismissDropDown();\n            menuAdapter.getFilter().filter(null);\n        }\n\n    }\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/ui/home/HomeFragment.java	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/java/com/example/phototutor/ui/home/HomeFragment.java	(date 1605256881000)
+@@ -349,8 +349,6 @@
+             @Override
+             public void onFailResponse(String message, int code) {
+                 swipeRefreshLayout.setRefreshing(false);
+-                Toast.makeText(requireContext(),
+-                        "Network Failed. Please check the network",Toast.LENGTH_LONG);
+                 Snackbar.make(requireView(),
+                         message,
+                         Snackbar.LENGTH_INDEFINITE)
+@@ -358,6 +356,7 @@
+                             swipeRefreshLayout.setRefreshing(true);
+                             refreshPhotos();
+                         })
++                        .setAnchorView(requireActivity().findViewById(R.id.nav_view))
+ 
+                         .show();
+             }
+@@ -365,10 +364,8 @@
+             @Override
+             public void onFailRequest(Call<ResponseBody> call, Throwable t) {
+                 swipeRefreshLayout.setRefreshing(false);
+-                Toast.makeText(requireContext(),
+-                        "Network Failed. Please check the network",Toast.LENGTH_LONG);
+                 Snackbar.make(getView(),
+-                        "Network Failed. Please check the network",
++                        "Network Failed. Please try again",
+                         Snackbar.LENGTH_INDEFINITE)
+ 
+                         .setAction("Retry", view -> {
+Index: app/src/main/res/menu/bottom_nav_menu.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<menu\n    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    >\n\n    <item\n        android:id=\"@+id/navigation_home\"\n        android:icon=\"@drawable/ic_home_black_24dp\"\n        android:title=\"TODO\" />\n\n    <item\n        android:id=\"@+id/dialog_selection\"\n        android:icon=\"@drawable/ic_add_circle\"\n        android:title=\"TODO\" />\n\n\n    <item\n        android:id=\"@+id/navigation_user_profile\"\n        android:icon=\"@drawable/ic_notifications_black_24dp\"\n        android:title=\"TODO\" />\n\n</menu>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/menu/bottom_nav_menu.xml	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/res/menu/bottom_nav_menu.xml	(date 1605256084000)
+@@ -16,7 +16,7 @@
+ 
+     <item
+         android:id="@+id/navigation_user_profile"
+-        android:icon="@drawable/ic_notifications_black_24dp"
++        android:icon="@drawable/ic_baseline_person_24"
+         android:title="TODO" />
+ 
+ </menu>
+\ No newline at end of file
+Index: app/src/main/res/layout/activity_main.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<LinearLayout\n    android:orientation=\"vertical\"\n    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n    xmlns:tools=\"http://schemas.android.com/tools\"\n    android:id=\"@+id/container\"\n    android:layout_width=\"match_parent\"\n    android:layout_height=\"match_parent\"\n    >\n\n\n\n\n    <fragment\n        android:id=\"@+id/nav_host_fragment\"\n        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n        app:defaultNavHost=\"true\"\n        app:itemIconSize = \"@dimen/round_button_large\"\n        android:gravity=\"bottom\"\n        android:layout_weight=\"1\"\n        app:navGraph=\"@navigation/mobile_navigation\"\n        android:layout_height=\"0dp\"\n        android:layout_width=\"match_parent\" />\n\n\n    <com.google.android.material.bottomnavigation.BottomNavigationView\n        android:id=\"@+id/nav_view\"\n        android:layout_width=\"match_parent\"\n        android:layout_height=\"wrap_content\"\n        app:labelVisibilityMode=\"unlabeled\"\n        android:layout_gravity=\"bottom\"\n        android:background=\"?android:attr/windowBackground\"\n        app:menu=\"@menu/bottom_nav_menu\" />\n\n</LinearLayout>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/activity_main.xml	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/res/layout/activity_main.xml	(date 1605255251000)
+@@ -11,7 +11,6 @@
+ 
+ 
+ 
+-
+     <fragment
+         android:id="@+id/nav_host_fragment"
+         android:name="androidx.navigation.fragment.NavHostFragment"
+Index: app/src/main/java/com/example/phototutor/ui/userprofile/UserProfileFragment.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.phototutor.ui.userprofile;\n\nimport android.content.Context;\nimport android.content.DialogInterface;\nimport android.content.Intent;\nimport android.os.Bundle;\nimport android.util.Log;\nimport android.util.TypedValue;\nimport android.view.KeyboardShortcutGroup;\nimport android.view.LayoutInflater;\nimport android.view.View;\nimport android.view.ViewGroup;\nimport android.view.animation.AccelerateInterpolator;\nimport android.view.animation.AlphaAnimation;\nimport android.view.animation.Animation;\nimport android.widget.Button;\nimport android.widget.EditText;\nimport android.widget.ImageView;\nimport android.widget.TextView;\nimport android.widget.Toast;\n\nimport androidx.fragment.app.Fragment;\nimport androidx.annotation.NonNull;\nimport androidx.annotation.Nullable;\nimport androidx.lifecycle.ViewModelProviders;\nimport androidx.navigation.Navigation;\nimport androidx.recyclerview.widget.LinearLayoutManager;\nimport androidx.recyclerview.widget.RecyclerView;\nimport androidx.swiperefreshlayout.widget.SwipeRefreshLayout;\n\nimport com.bumptech.glide.Glide;\nimport com.bumptech.glide.load.DecodeFormat;\nimport com.bumptech.glide.request.target.Target;\nimport com.example.phototutor.EditProfileActivity;\nimport com.example.phototutor.MyAppCompatActivity;\nimport com.example.phototutor.Photo.CloudPhoto;\nimport com.example.phototutor.R;\nimport com.example.phototutor.adapters.AlbumAdapter;\nimport com.example.phototutor.adapters.CloudAlbumAdapter;\nimport com.example.phototutor.helpers.PhotoDownloader;\nimport com.example.phototutor.helpers.UserFollowHelper;\nimport com.example.phototutor.helpers.UserInfoDownloader;\nimport com.example.phototutor.ui.cloudphoto.CloudPhotoDetailViewModel;\nimport com.example.phototutor.ui.login.ui.login.LoginActivity;\nimport com.example.phototutor.user.User;\nimport com.fivehundredpx.greedolayout.GreedoLayoutManager;\nimport com.fivehundredpx.greedolayout.GreedoSpacingItemDecoration;\nimport com.google.android.material.appbar.AppBarLayout;\nimport com.google.android.material.appbar.MaterialToolbar;\nimport com.google.android.material.dialog.MaterialAlertDialogBuilder;\nimport com.google.android.material.snackbar.Snackbar;\nimport com.google.android.material.tabs.TabLayout;\n\nimport java.net.URL;\nimport java.util.ArrayList;\nimport java.util.List;\n\nimport de.hdodenhof.circleimageview.CircleImageView;\nimport mehdi.sakout.fancybuttons.FancyButton;\nimport okhttp3.ResponseBody;\nimport retrofit2.Call;\nimport retrofit2.http.Url;\n\npublic class UserProfileFragment extends Fragment {\n    private CloudPhotoDetailViewModel cloudPhotoDetailViewModel;\n    private CloudAlbumAdapter cloudAlbumAdapter;\n    private UserListAdapter followerAdapter;\n    private UserListAdapter followingAdapter;\n\n    private RecyclerView cloud_photo_gallery;\n    private RecyclerView followerRecycleView;\n    private RecyclerView followingRecycleView;\n    private TabLayout userFollowInfos;\n    private int userId;\n    private boolean isPrimaryUser;\n    private UserInfoDownloader downloader;\n\n    private SwipeRefreshLayout photo_swipe_fresh_layout;\n    private SwipeRefreshLayout followers_swipe_fresh_layout;\n    private SwipeRefreshLayout following_swipe_fresh_layout;\n\n    private TextView user_signature;\n    private TextView user_name;\n    private CircleImageView user_avatar;\n    Button user_action_btn;\n\n    @Nullable\n    @Override\n    public View onCreateView(@NonNull LayoutInflater inflater,\n                             @Nullable ViewGroup container,\n                             @Nullable Bundle savedInstanceState) {\n\n        Bundle args = getArguments();\n        isPrimaryUser =  args.getBoolean(\"primaryUser\",false);\n        userId  =  args.getInt(\"userId\",0);\n        return inflater.inflate(R.layout.fragment_user_profile, container, false);\n    }\n    private class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.MyViewHolder>{\n        private List<User> users = new ArrayList<>();\n        private Context context;\n        private String TAG = \"UserListAdapter\";\n        public UserListAdapter(Context context){\n            this.context = context;\n        }\n\n        public void addUsers(List<User> users){\n            Log.w(TAG,\"add users \"+users.size());\n            int origPos = getItemCount();\n            this.users.addAll(users);\n            notifyItemRangeInserted(origPos,users.size());\n        }\n\n        public void setUsers(List<User> users){\n            int origPos = getItemCount();\n            this.users = users;\n            notifyItemRangeRemoved(0,origPos);\n        }\n\n        @NonNull\n        @Override\n        public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {\n            View itemView = LayoutInflater.from(context).inflate(\n                    R.layout.user_list_layout,\n                    parent,\n                    false);\n\n            return new UserListAdapter.MyViewHolder(itemView);\n        }\n\n        @Override\n        public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {\n            holder.user_name.setText(users.get(position).getNickName());\n            holder.avatar.setOnClickListener(view -> {\n                Bundle args = new Bundle();\n                args.putInt(\"userId\",users.get(position).getId());\n                Navigation.findNavController(UserProfileFragment.this.requireActivity(),R.id.nav_host_fragment)\n                        .navigate(R.id.action_navigation_user_profile_self,args);\n            });\n            Glide.with(context)\n                    .load(users.get(position).getAvatarUrl())\n                    .placeholder(R.drawable.ic_loading)\n                    .format(DecodeFormat.PREFER_RGB_565)\n                    .into(holder.avatar);\n            holder.nfollowers.setText(\"\" + users.get(position).getnFollowers() +\" followers\");\n            downloader.getAmiFollowing(users.get(position).getId(), new UserInfoDownloader.UserIsFollowingRequestCallback() {\n                @Override\n                public void onSuccessResponse(boolean isFollowing) {\n                    if(isFollowing){\n                        holder.user_list_follow_btn.setText(\"unfollow\");\n                        holder.user_list_follow_btn.setOnClickListener(view->UserProfileFragment.this.onUnFollowBtnClicked(users.get(position).getId()));\n\n                    }\n                    else{\n                        holder.user_list_follow_btn.setText(\"follow\");\n                        holder.user_list_follow_btn.setOnClickListener(view->UserProfileFragment.this.onFollowBtnClicked(users.get(position).getId()));\n                    }\n                }\n\n                @Override\n                public void onFailResponse(String message, int code) {\n                    if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();\n                }\n\n                @Override\n                public void onFailRequest(Call<ResponseBody> call, Throwable t) {\n\n                }\n            });\n        }\n\n\n        @Override\n        public int getItemCount() {\n            return users.size();\n        }\n\n        public class MyViewHolder extends RecyclerView.ViewHolder {\n            // each data item is just a string in this case\n            public CircleImageView avatar;\n            public TextView user_name;\n            public TextView nfollowers;\n            FancyButton user_list_follow_btn;\n            public MyViewHolder(View itemView) {\n                super(itemView);\n                user_name = itemView.findViewById(R.id.user_list_user_name);\n                avatar = itemView.findViewById(R.id.user_list_avatar);\n                nfollowers =  itemView.findViewById(R.id.user_list_nfollowers);\n                user_list_follow_btn = itemView.findViewById(R.id.user_list_follow_btn);\n            }\n        }\n\n    }\n\n    @Override\n    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {\n        super.onViewCreated(view, savedInstanceState);\n\n\n        cloudPhotoDetailViewModel = ViewModelProviders.of(requireActivity()).get(CloudPhotoDetailViewModel.class);\n        user_name = view.findViewById(R.id.user_name);\n        user_signature  = view.findViewById(R.id.user_signature);\n        user_avatar = view.findViewById(R.id.avatar);\n        user_action_btn = requireView().findViewById(R.id.user_action_btn);\n        MaterialToolbar topAppBar = view.findViewById(R.id.topAppBar);\n        topAppBar.setOnMenuItemClickListener(item -> {\n            new MaterialAlertDialogBuilder(requireContext()).setTitle(\"Do you want to sign out?\")\n                    .setNeutralButton(\"Back\",null)\n                    .setPositiveButton(\"Sign out\", (dialogInterface, i) -> {\n                        switch (item.getItemId()){\n                            case R.id.navigation_logout:\n                                LoginActivity.userLogout();\n                                Intent intent = new Intent(requireContext(), LoginActivity.class);\n                                startActivity(intent);\n                                break;\n                        }\n                    }).show();\n\n            return true;\n        });\n\n        downloader = new UserInfoDownloader(requireContext());\n        Glide.with(requireContext())\n                .load(\"https://picsum.photos/seed/picsum/200/300\")\n                .placeholder(R.drawable.ic_camera)\n                .into((ImageView)view.findViewById(R.id.image_wall));\n\n        cloudAlbumAdapter = new CloudAlbumAdapter(requireContext());\n        followerAdapter = new UserListAdapter(requireContext());\n        followingAdapter = new UserListAdapter(requireContext());\n\n        userFollowInfos = view.findViewById(R.id.user_follows);\n\n        for (int i = 0; i < userFollowInfos.getTabCount();i++){\n            TabLayout.Tab tab = userFollowInfos.getTabAt(i);\n            View v = LayoutInflater.from(requireContext()).inflate(\n                    R.layout.customer_tab_layout, null);\n            TextView tabShowTitle = v.findViewById(R.id.tab_show_title);\n            TextView tabShowCount = v.findViewById(R.id.tab_show_count);\n            tabShowTitle.setText(tab.getText());\n            tabShowTitle.setTextColor(userFollowInfos.getTabTextColors());\n            tabShowCount.setTextColor(userFollowInfos.getTabTextColors());\n            tab.setCustomView(v);\n\n        }\n\n        userFollowInfos.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {\n            @Override\n            public void onTabSelected(TabLayout.Tab tab) {\n                switch (tab.getPosition()){\n                    case 0: photo_swipe_fresh_layout.setVisibility(View.VISIBLE);break;\n                    case 1: followers_swipe_fresh_layout.setVisibility(View.VISIBLE);break;\n                    case 2: following_swipe_fresh_layout.setVisibility(View.VISIBLE);break;\n                }\n            }\n\n            @Override\n            public void onTabUnselected(TabLayout.Tab tab) {\n                switch (tab.getPosition()){\n                    case 0: photo_swipe_fresh_layout.setVisibility(View.INVISIBLE);break;\n                    case 1: followers_swipe_fresh_layout.setVisibility(View.INVISIBLE);break;\n                    case 2: following_swipe_fresh_layout.setVisibility(View.INVISIBLE);break;\n                }\n            }\n\n            @Override\n            public void onTabReselected(TabLayout.Tab tab) {\n\n            }\n        });\n\n        cloud_photo_gallery = view.findViewById(R.id.cloud_photo_gallery);\n        followerRecycleView = view.findViewById(R.id.followers);\n        followingRecycleView = view.findViewById(R.id.following);\n\n        photo_swipe_fresh_layout = view.findViewById(R.id.photo_swipe_fresh_layout);\n        photo_swipe_fresh_layout.setOnRefreshListener(()->refreshUserPhoto());\n        followers_swipe_fresh_layout = view.findViewById(R.id.followers_swipe_fresh_layout);\n        followers_swipe_fresh_layout.setOnRefreshListener(()->refreshUserFollowers());\n        following_swipe_fresh_layout = view.findViewById(R.id.following_swipe_fresh_layout);\n        following_swipe_fresh_layout.setOnRefreshListener(()->refreshUserFollowings());\n\n        followerRecycleView.setLayoutManager(new LinearLayoutManager(requireContext()));\n        followingRecycleView.setLayoutManager(new LinearLayoutManager(requireContext()));\n\n        followerRecycleView.setAdapter(followerAdapter);\n        followingRecycleView.setAdapter(followingAdapter);\n\n        cloudAlbumAdapter = new CloudAlbumAdapter(requireContext());\n        cloudAlbumAdapter.setNeedRatio(false);\n        cloudAlbumAdapter.setPhotos(new ArrayList<>());\n        GreedoLayoutManager layoutManager = new GreedoLayoutManager(cloudAlbumAdapter);\n\n        cloud_photo_gallery.setLayoutManager(layoutManager);\n        int spacing =  (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4,\n                requireContext().getResources().getDisplayMetrics());\n        cloud_photo_gallery.addItemDecoration(new GreedoSpacingItemDecoration(spacing));\n        cloud_photo_gallery.setAdapter(cloudAlbumAdapter);\n\n\n        AppBarLayout mAppLayout = view.findViewById(R.id.app_bar_layout);\n        mAppLayout.addOnOffsetChangedListener(\n                new AppBarLayout.OnOffsetChangedListener() {\n                    private float initialOffset = 0;\n\n                    @Override\n                    public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {\n                        Log.w(\"AppBarCollapse\",\"offset \"+verticalOffset + \" total range \" + appBarLayout.getTotalScrollRange());\n                        view.findViewById(R.id.avatar).setTranslationY(verticalOffset * 0.7f);\n                        view.findViewById(R.id.avatar).setAlpha(1.0f+(float)verticalOffset/(float) appBarLayout.getTotalScrollRange());\n                    }\n                }\n\n        );\n\n\n    }\n\n    private UserInfoDownloader.UserDetailRequestCallback callback = new UserInfoDownloader.UserDetailRequestCallback() {\n        @Override\n        public void onSuccessResponse(User user) {\n            user_name.setText(user.getNickName());\n            user_signature.setText( user.getSignature());\n            Glide.with(requireContext())\n                    .load(user.getAvatarUrl())\n                    .placeholder(R.drawable.ic_camera)\n                    .into(user_avatar);\n\n            TextView tab_show_count = userFollowInfos.getTabAt(1).getCustomView()\n                    .findViewById(R.id.tab_show_count);\n\n            tab_show_count.setText(String.valueOf(user.getnFollowers()));\n\n            tab_show_count = userFollowInfos.getTabAt(2).getCustomView()\n                    .findViewById(R.id.tab_show_count);\n\n            tab_show_count.setText(String.valueOf(user.getnFollowerings()));\n\n            if(isPrimaryUser){\n                user_action_btn.setText(\"Edit Profile\");\n                user_action_btn.setOnClickListener(view1->onEditProfileClicked(\n                        user.getSignature(),user.getNickName(),user.getAvatarUrl()));\n            }\n            else{\n                downloader.getAmiFollowing(user.getId(), new UserInfoDownloader.UserIsFollowingRequestCallback() {\n                    @Override\n                    public void onSuccessResponse(boolean isFollowing) {\n                        if(isFollowing){\n                            user_action_btn.setText(\"unfollow\");\n                            user_action_btn.setOnClickListener(view1->onUnFollowBtnClicked(userId));\n                        }\n                        else{\n                            user_action_btn.setText(\"follow\");\n                            user_action_btn.setOnClickListener(view1->onFollowBtnClicked(userId));\n                        }\n                    }\n\n                    @Override\n                    public void onFailResponse(String message, int code) {\n                        if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();\n                    }\n\n                    @Override\n                    public void onFailRequest(Call<ResponseBody> call, Throwable t) {\n\n                    }\n                });\n\n            }\n        }\n\n        @Override\n        public void onFailResponse(String message, int code) {\n            if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();\n        }\n\n        @Override\n        public void onFailRequest(Call<ResponseBody> call, Throwable t) {\n\n        }\n    };\n\n    private void downloadUserInfo(){\n        if(isPrimaryUser)\n            downloader.getPrimaryUserDetail(callback);\n        else\n            downloader.getUserDetail(userId, callback);\n    }\n\n    private void downloadUserFollowings(){\n        following_swipe_fresh_layout.setRefreshing(true);\n        downloader.downloadUserFollowing(userId, new UserInfoDownloader.UserfollowingRequestCallback() {\n            @Override\n            public void onSuccessResponse(List<User> users) {\n                following_swipe_fresh_layout.setRefreshing(false);\n                Log.w(\"downloadUserFollowings\",\"\"+users.size());\n                followingAdapter.addUsers(users);\n            }\n\n            @Override\n            public void onFailResponse(String message, int code) {\n                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();\n                following_swipe_fresh_layout.setRefreshing(false);\n                setErrorSnackBar(message,following_swipe_fresh_layout,view->refreshUserFollowings());\n            }\n\n            @Override\n            public void onFailRequest(Call<ResponseBody> call, Throwable t) {\n                following_swipe_fresh_layout.setRefreshing(false);\n                setErrorSnackBar(\"Network failed. Please retry\",following_swipe_fresh_layout,view->refreshUserFollowings());\n            }\n        });\n    }\n\n\n    private void setErrorSnackBar(String message, SwipeRefreshLayout swipeRefreshLayout,View.OnClickListener listener ){\n        Snackbar.make(requireView(),\n                message,\n                Snackbar.LENGTH_INDEFINITE)\n\n                .setAction(\"Retry\",listener)\n                .setAnchorView(requireView().findViewById(R.id.nav_view))\n                .show();\n    }\n\n    private void downloadUserFollowers(){\n        followers_swipe_fresh_layout.setRefreshing(true);\n        downloader.downloadUserFollower(userId, new UserInfoDownloader.UserfollowerRequestCallback() {\n            @Override\n            public void onSuccessResponse(List<User> users) {\n\n                followers_swipe_fresh_layout.setRefreshing(false);\n                followerAdapter.addUsers(users);\n            }\n\n            @Override\n            public void onFailResponse(String message, int code) {\n                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();\n                followers_swipe_fresh_layout.setRefreshing(false);\n                setErrorSnackBar(message,following_swipe_fresh_layout,view->refreshUserFollowers());\n            }\n\n            @Override\n            public void onFailRequest(Call<ResponseBody> call, Throwable t) {\n                followers_swipe_fresh_layout.setRefreshing(false);\n                setErrorSnackBar(\"Network Failed. Please Retry.\",following_swipe_fresh_layout,view->refreshUserFollowers());\n            }\n        });\n    }\n    private void downloadPhotos(){\n        photo_swipe_fresh_layout.setRefreshing(true);\n        PhotoDownloader downloader = new PhotoDownloader(requireContext());\n        downloader.downloadPhotoByUserId(userId,0, cloudAlbumAdapter.getItemCount(), new PhotoDownloader.OnPhotoDownloadedbyUser(){\n            @Override\n            public void onFailResponse(String message, int code) {\n                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();\n                photo_swipe_fresh_layout.setRefreshing(false);\n                setErrorSnackBar(message,following_swipe_fresh_layout,view->refreshUserPhoto());\n            }\n\n            @Override\n            public void onFailRequest(Call<ResponseBody> call, Throwable t) {\n                photo_swipe_fresh_layout.setRefreshing(false);\n                setErrorSnackBar(\"Network Failed. Please Retry.\",following_swipe_fresh_layout,view->refreshUserPhoto());\n            }\n\n            @Override\n            public void onSuccessResponse(PhotoDownloader.PhotoDownloadResult result) {\n                photo_swipe_fresh_layout.setRefreshing(false);\n                List<CloudPhoto> cloudPhotos = result.getImageArray();\n                cloudAlbumAdapter.setPhotos(cloudPhotos);\n\n                Log.w(this.getClass().getName(), \"\" + cloudAlbumAdapter.getItemCount());\n                cloudAlbumAdapter.setImageGridOnClickCallBack(pos -> {\n                    Bundle args = new Bundle();\n                    args.putInt(\"pos\",pos);\n                    cloudPhotoDetailViewModel.setDataset(cloudAlbumAdapter.getPhotoList());\n                    Navigation.findNavController(requireActivity(),R.id.nav_host_fragment)\n                            .navigate(R.id.action_navigation_user_profile_to_navigation_cloud_photo_detail,args);\n                });\n                TextView tab_show_count = userFollowInfos.getTabAt(0).getCustomView()\n                        .findViewById(R.id.tab_show_count);\n\n                tab_show_count.setText(String.valueOf(result.getTotalSize()));\n\n            }\n        });\n    }\n\n    @Override\n    public void onResume() {\n        super.onResume();\n        downloadUserInfo();\n        refreshUserFollowings();\n        refreshUserFollowers();\n        refreshUserPhoto();\n    }\n\n\n    public void onEditProfileClicked(String signature, String nickname, URL avatarUrl){\n        Log.w(\"UserProfile\",signature);\n        Intent intent = new Intent(requireActivity(), EditProfileActivity.class);\n        intent.putExtra(\"signature\", signature );\n        intent.putExtra(\"nickname\", nickname );\n        intent.putExtra(\"avatarUrl\", avatarUrl.toString());\n        startActivity(intent);\n    }\n\n    public void onFollowBtnClicked(int id){\n        UserFollowHelper helper = new UserFollowHelper(requireContext());\n        helper.addFollow(id, new UserFollowHelper.UserFollowActionCallback() {\n            @Override\n            public void onFailResponse(String message, int code) {\n                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();\n            }\n\n            @Override\n            public void onFailRequest(Call<ResponseBody> call, Throwable t) {\n            }\n\n            @Override\n            public void onSuccessResponse() {\n                Toast.makeText(requireContext(),\"Followed\",Toast.LENGTH_SHORT).show();\n                downloadUserInfo();\n                refreshUserFollowers();\n                refreshUserFollowings();\n            }\n        });\n    }\n\n    public void onUnFollowBtnClicked(int id){\n        UserFollowHelper helper = new UserFollowHelper(requireContext());\n        helper.removeFollow(id, new UserFollowHelper.UserFollowActionCallback() {\n            @Override\n            public void onFailResponse(String message, int code) {\n                if(code == 401) ((MyAppCompatActivity)requireActivity()).navigateToLogin();\n            }\n\n            @Override\n            public void onFailRequest(Call<ResponseBody> call, Throwable t) {\n\n            }\n\n            @Override\n            public void onSuccessResponse() {\n                Toast.makeText(requireContext(),\"UnFollowed\",Toast.LENGTH_SHORT).show();\n                downloadUserInfo();\n                refreshUserFollowers();\n                refreshUserFollowings();\n            }\n        });\n    }\n\n    public void refreshUserPhoto(){\n        cloudAlbumAdapter.setPhotos(new ArrayList<>());\n        downloadPhotos();\n    }\n\n    public void refreshUserFollowers(){\n        followerAdapter.setUsers(new ArrayList<>());\n        downloadUserFollowers();\n    }\n\n    public void refreshUserFollowings(){\n        followingAdapter.setUsers(new ArrayList<>());\n        Log.w(\"refreshUserFollowings\",\"\"+followingAdapter.getItemCount());\n        downloadUserFollowings();\n    }\n\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/ui/userprofile/UserProfileFragment.java	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/java/com/example/phototutor/ui/userprofile/UserProfileFragment.java	(date 1605255341000)
+@@ -32,7 +32,9 @@
+ import com.bumptech.glide.load.DecodeFormat;
+ import com.bumptech.glide.request.target.Target;
+ import com.example.phototutor.EditProfileActivity;
++import com.example.phototutor.MainActivity;
+ import com.example.phototutor.MyAppCompatActivity;
++import com.example.phototutor.NotificationActivity;
+ import com.example.phototutor.Photo.CloudPhoto;
+ import com.example.phototutor.R;
+ import com.example.phototutor.adapters.AlbumAdapter;
+@@ -203,17 +205,22 @@
+         user_action_btn = requireView().findViewById(R.id.user_action_btn);
+         MaterialToolbar topAppBar = view.findViewById(R.id.topAppBar);
+         topAppBar.setOnMenuItemClickListener(item -> {
+-            new MaterialAlertDialogBuilder(requireContext()).setTitle("Do you want to sign out?")
+-                    .setNeutralButton("Back",null)
+-                    .setPositiveButton("Sign out", (dialogInterface, i) -> {
+-                        switch (item.getItemId()){
+-                            case R.id.navigation_logout:
++            switch (item.getItemId()){
++                case R.id.navigation_logout:
++                    new MaterialAlertDialogBuilder(requireContext()).setTitle("Do you want to sign out?")
++                            .setNeutralButton("Back",null)
++                            .setPositiveButton("Sign out", (dialogInterface, i) -> {
+                                 LoginActivity.userLogout();
+                                 Intent intent = new Intent(requireContext(), LoginActivity.class);
+                                 startActivity(intent);
+-                                break;
+-                        }
+-                    }).show();
++                            }).show();
++                    break;
++                case R.id.navigation_notification:
++                    Intent intent2 = new Intent(requireContext(), NotificationActivity.class);
++                    startActivity(intent2);
++                    break;
++
++            }
+ 
+             return true;
+         });
+Index: app/src/main/java/com/example/phototutor/notification/HeaderTextItem.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/notification/HeaderTextItem.java	(date 1605246777000)
++++ app/src/main/java/com/example/phototutor/notification/HeaderTextItem.java	(date 1605246777000)
+@@ -0,0 +1,18 @@
++package com.example.phototutor.notification;
++
++public class HeaderTextItem {
++
++    private String headerText;
++
++    public HeaderTextItem(String headerText){
++        this.headerText = headerText;
++    }
++
++    public String getHeaderText() {
++        return headerText;
++    }
++
++    public void setHeaderText(String headerText) {
++        this.headerText = headerText;
++    }
++}
+Index: app/src/main/java/com/example/phototutor/adapters/TimeLineAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/adapters/TimeLineAdapter.java	(date 1605254686000)
++++ app/src/main/java/com/example/phototutor/adapters/TimeLineAdapter.java	(date 1605254686000)
+@@ -0,0 +1,111 @@
++package com.example.phototutor.adapters;
++
++import android.content.Context;
++import android.text.format.DateUtils;
++import android.view.LayoutInflater;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.ImageView;
++import android.widget.TextView;
++
++import androidx.annotation.NonNull;
++import androidx.recyclerview.widget.RecyclerView;
++
++import com.bumptech.glide.Glide;
++import com.example.phototutor.R;
++import com.example.phototutor.helpers.UserInfoDownloader;
++import com.example.phototutor.notification.Notification;
++import com.example.phototutor.user.User;
++import com.github.vipulasri.timelineview.TimelineView;
++import com.google.android.material.snackbar.Snackbar;
++
++import java.time.ZonedDateTime;
++import java.util.Date;
++import java.util.List;
++
++import okhttp3.ResponseBody;
++import retrofit2.Call;
++
++public class TimeLineAdapter extends RecyclerView.Adapter<TimeLineAdapter.TimelineViewHolder> {
++
++    private Context mContext;
++    private List<Notification> mdata;
++
++    UserInfoDownloader downloader;
++    public TimeLineAdapter(Context mContext, List<Notification> mdata) {
++        this.mContext = mContext;
++        this.mdata = mdata;
++        downloader = new UserInfoDownloader(mContext);
++    }
++
++    public class TimelineViewHolder extends RecyclerView.ViewHolder{
++        private TimelineView mTimelineView;
++        private TextView txtPost,txtTime;
++        private ImageView imgUser;
++        private TextView post_user_name;
++
++        public TimelineViewHolder(@NonNull View itemView, int viewType){
++            super(itemView);
++            mTimelineView =(TimelineView) itemView.findViewById(R.id.timeline);
++            mTimelineView.initLine(viewType);
++            txtPost = itemView.findViewById(R.id.notification_content);
++            txtTime = itemView.findViewById(R.id.post_time);
++            imgUser = itemView.findViewById(R.id.userAvatar);
++//            tvHeader = itemView.findViewById(R.id.header_text);
++            post_user_name = itemView.findViewById(R.id.post_user_name);
++        }
++
++        void setData(Notification item) {
++//            PostTextItem post = item.getPostTextItem();
++            txtPost.setText(item.getMessage());
++            //ZonedDateTime.parse().toInstant()
++            Date dateTime = Date.from(item.getCreateTime().toInstant());
++//            Date dateTime = Date.from(ZonedDateTime.parse(item.get).toInstant());
++            txtTime.setText(DateUtils.getRelativeTimeSpanString(dateTime.getTime()));
++
++            downloader.getUserDetail(item.getActorId(), new UserInfoDownloader.UserDetailRequestCallback() {
++                @Override
++                public void onSuccessResponse(User user) {
++                    Glide.with(mContext).load(user.getAvatarUrl()).into(imgUser);
++                    post_user_name.setText(user.getNickName());
++                }
++
++                @Override
++                public void onFailResponse(String message, int code) {
++                }
++
++                @Override
++                public void onFailRequest(Call<ResponseBody> call, Throwable t) {
++
++                }
++            });
++
++//            Glide.with(itemView.getContext()).load().into(imgUser);
++//            HeaderTextItem header = item.getHeaderTextItem();
++//            tvHeader.setText(header.getHeaderText());
++        }
++    }
++
++
++    @NonNull
++    @Override
++    public TimelineViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
++        View view = LayoutInflater.from(mContext).inflate(
++                R.layout.notification_post,
++                parent,false);
++        return new TimelineViewHolder(view,viewType);
++
++    }
++
++    @Override
++    public void onBindViewHolder(@NonNull TimelineViewHolder holder, int position) {
++        holder.setData(mdata.get(position));
++    }
++
++
++
++    @Override
++    public int getItemCount() {
++        return mdata.size();
++    }
++}
+Index: app/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>apply plugin: 'com.android.application'\nandroid {\n    compileSdkVersion 30\n    buildToolsVersion \"30.0.2\"\n\n    defaultConfig {\n        applicationId \"com.example.phototutor\"\n        minSdkVersion 28\n        targetSdkVersion 30\n        versionCode 1\n        versionName \"1.0\"\n\n        testInstrumentationRunner \"androidx.test.runner.AndroidJUnitRunner\"\n\n        // Read the API key from ./secure.properties into R.string.maps_api_key\n        def secureProps = new Properties()\n        if (file(\"../secure.properties\").exists()) {\n            file(\"../secure.properties\")?.withInputStream { secureProps.load(it) }\n        }\n        resValue \"string\", \"maps_api_key\", (secureProps.getProperty(\"MAPS_API_KEY\") ?: \"\")\n    }\n    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_1_8\n        targetCompatibility JavaVersion.VERSION_1_8\n    }\n\n\n    buildTypes {\n        release {\n            minifyEnabled false\n            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'\n        }\n    }\n\n\n}\n\ndependencies {\n    implementation fileTree(dir: \"libs\", include: [\"*.jar\"])\n    implementation 'androidx.appcompat:appcompat:1.1.0'\n    implementation 'com.google.android.material:material:1.0.0'\n    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'\n    implementation 'androidx.navigation:navigation-fragment:2.3.0'\n    implementation 'androidx.navigation:navigation-ui:2.3.0'\n    implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'\n    implementation 'androidx.legacy:legacy-support-v4:1.0.0'\n    implementation \"androidx.fragment:fragment:1.2.0\"\n    implementation 'androidx.viewpager:viewpager:1.0.0'\n    implementation 'androidx.viewpager2:viewpager2:1.0.0'\n\n    implementation \"com.squareup.okhttp3:okhttp:3.11.0\"\n    implementation 'com.google.android.gms:play-services-location:17.1.0'\n    // CameraX core library\n    def camerax_version = '1.0.0-beta10'\n    implementation \"androidx.camera:camera-core:$camerax_version\"\n\n    // CameraX Camera2 extensions\n    implementation \"androidx.camera:camera-camera2:$camerax_version\"\n\n    // CameraX Lifecycle library\n    implementation \"androidx.camera:camera-lifecycle:$camerax_version\"\n\n    // CameraX View class\n    implementation 'androidx.camera:camera-view:1.0.0-alpha17'\n\n    // CameraX Extensions library\n    // implementation \"androidx.camera:camera-extensions:1.0.0-alpha09\"\n\n    testImplementation 'junit:junit:4.12'\n    androidTestImplementation 'androidx.test.ext:junit:1.1.1'\n    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'\n\n    //Room\n\n    def room_version = \"2.2.5\"\n\n    implementation \"androidx.room:room-runtime:$room_version\"\n    annotationProcessor \"androidx.room:room-compiler:$room_version\"\n\n    def glide_version = \"4.11.0\"\n    implementation \"com.github.bumptech.glide:glide:$glide_version\"\n    annotationProcessor \"com.github.bumptech.glide:compiler:$glide_version\"\n\n    implementation \"androidx.coordinatorlayout:coordinatorlayout:1.1.0\"\n    implementation 'com.google.android.material:material:1.1.0'\n\n    //maps\n    implementation 'com.google.android.gms:play-services-maps:17.0.0'\n\n    //PhotoView\n\n    implementation 'com.github.chrisbanes:PhotoView:2.0.0'\n\n    //Retrofit2\n    implementation 'com.squareup.retrofit2:retrofit:2.3.0'\n    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'\n\n    implementation 'com.itkacher.okhttpprofiler:okhttpprofiler:1.0.7'\n\n    //AndroidTagGroup\n    implementation 'me.gujun.android.taggroup:library:1.4@aar'\n\n    implementation 'com.google.android:flexbox:2.0.1'\n    implementation 'jp.wasabeef:glide-transformations:4.2.0'\n\n    implementation 'com.fivehundredpx:greedo-layout:1.5.1'\n\n    implementation(\"com.thefuntasty.hauler:core:3.1.0\")\n\n    implementation 'com.github.yuanyang1991:DragDismissLayout:1.0.3'\n\n    implementation 'de.hdodenhof:circleimageview:3.1.0'\n\n\n    //AndroidTagGroup\n    implementation 'me.gujun.android.taggroup:library:1.4@aar'\n\n\n    implementation 'com.trafi:anchor-bottom-sheet-behavior:0.13-alpha'\n\n    implementation 'com.github.jd-alexander:LikeButton:0.2.3'\n\n    implementation 'com.github.medyo:fancybuttons:1.9.1'\n\n    implementation 'cc.cloudist.acplibrary:library:1.2.1'\n\n    //noinspection GradleCompatible\n    implementation 'com.android.support:design:24.1.1\\''\n\n    implementation 'com.libizo:customedittext:1.0.6'\n\n    implementation 'com.github.vipulasri:timelineview:1.1.5'\n\n    //ARcore/location\n    implementation \"com.google.ar.sceneform:core:1.17.1\"\n    implementation \"com.google.ar.sceneform.ux:sceneform-ux:1.17.1\"\n    //implementation 'uk.co.appoly.arcorelocation:arcore-location-debug@aar'\n    implementation 'com.github.appoly:ARCore-Location:1.2'\n    //decode polyline\n    implementation 'com.google.maps.android:android-maps-utils:0.4+'\n\n    implementation 'ru.semper-viventem.backdrop:backdrop:0.1.7'\n\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/build.gradle	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/build.gradle	(date 1605246777000)
+@@ -141,4 +141,15 @@
+ 
+     implementation 'ru.semper-viventem.backdrop:backdrop:0.1.7'
+ 
++    //ARcore/location
++    implementation "com.google.ar.sceneform:core:1.17.1"
++    implementation "com.google.ar.sceneform.ux:sceneform-ux:1.17.1"
++    //implementation 'uk.co.appoly.arcorelocation:arcore-location-debug@aar'
++    implementation 'com.github.appoly:ARCore-Location:1.2'
++    //decode polyline
++    implementation 'com.google.maps.android:android-maps-utils:0.4+'
++
++    implementation 'ru.semper-viventem.backdrop:backdrop:0.1.7'
++
++    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+ }
+\ No newline at end of file
+Index: app/src/main/res/layout/notification_header.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/notification_header.xml	(date 1605246777000)
++++ app/src/main/res/layout/notification_header.xml	(date 1605246777000)
+@@ -0,0 +1,25 @@
++<?xml version="1.0" encoding="utf-8"?>
++<androidx.constraintlayout.widget.ConstraintLayout
++    xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:orientation="vertical"
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:padding="8dp">
++
++
++    <TextView
++        android:drawablePadding="4dp"
++        android:drawableLeft="@drawable/ic_baseline_watch_later_24"
++        android:id="@+id/header_text"
++        android:layout_width="0dp"
++        android:layout_height="wrap_content"
++        android:textColor="@color/themeBlue"
++        android:layout_marginStart="4dp"
++        android:layout_marginEnd="4dp"
++        android:text="TextView"
++        app:layout_constraintEnd_toEndOf="parent"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toTopOf="parent" />
++</androidx.constraintlayout.widget.ConstraintLayout>
+\ No newline at end of file
+Index: app/src/main/java/com/example/phototutor/notification/PostTextItem.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/notification/PostTextItem.java	(date 1605246777000)
++++ app/src/main/java/com/example/phototutor/notification/PostTextItem.java	(date 1605246777000)
+@@ -0,0 +1,38 @@
++package com.example.phototutor.notification;
++
++public class PostTextItem {
++
++    private String postText;
++    private int imgUser;
++    private String time;
++
++    public PostTextItem(String postText, int imgUser, String time){
++        this.postText = postText;
++        this.imgUser = imgUser;
++        this.time = time;
++    }
++
++    public String getPostText() {
++        return postText;
++    }
++
++    public void setPostText(String postText) {
++        this.postText = postText;
++    }
++
++    public int getImgUser() {
++        return imgUser;
++    }
++
++    public void setImgUser(int imgUser) {
++        this.imgUser = imgUser;
++    }
++
++    public String getTime() {
++        return time;
++    }
++
++    public void setTime(String time) {
++        this.time = time;
++    }
++}
+Index: app/src/main/res/drawable/ic_baseline_watch_later_24.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/ic_baseline_watch_later_24.xml	(date 1605246777000)
++++ app/src/main/res/drawable/ic_baseline_watch_later_24.xml	(date 1605246777000)
+@@ -0,0 +1,5 @@
++<vector android:height="24dp" android:tint="#3F5AA6"
++    android:viewportHeight="24" android:viewportWidth="24"
++    android:width="24dp" xmlns:android="http://schemas.android.com/apk/res/android">
++    <path android:fillColor="@android:color/white" android:pathData="M12,2C6.5,2 2,6.5 2,12s4.5,10 10,10s10,-4.5 10,-10S17.5,2 12,2zM16.2,16.2L11,13V7h1.5v5.2l4.5,2.7L16.2,16.2z"/>
++</vector>
+Index: app/src/main/res/values/strings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><resources>\n    <string name=\"app_name\">Photo Tutor</string>\n    <string name=\"title_home\">Home</string>\n    <string name=\"title_dashboard\">Dashboard</string>\n    <string name=\"title_notifications\">Notifications</string>\n    <string name=\"local_localalbum\">My Album</string>\n    <!-- TODO: Remove or change this placeholder text -->\n    <string name=\"hello_blank_fragment\">Hello blank fragment</string>\n    <string name=\"title_activity_login\">LoginActivity</string>\n    <string name=\"prompt_email\">Username</string>\n    <string name=\"prompt_password\">Password</string>\n    <string name=\"action_sign_in\">Sign in or register</string>\n    <string name=\"action_sign_in_short\">Sign in</string>\n    <string name=\"welcome\">\"Welcome !\"</string>\n    <string name=\"invalid_username\">Not a valid username</string>\n    <string name=\"invalid_password\">Password must be >5 characters</string>\n    <string name=\"login_failed\">\"Login failed\"</string>\n    <string name=\"title_activity_hello\">MainActivity</string>\n    <string name=\"large_text\">\n        \"Material is the metaphor.\\n\\n\"\n\n        \"A material metaphor is the unifying theory of a rationalized space and a system of motion.\"\n        \"The material is grounded in tactile reality, inspired by the study of paper and ink, yet \"\n        \"technologically advanced and open to imagination and magic.\\n\"\n        \"Surfaces and edges of the material provide visual cues that are grounded in reality. The \"\n        \"use of familiar tactile attributes helps users quickly understand affordances. Yet the \"\n        \"flexibility of the material creates new affordances that supercede those in the physical \"\n        \"world, without breaking the rules of physics.\\n\"\n        \"The fundamentals of light, surface, and movement are key to conveying how objects move, \"\n        \"interact, and exist in space and in relation to each other. Realistic lighting shows \"\n        \"seams, divides space, and indicates moving parts.\\n\\n\"\n\n        \"Bold, graphic, intentional.\\n\\n\"\n\n        \"The foundational elements of print based design typography, grids, space, scale, color, \"\n        \"and use of imagery guide visual treatments. These elements do far more than please the \"\n        \"eye. They create hierarchy, meaning, and focus. Deliberate color choices, edge to edge \"\n        \"imagery, large scale typography, and intentional white space create a bold and graphic \"\n        \"interface that immerse the user in the experience.\\n\"\n        \"An emphasis on user actions makes core functionality immediately apparent and provides \"\n        \"waypoints for the user.\\n\\n\"\n\n        \"Motion provides meaning.\\n\\n\"\n\n        \"Motion respects and reinforces the user as the prime mover. Primary user actions are \"\n        \"inflection points that initiate motion, transforming the whole design.\\n\"\n        \"All action takes place in a single environment. Objects are presented to the user without \"\n        \"breaking the continuity of experience even as they transform and reorganize.\\n\"\n        \"Motion is meaningful and appropriate, serving to focus attention and maintain continuity. \"\n        \"Feedback is subtle yet clear. Transitions are efﬁcient yet coherent.\\n\\n\"\n\n        \"3D world.\\n\\n\"\n\n        \"The material environment is a 3D space, which means all objects have x, y, and z \"\n        \"dimensions. The z-axis is perpendicularly aligned to the plane of the display, with the \"\n        \"positive z-axis extending towards the viewer. Every sheet of material occupies a single \"\n        \"position along the z-axis and has a standard 1dp thickness.\\n\"\n        \"On the web, the z-axis is used for layering and not for perspective. The 3D world is \"\n        \"emulated by manipulating the y-axis.\\n\\n\"\n\n        \"Light and shadow.\\n\\n\"\n\n        \"Within the material environment, virtual lights illuminate the scene. Key lights create \"\n        \"directional shadows, while ambient light creates soft shadows from all angles.\\n\"\n        \"Shadows in the material environment are cast by these two light sources. In Android \"\n        \"development, shadows occur when light sources are blocked by sheets of material at \"\n        \"various positions along the z-axis. On the web, shadows are depicted by manipulating the \"\n        \"y-axis only. The following example shows the card with a height of 6dp.\\n\\n\"\n\n        \"Resting elevation.\\n\\n\"\n\n        \"All material objects, regardless of size, have a resting elevation, or default elevation \"\n        \"that does not change. If an object changes elevation, it should return to its resting \"\n        \"elevation as soon as possible.\\n\\n\"\n\n        \"Component elevations.\\n\\n\"\n\n        \"The resting elevation for a component type is consistent across apps (e.g., FAB elevation \"\n        \"does not vary from 6dp in one app to 16dp in another app).\\n\"\n        \"Components may have different resting elevations across platforms, depending on the depth \"\n        \"of the environment (e.g., TV has a greater depth than mobile or desktop).\\n\\n\"\n\n        \"Responsive elevation and dynamic elevation offsets.\\n\\n\"\n\n        \"Some component types have responsive elevation, meaning they change elevation in response \"\n        \"to user input (e.g., normal, focused, and pressed) or system events. These elevation \"\n        \"changes are consistently implemented using dynamic elevation offsets.\\n\"\n        \"Dynamic elevation offsets are the goal elevation that a component moves towards, relative \"\n        \"to the component’s resting state. They ensure that elevation changes are consistent \"\n        \"across actions and component types. For example, all components that lift on press have \"\n        \"the same elevation change relative to their resting elevation.\\n\"\n        \"Once the input event is completed or cancelled, the component will return to its resting \"\n        \"elevation.\\n\\n\"\n\n        \"Avoiding elevation interference.\\n\\n\"\n\n        \"Components with responsive elevations may encounter other components as they move between \"\n        \"their resting elevations and dynamic elevation offsets. Because material cannot pass \"\n        \"through other material, components avoid interfering with one another any number of ways, \"\n        \"whether on a per component basis or using the entire app layout.\\n\"\n        \"On a component level, components can move or be removed before they cause interference. \"\n        \"For example, a floating action button (FAB) can disappear or move off screen before a \"\n        \"user picks up a card, or it can move if a snackbar appears.\\n\"\n        \"On the layout level, design your app layout to minimize opportunities for interference. \"\n        \"For example, position the FAB to one side of stream of a cards so the FAB won’t interfere \"\n        \"when a user tries to pick up one of cards.\\n\\n\"\n    </string>\n    <string name=\"plane_finding\">Searching for surfaces&#8230;</string>\n    <string name=\"title_bar_orientation\">Orientation Guide</string>\n    <string name=\"title_bar_ar\">AR Guide</string>\n    <string name=\"title_bar_map\">Map Guide</string>\n    <string name=\"navigation_activity_title\">Navigation</string>\n</resources>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/strings.xml	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/res/values/strings.xml	(date 1605246777000)
+@@ -16,6 +16,8 @@
+     <string name="invalid_password">Password must be >5 characters</string>
+     <string name="login_failed">"Login failed"</string>
+     <string name="title_activity_hello">MainActivity</string>
++    <string name="short_text">
++        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</string>
+     <string name="large_text">
+         "Material is the metaphor.\n\n"
+ 
+Index: app/src/main/res/layout/notification_post.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/notification_post.xml	(date 1605254665000)
++++ app/src/main/res/layout/notification_post.xml	(date 1605254665000)
+@@ -0,0 +1,106 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout
++    xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:orientation="horizontal"
++    android:id="@+id/notification_container"
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:background="@color/cardview_light_background">
++
++    <RelativeLayout
++        android:layout_marginHorizontal="@dimen/margin_xsmall"
++        android:layout_width="wrap_content"
++        android:layout_height="match_parent">
++        <com.github.vipulasri.timelineview.TimelineView
++            android:id="@+id/timeline"
++            android:layout_width="wrap_content"
++            android:layout_height="match_parent"
++            android:layout_centerHorizontal="true"
++            app:marker="@android:color/transparent"
++            app:endLineColor="#F5F5F5"
++            app:startLineColor="#F5F5F5"
++            app:lineWidth="3dp"
++            app:markerSize="20dp"
++
++            />
++
++
++        <de.hdodenhof.circleimageview.CircleImageView
++            android:id="@+id/userAvatar"
++            android:layout_width="40dp"
++            android:layout_height="40dp"
++            android:layout_centerVertical="true"
++            app:civ_circle_background_color="@android:color/white"
++            app:civ_border_color="#c9c9c9"
++            app:civ_border_width="1dp"
++            android:src="@drawable/cloudy"
++            tools:srcCompat="@tools:sample/avatars" />
++    </RelativeLayout>
++
++<!--    <ImageView-->
++<!--        android:id="@+id/line"-->
++<!--        android:layout_width="1dp"-->
++<!--        android:layout_height="0dp"-->
++<!--        android:layout_marginStart="32dp"-->
++<!--        android:layout_marginLeft="32dp"-->
++<!--        app:layout_constraintBottom_toBottomOf="parent"-->
++<!--        app:layout_constraintStart_toStartOf="parent"-->
++<!--        app:layout_constraintTop_toTopOf="parent"-->
++<!--        app:srcCompat="@color/gray_line_colour" />-->
++    <com.google.android.material.card.MaterialCardView
++        app:cardBackgroundColor="#F5F5F5"
++        android:layout_marginVertical="@dimen/margin_xsmall"
++        android:layout_marginEnd="@dimen/margin_xsmall"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        >
++
++        <LinearLayout
++            android:orientation="vertical"
++            android:layout_width="match_parent"
++            android:padding="@dimen/margin_xsmall"
++            android:layout_height="wrap_content">
++
++            <LinearLayout
++                android:layout_width="match_parent"
++                android:layout_marginBottom="@dimen/margin_xsmall"
++                android:layout_height="wrap_content">
++
++                <TextView
++                    android:id="@+id/post_time"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="22:10"
++                    android:fontFamily="@font/lato_bold" />
++
++                <TextView
++                    android:layout_marginLeft="@dimen/margin_xsmall"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="From "
++                    android:fontFamily="@font/lato_bold" />
++
++                <TextView
++                    android:id="@+id/post_user_name"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:fontFamily="@font/lato_bold" />
++
++
++            </LinearLayout>
++            <TextView
++                android:id="@+id/notification_content"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++
++                android:lineSpacingExtra="8sp"
++                android:text="@string/short_text"
++                android:textAlignment="viewStart"
++              />
++
++
++        </LinearLayout>
++    </com.google.android.material.card.MaterialCardView>
++</LinearLayout>
+\ No newline at end of file
+Index: app/src/main/java/com/example/phototutor/helpers/ServerClient.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.phototutor.helpers;\n\nimport android.content.Context;\nimport android.content.SharedPreferences;\nimport android.net.Uri;\n\nimport com.example.phototutor.Photo.Photo;\nimport com.google.gson.GsonBuilder;\nimport com.google.gson.JsonObject;\nimport com.itkacher.okhttpprofiler.OkHttpProfilerInterceptor;\n\nimport org.json.JSONException;\nimport org.json.JSONObject;\n\nimport java.io.File;\nimport java.util.Arrays;\nimport java.util.concurrent.TimeUnit;\n\nimport okhttp3.MediaType;\nimport okhttp3.MultipartBody;\nimport okhttp3.OkHttpClient;\nimport okhttp3.Protocol;\nimport okhttp3.RequestBody;\nimport okhttp3.ResponseBody;\nimport retrofit2.Call;\nimport retrofit2.Callback;\nimport retrofit2.Response;\nimport retrofit2.Retrofit;\nimport retrofit2.converter.gson.GsonConverterFactory;\nimport retrofit2.http.Body;\nimport retrofit2.http.DELETE;\nimport retrofit2.http.GET;\nimport retrofit2.http.HEAD;\nimport retrofit2.http.Header;\nimport retrofit2.http.Headers;\nimport retrofit2.http.Multipart;\nimport retrofit2.http.POST;\nimport retrofit2.http.PUT;\nimport retrofit2.http.Part;\nimport retrofit2.http.Path;\n\npublic class ServerClient{\n    static private String host_address = \"http://whiteboard.house:8000\";\n\n//    static private String host_address = \"https://picsum.photos\";\n//    static private String host_address = \"https://xieranmaya.github.io\";\n    static private Retrofit retrofit = initRetrofit();\n\n\n\n    static private APIServer service =  retrofit.create(APIServer.class);;\n\n    static private Retrofit initRetrofit(){\n        OkHttpClient client = new OkHttpClient.Builder()\n                .protocols(Arrays.asList(Protocol.HTTP_1_1))\n                .addInterceptor(new OkHttpProfilerInterceptor())\n                .connectTimeout(10, TimeUnit.SECONDS)\n                .readTimeout(30, TimeUnit.SECONDS).build();\n\n        retrofit = new Retrofit.Builder()\n                .baseUrl(host_address)\n                .client(client)\n                .addConverterFactory(GsonConverterFactory.create(new GsonBuilder().create()))\n                .build();\n        return retrofit;\n\n    }\n    static public String getBaseURL(){\n        return host_address;\n    }\n\n    public APIServer getService(){\n        return service;\n    }\n\n    public Retrofit getRetrofit(){\n        return retrofit;\n    }\n\n    interface APIServer {\n\n        @Multipart\n        @POST(\"/upload/\")\n        Call<ResponseBody> uploadImage(\n                @Header(\"Authorization\") String authKey,\n                @Part MultipartBody.Part photo\n        );\n\n\n        @POST(\"/picture/\")\n        Call<ResponseBody> uploadImageInfo(\n                @Header(\"Authorization\") String authKey,\n                @Body RequestBody info\n        );\n\n\n        @GET(\"/upload/{id}\")\n        Call<ResponseBody> getPhotoInfo(\n                @Path(\"id\") Integer id);\n\n\n        @Headers(\"Content-type: application/json\")\n        @POST(\"/els/picture/_search\")\n        Call<ResponseBody> getPhotosByEls(@Body JsonObject body);\n\n\n        @GET(\"/picture\")\n        Call<ResponseBody> getAllPictures();\n\n\n        @GET(\"/picture/{id}\")\n        Call<ResponseBody> getPhotoDetail(@Path(\"id\") Integer id);\n\n        @GET(\"/user\")\n        Call<ResponseBody> getUserData(@Header(\"Authorization\") String authKey);\n\n        @Headers(\"Content-type: application/json\")\n        @PUT(\"/user/\")\n        Call<ResponseBody> uploadUserData(@Header(\"Authorization\") String authKey, @Body RequestBody body);\n\n\n\n        //------------------------------------------------------\n\n\n        @GET(\"/user/detail/{id}\")\n        Call<ResponseBody> getUserDetail(@Path(\"id\") Integer id);\n\n        @GET(\"/user/follow/ers/{id}\")\n        Call<ResponseBody> getUserFollowers(@Path(\"id\") Integer id);\n\n        @GET(\"/user/follow/ing/{id}\")\n        Call<ResponseBody> getUserFollowing(@Path(\"id\") Integer id);\n\n        @GET(\"/user/follow/ami/{id}\")\n        Call<ResponseBody> getAmiFollowInfo(@Header(\"Authorization\") String authKey,@Path(\"id\") int id);\n\n        @Headers(\"Content-type: application/json\")\n        @POST(\"/user/follow/{id}\")\n        Call<ResponseBody> addFollower(@Header(\"Authorization\") String authKey,@Path(\"id\") int id);\n\n\n        @Headers(\"Content-type: application/json\")\n        @DELETE(\"/user/follow/{id}\")\n        Call<ResponseBody> removeFollower(@Header(\"Authorization\") String authKey,@Path(\"id\") int id);\n\n        @Headers(\"Content-type: application/json\")\n        @POST(\"/els/comment/_search\")\n        Call<ResponseBody> getComments(@Header(\"Authorization\") String authKey, @Body JsonObject body);\n\n        @Headers(\"Content-type: application/json\")\n        @POST(\"/picture/{id}/comment\")\n        Call<ResponseBody> commentPhoto(@Header(\"Authorization\") String authKey,@Path(\"id\") int id, @Body JsonObject body);\n\n        @GET(\"/picture\")\n        Call<ResponseBody> getUserNotifications(@Header(\"Authorization\") String authKey);\n\n        @Headers(\"Content-type: application/json\")\n        @POST(\"/picture/{id}/dislike\")\n        Call<ResponseBody> dislikePhoto(@Header(\"Authorization\") String authKey,@Path(\"id\") int id);\n\n\n        @Headers(\"Content-type: application/json\")\n        @POST(\"/picture/{id}/like\")\n        Call<ResponseBody> likePhoto(@Header(\"Authorization\") String authKey,@Path(\"id\") int id);\n\n        @DELETE(\"/picture/{id}/dislike\")\n        Call<ResponseBody> cancelDislikePhoto(@Header(\"Authorization\") String authKey,@Path(\"id\") int id);\n\n\n        @DELETE(\"/picture/{id}/like\")\n        Call<ResponseBody> cancelLikePhoto(@Header(\"Authorization\") String authKey,@Path(\"id\") int id);\n\n        @DELETE(\"/picture/{id}/comment\")\n        Call<ResponseBody> deleteComment(@Header(\"Authorization\") String authKey, @Path(\"id\") int commentId);\n    }\n\n    public String getAuthorizationToken(Context context){\n        SharedPreferences sharedPreferences = context.getSharedPreferences(\"login\",Context.MODE_PRIVATE);\n        return sharedPreferences.getString(\"accessToken\", \"null\");\n    }\n}\n\n\n\n\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/helpers/ServerClient.java	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/java/com/example/phototutor/helpers/ServerClient.java	(date 1605246777000)
+@@ -5,6 +5,7 @@
+ import android.net.Uri;
+ 
+ import com.example.phototutor.Photo.Photo;
++import com.example.phototutor.notification.Notification;
+ import com.google.gson.GsonBuilder;
+ import com.google.gson.JsonObject;
+ import com.itkacher.okhttpprofiler.OkHttpProfilerInterceptor;
+@@ -14,6 +15,7 @@
+ 
+ import java.io.File;
+ import java.util.Arrays;
++import java.util.List;
+ import java.util.concurrent.TimeUnit;
+ 
+ import okhttp3.MediaType;
+@@ -152,7 +154,7 @@
+         @POST("/picture/{id}/comment")
+         Call<ResponseBody> commentPhoto(@Header("Authorization") String authKey,@Path("id") int id, @Body JsonObject body);
+ 
+-        @GET("/picture")
++        @GET("/message")
+         Call<ResponseBody> getUserNotifications(@Header("Authorization") String authKey);
+ 
+         @Headers("Content-type: application/json")
+Index: app/src/main/res/values/colors.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n    <color name=\"colorPrimary\">#3F5AA6</color>\n    <color name=\"colorPrimaryDark\">#3700B3</color>\n    <color name=\"colorAccent\">#03DAC5</color>\n    <color name=\"orientation_arrow\">#FF33AEFF</color>\n    <color name=\"themeBlue\">#3F5AA6</color>\n</resources>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/colors.xml	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/res/values/colors.xml	(date 1605246777000)
+@@ -5,4 +5,5 @@
+     <color name="colorAccent">#03DAC5</color>
+     <color name="orientation_arrow">#FF33AEFF</color>
+     <color name="themeBlue">#3F5AA6</color>
++    <color name="gray_line_colour">#E7E7E7</color>
+ </resources>
+\ No newline at end of file
+Index: app/src/main/java/com/example/phototutor/notification/Notification.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/notification/Notification.java	(date 1605254324000)
++++ app/src/main/java/com/example/phototutor/notification/Notification.java	(date 1605254324000)
+@@ -0,0 +1,51 @@
++package com.example.phototutor.notification;
++
++import java.net.URL;
++import java.time.ZonedDateTime;
++import java.util.Date;
++
++public class Notification {
++    private int notificationId;
++    private int userId;
++    private int actorId;
++
++
++    private String type;
++    private String message;
++
++    private ZonedDateTime createTime;
++    public Notification(int notificationId, int userId, int actorId, String type, String message,String createTime) {
++        this.notificationId = notificationId;
++        this.userId = userId;
++        this.actorId = actorId;
++        this.type = type;
++        this.message = message;
++        this.createTime = ZonedDateTime.parse(createTime);
++    }
++
++
++    public int getNotificationId() {
++        return notificationId;
++    }
++
++    public int getUserId() {
++        return userId;
++    }
++
++    public int getActorId() {
++        return actorId;
++    }
++
++    public String getType() {
++        return type;
++    }
++
++    public String getMessage() {
++        return message;
++    }
++
++
++    public ZonedDateTime getCreateTime() {
++        return createTime;
++    }
++}
+Index: app/src/main/java/com/example/phototutor/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.phototutor;\n\nimport android.Manifest;\nimport android.annotation.SuppressLint;\nimport android.app.FragmentTransaction;\nimport android.content.Context;\nimport android.content.Intent;\nimport android.content.SharedPreferences;\nimport android.content.pm.PackageManager;\nimport android.location.Geocoder;\nimport android.location.Location;\nimport android.os.Bundle;\nimport android.util.Log;\nimport android.view.MenuItem;\nimport android.view.View;\nimport android.widget.Button;\nimport android.widget.PopupMenu;\nimport android.widget.Toast;\n\nimport com.example.phototutor.ui.login.ui.login.LoginActivity;\nimport com.google.android.gms.location.FusedLocationProviderClient;\nimport com.google.android.gms.location.LocationCallback;\nimport com.google.android.gms.location.LocationRequest;\nimport com.google.android.gms.location.LocationResult;\nimport com.google.android.gms.location.LocationServices;\nimport com.google.android.gms.tasks.OnSuccessListener;\nimport com.google.android.material.appbar.MaterialToolbar;\nimport com.google.android.material.bottomnavigation.BottomNavigationView;\nimport com.google.android.material.bottomsheet.BottomSheetDialog;\n\nimport androidx.annotation.NonNull;\nimport androidx.appcompat.app.AppCompatActivity;\nimport androidx.lifecycle.MutableLiveData;\nimport androidx.lifecycle.Observer;\nimport androidx.navigation.NavController;\nimport androidx.navigation.Navigation;\nimport androidx.navigation.ui.AppBarConfiguration;\nimport androidx.navigation.ui.NavigationUI;\n\nimport org.json.JSONObject;\n\nimport java.io.IOException;\n\npublic class MainActivity extends MyAppCompatActivity {\n\n    private static SharedPreferences sharedPreferences;\n    public static final String fileName = \"login\";\n    public static final String Username = \"username\";\n\n\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.activity_main);\n        BottomNavigationView navView = findViewById(R.id.nav_view);\n        // Passing each menu ID as a set of Ids because each\n        // menu should be considered as top level destinations.\n        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(\n                R.id.navigation_home, R.id.navigation_user_profile)\n                .build();\n//        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);\n        configNavigationItemSelectedListener(navView);\n\n    }\n\n\n\n\n    private void configNavigationItemSelectedListener(BottomNavigationView navView ){\n        navView.setOnNavigationItemSelectedListener(item -> {\n            if(item.getItemId() == R.id.dialog_selection){\n                PopupMenu popup = new PopupMenu(this,findViewById(R.id.dialog_selection));\n                popup.getMenuInflater().inflate(R.menu.camera_local_album_selection_menu, popup.getMenu());\n                popup.setOnMenuItemClickListener(menuItem -> {\n                    Intent intent = null;\n                    switch (menuItem.getItemId()){\n                        case R.id.navigation_camera:\n                            intent = new Intent(this, CameraActivity.class);\n                            break;\n                        case R.id.navigation_local_album:\n                            intent = new Intent(this, LocalAlbumActivity.class);\n                            break;\n\n\n                    }\n                    startActivity(intent);\n                    return true;\n                });\n                popup.setOnDismissListener(popupMenu -> {\n                    navView.setSelectedItemId(R.id.navigation_home);\n\n                });\n                popup.show();\n            }\n            else if (item.getItemId() == R.id.navigation_user_profile){\n                Bundle bundle = new Bundle();\n                bundle.putInt(\"userId\",getPrimaryUserId()); //TODO add primary user id\n                bundle.putBoolean(\"primaryUser\",true);\n                Navigation.findNavController(this,R.id.nav_host_fragment)\n                        .navigate(R.id.navigation_user_profile,bundle);\n            }\n            else if (item.getItemId() == R.id.navigation_home){\n                Navigation.findNavController(this,R.id.nav_host_fragment)\n                        .navigate(R.id.navigation_home);\n            }\n            return true;\n        });\n    }\n\n//    @Override\n//    public void onBackPressed() {\n//        sharedPreferences = getSharedPreferences(fileName, Context.MODE_PRIVATE);\n//        if(sharedPreferences.contains(Username)) {\n//            finishAffinity();\n//            finish();\n//        }\n//\n//    }\n\n\n\n\n    //for fused location listenr\n\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/phototutor/MainActivity.java	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/java/com/example/phototutor/MainActivity.java	(date 1605255251000)
+@@ -1,45 +1,16 @@
+ package com.example.phototutor;
+ 
+-import android.Manifest;
+-import android.annotation.SuppressLint;
+-import android.app.FragmentTransaction;
+-import android.content.Context;
+ import android.content.Intent;
+ import android.content.SharedPreferences;
+-import android.content.pm.PackageManager;
+-import android.location.Geocoder;
+-import android.location.Location;
+ import android.os.Bundle;
+-import android.util.Log;
+-import android.view.MenuItem;
+ import android.view.View;
+-import android.widget.Button;
++import android.widget.ImageButton;
+ import android.widget.PopupMenu;
+-import android.widget.Toast;
+ 
+-import com.example.phototutor.ui.login.ui.login.LoginActivity;
+-import com.google.android.gms.location.FusedLocationProviderClient;
+-import com.google.android.gms.location.LocationCallback;
+-import com.google.android.gms.location.LocationRequest;
+-import com.google.android.gms.location.LocationResult;
+-import com.google.android.gms.location.LocationServices;
+-import com.google.android.gms.tasks.OnSuccessListener;
+-import com.google.android.material.appbar.MaterialToolbar;
+ import com.google.android.material.bottomnavigation.BottomNavigationView;
+-import com.google.android.material.bottomsheet.BottomSheetDialog;
+ 
+-import androidx.annotation.NonNull;
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.lifecycle.MutableLiveData;
+-import androidx.lifecycle.Observer;
+-import androidx.navigation.NavController;
+ import androidx.navigation.Navigation;
+ import androidx.navigation.ui.AppBarConfiguration;
+-import androidx.navigation.ui.NavigationUI;
+-
+-import org.json.JSONObject;
+-
+-import java.io.IOException;
+ 
+ public class MainActivity extends MyAppCompatActivity {
+ 
+@@ -62,10 +33,8 @@
+ //        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+         configNavigationItemSelectedListener(navView);
+ 
+-    }
+-
+-
+ 
++    }
+ 
+     private void configNavigationItemSelectedListener(BottomNavigationView navView ){
+         navView.setOnNavigationItemSelectedListener(item -> {
+Index: app/src/main/res/menu/profile_app_bar.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\n<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n    <item\n        android:id=\"@+id/navigation_logout\"\n        android:icon=\"@drawable/ic_baseline_exit_to_app_24\"\n        android:title=\"Log Out\"\n        app:showAsAction=\"ifRoom\"/>\n</menu>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/menu/profile_app_bar.xml	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/res/menu/profile_app_bar.xml	(date 1605255295000)
+@@ -6,4 +6,11 @@
+         android:icon="@drawable/ic_baseline_exit_to_app_24"
+         android:title="Log Out"
+         app:showAsAction="ifRoom"/>
++
++
++    <item
++        android:id="@+id/navigation_notification"
++        android:icon="@drawable/ic_notifications_black_24dp"
++        android:title="Notification"
++        app:showAsAction="ifRoom"/>
+ </menu>
+\ No newline at end of file
+Index: app/src/main/res/drawable/ic_notifications_black_24dp.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    android:width=\"24dp\"\n    android:height=\"24dp\"\n    android:viewportWidth=\"24.0\"\n    android:viewportHeight=\"24.0\">\n    <path\n        android:fillColor=\"#FF000000\"\n        android:pathData=\"M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.89,2 2,2zM18,16v-5c0,-3.07 -1.64,-5.64 -4.5,-6.32L13.5,4c0,-0.83 -0.67,-1.5 -1.5,-1.5s-1.5,0.67 -1.5,1.5v0.68C7.63,5.36 6,7.92 6,11v5l-2,2v1h16v-1l-2,-2z\" />\n</vector>\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/ic_notifications_black_24dp.xml	(revision 4c46a4fc88f6a62e01387892ff2ab76a4e91e92c)
++++ app/src/main/res/drawable/ic_notifications_black_24dp.xml	(date 1605255111000)
+@@ -4,6 +4,6 @@
+     android:viewportWidth="24.0"
+     android:viewportHeight="24.0">
+     <path
+-        android:fillColor="#FF000000"
++        android:fillColor="#FFFFFFFF"
+         android:pathData="M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.89,2 2,2zM18,16v-5c0,-3.07 -1.64,-5.64 -4.5,-6.32L13.5,4c0,-0.83 -0.67,-1.5 -1.5,-1.5s-1.5,0.67 -1.5,1.5v0.68C7.63,5.36 6,7.92 6,11v5l-2,2v1h16v-1l-2,-2z" />
+ </vector>
