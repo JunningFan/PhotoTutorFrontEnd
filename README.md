@@ -28,7 +28,6 @@ An AR/sensor fusion based photo sharing and recommendation service. Users can sh
 * Map (Google Maps API, Google Distances API)
 * AR View and Navigation(ARcore, Arcore-location API)
 
-<img align="right" src="media/16075711858436/1607571501736275-2.gif" alt="AR Tutorial" width="50%" height="auto" style="display: inline; float: right"/>
 
 
 ### 3. Photo Recommendation/View
@@ -42,8 +41,10 @@ An AR/sensor fusion based photo sharing and recommendation service. Users can sh
 * Weather
 * Tags
 
+### 3. Screenshots
 
-<img align="right" src="media/16075711858436/final_5fd19c646199e2004d410b80_139440.gif" alt="" width="50%" height="auto" style="display: inline; float: right"/>
+<img align="left" src="media/16075711858436/1607571501736275-2.gif" alt="AR Tutorial" width="50%" height="auto" style="display: inline"/>
+<img align="right" src="media/16075711858436/final_5fd19c646199e2004d410b80_139440.gif" alt="" width="50%" height="auto" style="display: inline;"/>
 
 
 
