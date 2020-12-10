@@ -48,8 +48,7 @@ Navigation        |  Recommendation
 :-------------------------:|:-------------------------:
 ![](media/16075711858436/1607571501736275-2.gif)  |  ![](media/16075711858436/final_5fd19c646199e2004d410b80_139440.gif)
 
-## Backend
-![Repo Link](https://github.com/JunningFan/PhotoTutor)
+## Backend [Repo Link](https://github.com/JunningFan/PhotoTutor)
 ![](media/16075711858436/16075734129931.jpg)
 
 
